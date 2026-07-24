@@ -121,6 +121,10 @@ public class AMRegistry {
         this.translations.forEach(consumer);
     }
 
+    public @NotNull AMRegistryInstance<SoundEvent> initSound(String path) {
+        return this.init(path, SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(this.namespace, path)));
+    }
+
     public @NotNull AMItemRegistryInstance initItem(String path) {
         return this.init(path, new Item.Properties());
     }

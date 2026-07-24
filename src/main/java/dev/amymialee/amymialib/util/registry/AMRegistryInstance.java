@@ -23,7 +23,7 @@ public class AMRegistryInstance<T> {
     }
 
     public AMRegistryInstance<T> translation(String translation) {
-        this.translation = Pair.of(Util.makeDescriptionId(registry.key().identifier().toLanguageKey(), key.identifier()), translation);
+        this.translation = Pair.of(Util.makeDescriptionId(registry.key().identifier().getPath(), key.identifier()), translation);
         return this;
     }
 
@@ -51,6 +51,15 @@ public class AMRegistryInstance<T> {
         this.addTranslation();
         this.postRegister();
         return value;
+    }
+
+
+    public ResourceKey<T> registerKey() {
+        this.preRegister();
+        Registry.register(registry, key, this.value);
+        this.addTranslation();
+        this.postRegister();
+        return key;
     }
 
     public Holder.@NonNull Reference<T> registerHolder() {
