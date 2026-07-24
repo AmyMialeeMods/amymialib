@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "amymialib",
+  "version": "${version}",
+
+  "name": "Amy's Mialib",
+  "description": "Library for AmyMialee's Mods",
+  "authors": [
+    "AmyMialee"
+  ],
+  "contributors": [],
+  "contact": {
+    "email": "amymialib@amymialee.dev",
+    "homepage": "https://www.amymialee.dev/",
+    "sources": "https://github.com/AmyMialeeMods/amymialib",
+    "issues": "https://github.com/AmyMialeeMods/amymialib/issues"
+  },
+  "license": "All-Rights-Reserved",
+  "icon": "assets/amymialib/icon.png",
+
+  "accessWidener" : "amymialib.accesswidener",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "dev.amymialee.amymialib.AmyMialibDataGenerator"
+    ],
+    "client": [
+      "dev.amymialee.amymialib.AmyMialibClient"
+    ],
+    "main": [
+      "dev.amymialee.amymialib.AmyMialib"
+    ]
+  },
+  "mixins": [
+    "amymialib.mixins.json"
+  ],
+
+  "depends": {
+    "fabric-api": "*"
+  },
+
+  "custom": {
+    "loom:injected_interfaces": {},
+    "modmenu": {
+      "links": {
+        "modmenu.website": "https://amymialee.dev",
+        "modmenu.patreon": "https://www.patreon.com/cw/AmyMialee",
+        "modmenu.discord": "https://discord.amymialee.dev"
+      }
+    }
+  }
+}
