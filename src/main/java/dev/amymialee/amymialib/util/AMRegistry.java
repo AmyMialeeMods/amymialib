@@ -23,6 +23,7 @@ import net.minecraft.server.jsonrpc.OutgoingRpcMethod;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.stats.StatType;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.debug.DebugSubscription;
 import net.minecraft.world.attribute.AttributeType;
 import net.minecraft.world.attribute.EnvironmentAttribute;
@@ -119,6 +120,10 @@ public class AMRegistry {
 
     public void buildTranslations(BiConsumer<String, String> consumer) {
         this.translations.forEach(consumer);
+    }
+
+    public <T> TagKey<T> makeTag(ResourceKey<Registry<T>> registry, String path) {
+        return TagKey.create(registry, Identifier.fromNamespaceAndPath(this.namespace, path));
     }
 
     public @NotNull AMRegistryInstance<SoundEvent> initSound(String path) {
