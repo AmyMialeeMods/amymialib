@@ -39,8 +39,9 @@ public class AMRegistryInstance<T> {
 
     public void preRegister() {}
 
-    public void addTranslation() {
+    public void informRegistry() {
         if (this.translation != null) this.amRegistry.addTranslation(this.translation);
+        this.amRegistry.putKey(this.value, this.key);
     }
 
     public void postRegister() {}
@@ -48,7 +49,7 @@ public class AMRegistryInstance<T> {
     public T register() {
         this.preRegister();
         var value = Registry.register(registry, key, this.value);
-        this.addTranslation();
+        this.informRegistry();
         this.postRegister();
         return value;
     }
@@ -57,7 +58,7 @@ public class AMRegistryInstance<T> {
     public ResourceKey<T> registerKey() {
         this.preRegister();
         Registry.register(registry, key, this.value);
-        this.addTranslation();
+        this.informRegistry();
         this.postRegister();
         return key;
     }
@@ -65,7 +66,7 @@ public class AMRegistryInstance<T> {
     public Holder.@NonNull Reference<T> registerHolder() {
         this.preRegister();
         var value = Registry.registerForHolder(registry, key, this.value);
-        this.addTranslation();
+        this.informRegistry();
         this.postRegister();
         return value;
     }

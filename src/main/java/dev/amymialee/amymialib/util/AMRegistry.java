@@ -1,14 +1,13 @@
 package dev.amymialee.amymialib.util;
 
 import com.ibm.icu.impl.Pair;
-import dev.amymialee.amymialib.util.registry.AMBlockRegistryInstance;
-import dev.amymialee.amymialib.util.registry.AMEntityTypeRegistryInstance;
-import dev.amymialee.amymialib.util.registry.AMItemRegistryInstance;
-import dev.amymialee.amymialib.util.registry.AMRegistryInstance;
+import dev.amymialee.amymialib.util.registry.*;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.client.color.item.Potion;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.core.DefaultedRegistry;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.predicates.DataComponentPredicate;
@@ -29,6 +28,7 @@ import net.minecraft.world.attribute.AttributeType;
 import net.minecraft.world.attribute.EnvironmentAttribute;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
@@ -74,6 +74,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.rule.blockent
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -87,6 +88,7 @@ public class AMRegistry {
     public static final Map<Class<?>, Registry<?>> DEFAULT_REGISTRIES = new HashMap<>();
     public final String namespace;
     public final Map<String, String> translations = new HashMap<>();
+    public final Map<Object, ResourceKey<?>> keys = new HashMap<>();
     public final List<AMItemRegistryInstance> registeredItems = new ArrayList<>();
     public final List<ResourceKey<CreativeModeTab>> tabs = new ArrayList<>();
     public boolean shouldRegisterBlockItems = true;
@@ -109,6 +111,19 @@ public class AMRegistry {
         this.shouldRegisterSpawnEggs = shouldRegisterSpawnEggs;
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> @Nullable ResourceKey<T> getId(T object) {
+        try {
+            return (ResourceKey<T>) keys.get(object);
+        } catch (Throwable _) {
+            throw new IllegalStateException("Failed to get ResourceKey from the %s AMRegistry using object %s!".formatted(this.namespace, object));
+        }
+    }
+
+    public <T> void putKey(T value, ResourceKey<T> key) {
+        this.keys.put(value, key);
+    }
+
     public String addTranslation(@NonNull Pair<String, String> translation) {
         return this.addTranslation(translation.first, translation.second);
     }
@@ -127,7 +142,7 @@ public class AMRegistry {
     }
 
     public @NotNull AMRegistryInstance<SoundEvent> initSound(String path) {
-        return this.init(path, SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(this.namespace, path)));
+        return new AMSoundEventRegistryInstance(this, ResourceKey.create(Registries.SOUND_EVENT, Identifier.fromNamespaceAndPath(this.namespace, path)), SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(this.namespace, path)));
     }
 
     public @NotNull AMItemRegistryInstance initItem(String path) {
@@ -161,7 +176,7 @@ public class AMRegistry {
             var registry = (Registry<T>) entry.getValue();
             return new AMRegistryInstance<>(this, registry, ResourceKey.create(registry.key(), Identifier.fromNamespaceAndPath(this.namespace, path)), thing);
         }
-        throw new IllegalStateException("Failed to register " + Identifier.fromNamespaceAndPath(this.namespace, path) + " to the " + this.namespace + " AMRegistry!");
+        throw new IllegalStateException("Failed to register %s to the %s AMRegistry!".formatted(Identifier.fromNamespaceAndPath(this.namespace, path), this.namespace));
     }
 
     static {

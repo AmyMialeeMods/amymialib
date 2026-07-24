@@ -30,7 +30,7 @@ public class AMEntityTypeRegistryInstance extends AMRegistryInstance<EntityType<
         try {
             FabricDefaultAttributeRegistry.register((EntityType<? extends LivingEntity>) value, attributes);
         } catch (IllegalArgumentException _) {
-            throw new IllegalStateException("Tried to register entity attributes on a non LivingEntity %s!".formatted(key));
+            throw new IllegalStateException("Tried to register entity attributes on a non LivingEntity %s with the %s AMRegistry!".formatted(key, this.amRegistry.namespace));
         }
         return this;
     }

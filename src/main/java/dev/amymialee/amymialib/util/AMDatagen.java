@@ -64,7 +64,7 @@ public abstract class AMDatagen implements DataGeneratorEntrypoint {
         var set = new HashSet<String>();
         for (var method : this.getClass().getDeclaredMethods()) set.add(method.getName());
         if (set.contains("generateBlockStateModels") || set.contains("generateItemModels")) pack.addProvider((dataOutput, _) -> new MModelProvider(this, dataOutput));
-        if (set.contains("generateSounds")) pack.addProvider((dataOutput, future) -> new AMAdvancementProvider(this, dataOutput, future));
+        if (set.contains("generateSounds")) pack.addProvider((dataOutput, future) -> new AMSoundsProvider(this, dataOutput, future));
         if (set.contains("generateAdvancements")) pack.addProvider((dataOutput, future) -> new AMAdvancementProvider(this, dataOutput, future));
         if (set.contains("generateBlockLootTables")) pack.addProvider((dataOutput, future) -> new AMBlockLootSubProvider(this, dataOutput, future));
         if (set.contains("generateEntityLootTables")) pack.addProvider((dataOutput, future) -> new AMEntityLootTableProvider(this, dataOutput, future));
