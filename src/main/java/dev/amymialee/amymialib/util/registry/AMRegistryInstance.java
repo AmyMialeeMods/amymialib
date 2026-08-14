@@ -1,19 +1,20 @@
 package dev.amymialee.amymialib.util.registry;
 
-import com.ibm.icu.impl.Pair;
 import dev.amymialee.amymialib.util.AMRegistry;
+import dev.amymialee.amymialib.util.datagentasks.AMGenTranslations;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Util;
 import org.jspecify.annotations.NonNull;
 
-public class AMRegistryInstance<T> {
-   public final AMRegistry amRegistry;
-   public final Registry<T> registry;
-   public final ResourceKey<T> key;
-   public final T value;
-   public Pair<String, String> translation;
+public class AMRegistryInstance<T> implements AMGenTranslations {
+    public final AMRegistry amRegistry;
+    public final Registry<T> registry;
+    public final ResourceKey<T> key;
+    public final T value;
 
     public AMRegistryInstance(AMRegistry amRegistry, Registry<T> registry, ResourceKey<T> key, T value) {
         this.amRegistry = amRegistry;
@@ -23,24 +24,29 @@ public class AMRegistryInstance<T> {
     }
 
     public AMRegistryInstance<T> translation(String translation) {
-        this.translation = Pair.of(Util.makeDescriptionId(registry.key().identifier().getPath(), key.identifier()), translation);
+        this.amRegistry.datagenTasks.add(new AMGenTranslations() {
+            @Override
+            public void generateTranslations(AMLanguageProvider provider, HolderLookup.Provider registryLookup, FabricLanguageProvider.TranslationBuilder builder) {
+                builder.add(Util.makeDescriptionId(registry.key().identifier().getPath(), key.identifier()), translation);
+            }
+        });
         return this;
     }
 
     public AMRegistryInstance<T> translation(String key, String translation) {
-        this.translation = Pair.of(key, translation);
-        return this;
-    }
-
-    public AMRegistryInstance<T> translation(Pair<String, String> translation) {
-        this.translation = translation;
+        this.amRegistry.datagenTasks.add(new AMGenTranslations() {
+            @Override
+            public void generateTranslations(AMLanguageProvider provider, HolderLookup.Provider registryLookup, FabricLanguageProvider.TranslationBuilder builder) {
+                builder.add(key, translation);
+            }
+        });
         return this;
     }
 
     public void preRegister() {}
 
     public void informRegistry() {
-        if (this.translation != null) this.amRegistry.addTranslation(this.translation);
+        this.amRegistry.registered.add(this);
         this.amRegistry.putKey(this.value, this.key);
     }
 
@@ -53,7 +59,6 @@ public class AMRegistryInstance<T> {
         this.postRegister();
         return value;
     }
-
 
     public ResourceKey<T> registerKey() {
         this.preRegister();

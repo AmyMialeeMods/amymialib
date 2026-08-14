@@ -20,21 +20,24 @@ public class AmyMialibDataGenerator extends AMDatagen {
     public static final ResourceKey<FlatLevelGeneratorPreset> DEV_READY = ResourceKey.create(Registries.FLAT_LEVEL_GENERATOR_PRESET, AmyMialib.id("dev_ready"));
     public static final ResourceKey<FlatLevelGeneratorPreset> BLAST_PROOF = ResourceKey.create(Registries.FLAT_LEVEL_GENERATOR_PRESET, AmyMialib.id("blast_proof"));
 
-    @Override
-    protected void generateTranslations(AMLanguageProvider provider, HolderLookup.Provider registryLookup, FabricLanguageProvider.@NonNull TranslationBuilder builder) {
-        builder.add(DEV_READY.identifier().toLanguageKey("flat_world_preset"), "Dev Ready");
-        builder.add(BLAST_PROOF.identifier().toLanguageKey("flat_world_preset"), "Blast Proof");
-        AmyMialib.REGISTRY.buildTranslations(builder::add);
+    public AmyMialibDataGenerator() {
+        super(AmyMialib.REGISTRY);
     }
 
     @Override
-    protected void generateFlatLevelGeneratorPresets(AMFlatLevelGeneratorPresetProvider provider, @NonNull Consumer<AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData> consumer) {
+    public void generateTranslations(AMLanguageProvider provider, HolderLookup.Provider registryLookup, FabricLanguageProvider.@NonNull TranslationBuilder builder) {
+        builder.add(DEV_READY.identifier().toLanguageKey("flat_world_preset"), "Dev Ready");
+        builder.add(BLAST_PROOF.identifier().toLanguageKey("flat_world_preset"), "Blast Proof");
+    }
+
+    @Override
+    public void generateFlatLevelGeneratorPresets(AMFlatLevelGeneratorPresetProvider provider, @NonNull Consumer<AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData> consumer) {
         consumer.accept(new AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData(DEV_READY, Items.AMETHYST_SHARD, Biomes.DARK_FOREST, ImmutableSet.of(), false, false, new FlatLayerInfo(15, Blocks.RED_SANDSTONE), new FlatLayerInfo(112, Blocks.DEEPSLATE), new FlatLayerInfo(1, Blocks.BEDROCK)));
         consumer.accept(new AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData(BLAST_PROOF, Items.TNT, Biomes.DARK_FOREST, ImmutableSet.of(), false, false, new FlatLayerInfo(15, Blocks.OBSIDIAN), new FlatLayerInfo(112, Blocks.REINFORCED_DEEPSLATE), new FlatLayerInfo(1, Blocks.BEDROCK)));
     }
 
     @Override
-    protected void generateFlatLevelGeneratorPresetTags(@NonNull AMFlatLevelGeneratorPresetTagsProvider provider, HolderLookup.Provider arg) {
+    public void generateFlatLevelGeneratorPresetTags(@NonNull AMFlatLevelGeneratorPresetTagsProvider provider, HolderLookup.Provider arg) {
         provider.builder(FlatLevelGeneratorPresetTags.VISIBLE).setReplace(false).addOptional(DEV_READY).addOptional(BLAST_PROOF);
     }
 }

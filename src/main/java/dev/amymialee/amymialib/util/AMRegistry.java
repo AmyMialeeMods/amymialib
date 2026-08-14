@@ -1,19 +1,22 @@
 package dev.amymialee.amymialib.util;
 
-import com.ibm.icu.impl.Pair;
+import dev.amymialee.amymialib.util.datagentasks.*;
 import dev.amymialee.amymialib.util.registry.*;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
+import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.client.color.item.Potion;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
-import net.minecraft.core.DefaultedRegistry;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.predicates.DataComponentPredicate;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.numbers.NumberFormatType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -27,8 +30,8 @@ import net.minecraft.util.debug.DebugSubscription;
 import net.minecraft.world.attribute.AttributeType;
 import net.minecraft.world.attribute.EnvironmentAttribute;
 import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
@@ -39,6 +42,7 @@ import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.consume_effects.ConsumeEffect;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -74,45 +78,47 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.rule.blockent
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class AMRegistry {
     public static final Map<Class<?>, Registry<?>> DEFAULT_REGISTRIES = new HashMap<>();
     public final String namespace;
-    public final Map<String, String> translations = new HashMap<>();
+    public final List<Object> datagenTasks = new ArrayList<>();
+    public final List<AMRegistryInstance<?>> registered = new ArrayList<>();
     public final Map<Object, ResourceKey<?>> keys = new HashMap<>();
-    public final List<AMItemRegistryInstance> registeredItems = new ArrayList<>();
-    public final List<ResourceKey<CreativeModeTab>> tabs = new ArrayList<>();
-    public boolean shouldRegisterBlockItems = true;
-    public boolean shouldRegisterSpawnEggs = true;
+    public final Map<EntityType<?>, Item> spawnEggs = new HashMap<>();
+    public ResourceKey<CreativeModeTab> creativeTab;
 
     public AMRegistry(String namespace) {
         this.namespace = namespace;
     }
 
     public void tab(ResourceKey<CreativeModeTab> tab) {
-        this.tabs.add(tab);
-        registeredItems.forEach((i) -> CreativeModeTabEvents.modifyOutputEvent(tab).register(output -> output.accept(i.value)));
+        this.creativeTab = tab;
+        for (var key : registered) if (key instanceof AMItemRegistryInstance i) CreativeModeTabEvents.modifyOutputEvent(tab).register(output -> output.accept(i.value));
     }
 
-    public void blockItems(boolean shouldRegisterBlockItems) {
-        this.shouldRegisterBlockItems = shouldRegisterBlockItems;
-    }
-
-    public void spawnEggs(boolean shouldRegisterSpawnEggs) {
-        this.shouldRegisterSpawnEggs = shouldRegisterSpawnEggs;
+    /**
+     * Intended to be used as a primary Creative Tab, if you want more control over the tab use {@link #tab(ResourceKey<CreativeModeTab>)}
+     * @param name Translated name for en_us.json
+     * @param iconGenerator Supplier for the icon of the tab
+     */
+    public AMRegistry tab(String name, Supplier<ItemStack> iconGenerator) {
+        var translationKey = Identifier.fromNamespaceAndPath(namespace, namespace).toLanguageKey("itemGroup");
+        this.tab(this.init(namespace, FabricCreativeModeTab.builder().title(Component.translatable(translationKey)).icon(iconGenerator).build()).translation(translationKey, name).registerKey());
+        return this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T> @Nullable ResourceKey<T> getId(T object) {
+    public <T> ResourceKey<T> getId(T object) {
+        if (!keys.containsKey(object)) throw new IllegalStateException("Tried to get ResourceKey from the %s AMRegistry using object %s which wasn't present!".formatted(this.namespace, object));
         try {
             return (ResourceKey<T>) keys.get(object);
         } catch (Throwable _) {
@@ -124,49 +130,36 @@ public class AMRegistry {
         this.keys.put(value, key);
     }
 
-    public String addTranslation(@NonNull Pair<String, String> translation) {
-        return this.addTranslation(translation.first, translation.second);
-    }
-
-    public String addTranslation(String key, @NonNull String translation) {
-        this.translations.put(key, translation);
-        return key;
-    }
-
-    public void buildTranslations(BiConsumer<String, String> consumer) {
-        this.translations.forEach(consumer);
+    public Item getSpawnEgg(EntityType<?> entityType) {
+        return this.spawnEggs.get(entityType);
     }
 
     public <T> TagKey<T> makeTag(ResourceKey<Registry<T>> registry, String path) {
         return TagKey.create(registry, Identifier.fromNamespaceAndPath(this.namespace, path));
     }
 
-    public @NotNull AMRegistryInstance<SoundEvent> initSound(String path) {
+    public @NotNull AMSoundEventRegistryInstance initSound(String path) {
         return new AMSoundEventRegistryInstance(this, ResourceKey.create(Registries.SOUND_EVENT, Identifier.fromNamespaceAndPath(this.namespace, path)), SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(this.namespace, path)));
     }
 
-    public @NotNull AMItemRegistryInstance initItem(String path) {
-        return this.init(path, new Item.Properties());
-    }
-
     public @NotNull AMItemRegistryInstance init(String path, Item.@NotNull Properties settings) {
-        return this.init(path, settings, Item::new);
+        return this.init(path, Item::new, settings);
     }
 
-    public @NotNull AMItemRegistryInstance init(String path, Item.@NotNull Properties settings, @NotNull Function<Item.Properties, Item> function) {
+    public @NotNull AMItemRegistryInstance init(String path, @NotNull Function<Item.Properties, Item> function, Item.@NotNull Properties settings) {
         return new AMItemRegistryInstance(this, ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(this.namespace, path)), settings, function);
     }
 
-    public @NotNull AMRegistryInstance<Block> init(String path, BlockBehaviour.@NotNull Properties settings) {
-        return this.init(path, settings, Block::new);
+    public @NotNull AMBlockRegistryInstance init(String path, BlockBehaviour.@NotNull Properties settings) {
+        return this.init(path, Block::new, settings);
     }
 
-    public @NotNull AMRegistryInstance<Block> init(String path, BlockBehaviour.@NotNull Properties settings, @NotNull Function<BlockBehaviour.Properties, Block> function) {
+    public @NotNull AMBlockRegistryInstance init(String path, @NotNull Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.@NotNull Properties settings) {
         return new AMBlockRegistryInstance(this, ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(this.namespace, path)), settings, function);
     }
 
-    public @NotNull AMRegistryInstance<EntityType<?>> init(String path, @NotNull EntityType.Builder<?> builder) {
-        return new AMEntityTypeRegistryInstance(this, ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(this.namespace, path)), builder);
+    public @SuppressWarnings("unchecked") <T extends Entity> @NotNull AMEntityTypeRegistryInstance<T> init(String path, @NotNull EntityType.Builder<T> builder) {
+        return new AMEntityTypeRegistryInstance<T>(this, ResourceKey.create((ResourceKey<Registry<EntityType<T>>>) (Object) Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(this.namespace, path)), builder);
     }
 
     @SuppressWarnings("unchecked")
@@ -177,6 +170,40 @@ public class AMRegistry {
             return new AMRegistryInstance<>(this, registry, ResourceKey.create(registry.key(), Identifier.fromNamespaceAndPath(this.namespace, path)), thing);
         }
         throw new IllegalStateException("Failed to register %s to the %s AMRegistry!".formatted(Identifier.fromNamespaceAndPath(this.namespace, path), this.namespace));
+    }
+
+    public void runDatagenTasks(@NonNull AMDatagen datagen, FabricDataGenerator.@NonNull Pack pack) {
+        var name = datagen.getName() + " AMRegistry";
+        pack.addProvider(AMGenAdvancements.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenBlockLootTables.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenDamageTypes.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenDynamic.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenEntityLootTables.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenFlatGeneratorPresets.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenLootTables.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenModels.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenRecipes.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenSounds.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenTranslations.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenBannerPatternTags.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenBlockEntityTypeTags.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenBlockTags.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenEntityTypeTags.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenFlatGeneratorPresetTags.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenFluidTags.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenItemTags.listProvider(name, datagenTasks));
+        pack.addProvider(AMGenDamageTypeTags.listProvider(name, datagenTasks));
+        for (var task : datagenTasks) if (task instanceof AMGenExtra extra) extra.addExtraDataProviders(pack);
+    }
+
+    public String createTranslation(String key, String translation) {
+        this.datagenTasks.add(new AMGenTranslations() {
+            @Override
+            public void generateTranslations(AMLanguageProvider provider, HolderLookup.Provider registryLookup, FabricLanguageProvider.TranslationBuilder builder) {
+                builder.add(key, translation);
+            }
+        });
+        return key;
     }
 
     static {
