@@ -21,6 +21,9 @@ public abstract class AMDatagen implements DataGeneratorEntrypoint,
         this(null);
     }
 
+    /**
+     * Allows for inserting an AMRegistry into the datagen, which will allow it to run its own datagen providers after this datagen finishes.
+     */
     public AMDatagen(AMRegistry heldRegistry) {
         this.heldRegistry = heldRegistry;
     }

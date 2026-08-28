@@ -1,1 +1,4 @@
 accessWidener v2 official
+
+accessible field net/minecraft/client/gui/components/AbstractButton SPRITES Lnet/minecraft/client/gui/components/WidgetSprites;
+

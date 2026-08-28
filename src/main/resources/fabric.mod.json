@@ -32,7 +32,9 @@
     ]
   },
   "mixins": [
-    "amymialib.mixins.json"
+    "amymialib.mixins.json",
+    "amymialib.aspects.client.mixins.json",
+    "amymialib.aspects.server.mixins.json"
   ],
 
   "depends": {

@@ -38,6 +38,6 @@ public class AmyMialibDataGenerator extends AMDatagen {
 
     @Override
     public void generateFlatLevelGeneratorPresetTags(@NonNull AMFlatLevelGeneratorPresetTagsProvider provider, HolderLookup.Provider arg) {
-        provider.builder(FlatLevelGeneratorPresetTags.VISIBLE).setReplace(false).addOptional(DEV_READY).addOptional(BLAST_PROOF);
+        provider.builder(FlatLevelGeneratorPresetTags.VISIBLE).addOptional(DEV_READY).addOptional(BLAST_PROOF);
     }
 }
