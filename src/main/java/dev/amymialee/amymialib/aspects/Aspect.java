@@ -1,10 +1,13 @@
 package dev.amymialee.amymialib.aspects;
 
-import dev.amymialee.amymialib.AmyMialib;
-import dev.amymialee.amymialib.aspects.client.AspectIcon;
+import dev.amymialee.amymialib.aspects.builder.AspectFileManager;
+import dev.amymialee.amymialib.aspects.builder.AspectIcon;
+import dev.amymialee.amymialib.aspects.builder.AspectType;
+import dev.amymialee.amymialib.aspects.builder.AspectSaveLocation;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -13,15 +16,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class Aspect<T> {
     public final Identifier id;
-    public final AspectSaveLocation saveLocation;
     public final AspectType<T> type;
+    public final AspectSaveLocation saveLocation;
     public final AspectIcon icon;
     public final String nameKey;
     public final String descriptionKey;
@@ -29,55 +34,37 @@ public final class Aspect<T> {
     public final Component description;
     public final Path filePath;
     public final Predicate<Player> hasPermission;
-    public final Runnable onChange;
+    public final Runnable onChangeServer;
+    public final Runnable onChangeClient;
     public final Identifier category;
-    final Map<UUID, T> players = new HashMap<>();
     T value;
 
-    private Aspect(@NonNull Identifier id, AspectSaveLocation saveLocation, AspectType<T> type, AspectIcon icon, Predicate<Player> hasPermission, Consumer<Aspect<T>> onChange, Identifier category) {
+    private Aspect(@NonNull Identifier id, AspectType<T> type, AspectSaveLocation saveLocation, String nameKey, String descriptionKey, AspectIcon icon, Predicate<Player> hasPermission, BiConsumer<Aspect<T>, MinecraftServer> onChangeServer, Consumer<Aspect<T>> onChangeClient, Identifier category) {
         this.id = id;
-        this.saveLocation = saveLocation;
         this.type = type;
+        this.saveLocation = saveLocation;
         this.icon = icon;
-        this.nameKey = id.toLanguageKey("amymialib.aspect");
-        this.descriptionKey = id.toLanguageKey("amymialib.aspect", "description");
+        this.nameKey = nameKey;
+        this.descriptionKey = descriptionKey;
         this.name = Component.translatable(this.nameKey);
         this.description = Component.translatable(this.descriptionKey).append("\n").append(Component.literal(id.getNamespace()).withStyle(ChatFormatting.BLUE));
         this.filePath = this.saveLocation.resolve(id.toString().replace(":", "_") + ".json");
         this.hasPermission = hasPermission;
-        this.onChange = onChange == null ? null : () -> onChange.accept(this);
+        this.onChangeServer = onChangeServer == null ? null : () -> onChangeServer.accept(this, AspectManager.SERVER);
+        this.onChangeClient = onChangeClient == null ? null : () -> onChangeClient.accept(this);
         this.category = category;
         this.value = this.type.defaultValue;
     }
 
     /**
-     * Players with relevant permissions can change config Aspects at any time.<br>
-     * Config Aspects are stored in the config folder and will be shared between worlds.
+     * Players with relevant permissions can change config Aspects at any time.
      */
     public static <T> @NotNull AspectBuilder<T> config(Identifier id, AspectType<T> type) {
         return new AspectBuilder<>(id, type, AspectSaveLocation.CONFIG);
     }
 
     /**
-     * Players with relevant permissions can change world Aspects while in a world or on a server.<br>
-     * World Aspects are stored in the world folder and will not be shared between worlds.<br>
-     * Functionally identical to config Aspects while on a server, unless you change the world folder.
-     */
-    public static <T> @NotNull AspectBuilder<T> world(Identifier id, AspectType<T> type) {
-        return new AspectBuilder<>(id, type, AspectSaveLocation.WORLD);
-    }
-
-    /**
-     * Players can change user Aspects at any time.<br>
-     * User aspects are stored in AppData and are shared between instances.
-     */
-    public static <T> @NotNull AspectBuilder<T> user(Identifier id, AspectType<T> type) {
-        return new AspectBuilder<>(id, type, AspectSaveLocation.USER);
-    }
-
-    /**
-     * Players can change client Aspects at any time.<br>
-     * Client Aspects are stored in the client's config folder.
+     * Players can change client Aspects at any time.
      */
     public static <T> @NotNull AspectBuilder<T> client(Identifier id, AspectType<T> type) {
         return new AspectBuilder<>(id, type, AspectSaveLocation.CLIENT);
@@ -87,60 +74,43 @@ public final class Aspect<T> {
         return this.value;
     }
 
-    public T get(@NonNull Player player) {
-        return this.get(player.getUUID());
-    }
-
-    public T get(UUID player) {
-        if (this.saveLocation.serverBased) {
-            AmyMialib.LOGGER.error("Aspect {} is server based so does not have a user specific value.", this);
-            return this.value;
-        }
-        return this.players.getOrDefault(player, this.type.defaultValue);
-    }
-
-    public @SuppressWarnings("OptionalUsedAsFieldOrParameterType") void set(T value, @NonNull Optional<Map<UUID, T>> playerValues) {
-        if (playerValues.isPresent()) {
-            this.players.clear();
-            this.players.putAll(playerValues.get());
-        }
-        this.set(value);
-    }
-
-    public void set(T value) {
+    void set(T value) {
         this.value = value;
-        AspectManager.onChange(this);
     }
 
-    public void set(T value, @NonNull Player player) {
-        this.set(value, player.getUUID());
+    public void saveToFile() {
+        AspectFileManager.save(this);
     }
 
-    public void set(T value, UUID player) {
-        if (this.saveLocation.serverBased) {
-            AmyMialib.LOGGER.error("Aspect {} is server based so does not have a user specific value.", this);
-            return;
-        }
-        this.players.put(player, value);
-        AspectManager.onChange(this);
+    public void loadFromFile(T value) {
+        this.value = value;
+    }
+
+    public boolean hasPermission(Player player) {
+        return this.hasPermission.test(player);
     }
 
     public static class AspectBuilder<T> {
         private final Identifier id;
         private final AspectType<T> type;
-        private final List<AspectIcon> icons = new ArrayList<>();
         private final AspectSaveLocation saveLocation;
+        public final String nameKey;
+        public final String descriptionKey;
+        private final List<AspectIcon> icons = new ArrayList<>();
         private Predicate<Player> hasPermission;
-        private Consumer<Aspect<T>> onChange;
+        private BiConsumer<Aspect<T>, MinecraftServer> onChangeServer;
+        private Consumer<Aspect<T>> onChangeClient;
         private Identifier category;
 
-        protected AspectBuilder(Identifier id, AspectType<T> type, @NonNull AspectSaveLocation saveLocation) {
+        protected AspectBuilder(@NonNull Identifier id, AspectType<T> type, @NonNull AspectSaveLocation saveLocation) {
             this.id = id;
             this.type = type;
             this.saveLocation = saveLocation;
+            this.nameKey = id.toLanguageKey("amymialib.aspect");
+            this.descriptionKey = id.toLanguageKey("amymialib.aspect", "description");
             switch (saveLocation) {
-                case CONFIG, WORLD -> this.hasPermission = p -> p.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
-                case USER, CLIENT -> this.hasPermission = _ -> true;
+                case CONFIG -> this.hasPermission = p -> p.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+                case CLIENT -> this.hasPermission = _ -> true;
             }
         }
 
@@ -149,7 +119,7 @@ public final class Aspect<T> {
             return this;
         }
 
-        public AspectBuilder<T> icon(Item item) {
+        public AspectBuilder<T> icon(@NonNull Item item) {
             return this.icon(item::getDefaultInstance);
         }
 
@@ -173,8 +143,13 @@ public final class Aspect<T> {
             return this;
         }
 
-        public AspectBuilder<T> onChange(Consumer<Aspect<T>> onChange) {
-            this.onChange = onChange;
+        public AspectBuilder<T> onChangeServer(BiConsumer<Aspect<T>, MinecraftServer> onChangeServer) {
+            this.onChangeServer = onChangeServer;
+            return this;
+        }
+
+        public AspectBuilder<T> onChangeClient(Consumer<Aspect<T>> onChangeClient) {
+            this.onChangeClient = onChangeClient;
             return this;
         }
 
@@ -185,7 +160,7 @@ public final class Aspect<T> {
 
         public Aspect<T> build() {
             AspectIcon icon = icons.isEmpty() ? new AspectIcon.AspectIconEmpty() : (icons.size() == 1 ? icons.getFirst() : new AspectIcon.AspectMultiIcon(icons));
-            return AspectManager.registerAspect(this.saveLocation, new Aspect<>(this.id, this.saveLocation, this.type, icon, this.hasPermission, this.onChange, this.category));
+            return AspectManager.registerAspect(new Aspect<>(this.id, this.type, this.saveLocation, this.nameKey, this.descriptionKey, icon, this.hasPermission, this.onChangeServer, this.onChangeClient, this.category));
         }
     }
 }

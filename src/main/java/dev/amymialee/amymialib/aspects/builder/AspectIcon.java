@@ -1,4 +1,4 @@
-package dev.amymialee.amymialib.aspects.client;
+package dev.amymialee.amymialib.aspects.builder;
 
 import dev.amymialee.amymialib.aspects.Aspect;
 import net.minecraft.client.gui.GuiGraphicsExtractor;

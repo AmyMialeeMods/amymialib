@@ -1,7 +1,6 @@
-package dev.amymialee.amymialib.aspects;
+package dev.amymialee.amymialib.aspects.builder;
 
-import dev.amymialee.amymialib.aspects.client.AspectBackground;
-import dev.amymialee.amymialib.aspects.client.AspectIcon;
+import dev.amymialee.amymialib.aspects.AspectManager;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;

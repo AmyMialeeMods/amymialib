@@ -1,5 +1,7 @@
 package dev.amymialee.amymialib.util;
 
+import dev.amymialee.amymialib.aspects.Aspect;
+import dev.amymialee.amymialib.aspects.builder.AspectType;
 import dev.amymialee.amymialib.util.datagentasks.*;
 import dev.amymialee.amymialib.util.registry.*;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
@@ -170,6 +172,28 @@ public class AMRegistry {
             return new AMRegistryInstance<>(this, registry, ResourceKey.create(registry.key(), Identifier.fromNamespaceAndPath(this.namespace, path)), thing);
         }
         throw new IllegalStateException("Failed to register %s to the %s AMRegistry!".formatted(Identifier.fromNamespaceAndPath(this.namespace, path), this.namespace));
+    }
+
+    public <T> Aspect.@NonNull AspectBuilder<T> config(String path, AspectType<T> type, String name, String description) {
+        var builder = this.config(path, type);
+        this.createTranslation(builder.nameKey, name);
+        this.createTranslation(builder.descriptionKey, description);
+        return builder;
+    }
+
+    public <T> Aspect.@NonNull AspectBuilder<T> config(String path, AspectType<T> type) {
+        return Aspect.config(Identifier.fromNamespaceAndPath(this.namespace, path), type);
+    }
+
+    public <T> Aspect.@NonNull AspectBuilder<T> client(String path, AspectType<T> type, String name, String description) {
+        var builder = this.client(path, type);
+        this.createTranslation(builder.nameKey, name);
+        this.createTranslation(builder.descriptionKey, description);
+        return builder;
+    }
+
+    public <T> Aspect.@NonNull AspectBuilder<T> client(String path, AspectType<T> type) {
+        return Aspect.client(Identifier.fromNamespaceAndPath(this.namespace, path), type);
     }
 
     public void runDatagenTasks(@NonNull AMDatagen datagen, FabricDataGenerator.@NonNull Pack pack) {

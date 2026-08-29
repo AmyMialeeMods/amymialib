@@ -3,8 +3,9 @@ package dev.amymialee.amymialib;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.amymialee.amymialib.aspects.Aspect;
-import dev.amymialee.amymialib.aspects.AspectSyncPayload;
-import dev.amymialee.amymialib.aspects.AspectType;
+import dev.amymialee.amymialib.aspects.AspectManager;
+import dev.amymialee.amymialib.aspects.builder.AspectSyncPayload;
+import dev.amymialee.amymialib.aspects.builder.AspectType;
 import dev.amymialee.amymialib.util.AMRegistry;
 import dev.upcraft.datasync.api.util.Entitlements;
 import net.fabricmc.api.ModInitializer;
@@ -44,9 +45,12 @@ public class AmyMialib implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        PayloadTypeRegistry.serverboundPlay().register(AspectSyncPayload.ID, AspectSyncPayload.CODEC);
-        PayloadTypeRegistry.clientboundPlay().register(AspectSyncPayload.ID, AspectSyncPayload.CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(AspectSyncPayload.ID, new AspectSyncPayload.ServerHandler());
+        PayloadTypeRegistry.serverboundPlay().register(AspectSyncPayload.ID_CHANGED, AspectSyncPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(AspectSyncPayload.ID_CHANGED, AspectSyncPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(AspectSyncPayload.ID_CHANGED, (payload, context) -> AspectManager.receivePayloadServer(payload, context));
+        PayloadTypeRegistry.serverboundPlay().register(AspectSyncPayload.ID_UNCHANGED, AspectSyncPayload.CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(AspectSyncPayload.ID_UNCHANGED, AspectSyncPayload.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(AspectSyncPayload.ID_UNCHANGED, (payload, context) -> AspectManager.receivePayloadServer(payload, context));
     }
 
     public static @NonNull SpriteIconButton aspectsButton(Screen screen) {
