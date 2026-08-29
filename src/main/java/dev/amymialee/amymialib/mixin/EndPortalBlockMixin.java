@@ -1,0 +1,18 @@
+package dev.amymialee.amymialib.mixin;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import dev.amymialee.amymialib.AmyMialib;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.EndPortalBlock;
+import org.jetbrains.annotations.NotNull;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+
+@Mixin(EndPortalBlock.class)
+public class EndPortalBlockMixin {
+    @WrapOperation(method = "entityInside", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;canUsePortal(Z)Z"))
+    private boolean amymialib$portalToggle(Entity instance, boolean allowVehicles, @NotNull Operation<Boolean> original) {
+        return original.call(instance, allowVehicles) && !AmyMialib.DISABLE_END_PORTALS.get();
+    }
+}

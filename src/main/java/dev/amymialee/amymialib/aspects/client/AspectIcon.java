@@ -9,6 +9,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 public interface AspectIcon {
     AspectIconEmpty EMPTY = new AspectIconEmpty();
@@ -29,15 +30,15 @@ public interface AspectIcon {
     }
 
     class AspectIconStack implements AspectIcon {
-        private final ItemStack stack;
+        private final Supplier<ItemStack> stack;
 
-        public AspectIconStack(ItemStack stack) {
+        public AspectIconStack(Supplier<ItemStack> stack) {
             this.stack = stack;
         }
 
         @Override
         public void renderWidget(@NonNull GuiGraphicsExtractor context, Aspect<?> aspect, int x, int y, int mouseX, int mouseY, boolean hovered, float delta) {
-            context.item(stack, x, y);
+            context.item(stack.get(), x, y);
         }
     }
 

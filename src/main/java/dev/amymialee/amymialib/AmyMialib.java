@@ -2,7 +2,9 @@ package dev.amymialee.amymialib;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dev.amymialee.amymialib.aspects.Aspect;
 import dev.amymialee.amymialib.aspects.AspectSyncPayload;
+import dev.amymialee.amymialib.aspects.AspectType;
 import dev.amymialee.amymialib.util.AMRegistry;
 import dev.upcraft.datasync.api.util.Entitlements;
 import net.fabricmc.api.ModInitializer;
@@ -15,6 +17,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
@@ -37,7 +40,7 @@ public class AmyMialib implements ModInitializer {
     private static final Component ASPECTS_SCREEN = Component.translatable(REGISTRY.createTranslation(AmyMialib.id("aspects.screen").toLanguageKey(), "Aspect Editor"));
     private static final Component ASPECTS_SCREEN_EMPTY = ASPECTS_SCREEN.copy().append("\n").append(Component.translatable(REGISTRY.createTranslation(AmyMialib.id("aspects.screen.empty").toLanguageKey(), "No (Available) Configs Found")).withColor(new Color(0xBD6868).getRGB()));
 
-//    MValue<Boolean> DISABLE_END_PORTALS = MValue.of(Mialib.id("disable_end_portals"), MValue.BOOLEAN_FALSE).item((v) -> v.get() ? Items.END_STONE_BRICK_SLAB : Items.END_PORTAL_FRAME).build();
+    public static final Aspect<Boolean> DISABLE_END_PORTALS = Aspect.config(AmyMialib.id("disable_end_portals"), AspectType.BOOLEAN_TRUE).icon(Items.END_PORTAL_FRAME).build();
 
     @Override
     public void onInitialize() {

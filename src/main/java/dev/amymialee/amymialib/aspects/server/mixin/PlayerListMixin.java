@@ -1,5 +1,6 @@
 package dev.amymialee.amymialib.aspects.server.mixin;
 
+import dev.amymialee.amymialib.aspects.AspectManager;
 import net.minecraft.network.Connection;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
@@ -13,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class PlayerListMixin {
     @Inject(method = "placeNewPlayer", at = @At("TAIL"))
     private void amymialib$aspects$syncing(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
-//        AspectConfigManager.syncCallback(player);
-//        AspectWorldManager.syncCallback(player);
+        AspectManager.sync(player);
     }
 }

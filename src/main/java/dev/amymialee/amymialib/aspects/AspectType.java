@@ -30,17 +30,13 @@ public class AspectType<T> {
     }
 
     public void registerCommands(Aspect<T> aspect) {
-        CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> dispatcher.register(Commands.literal("mvalue").requires(Commands.hasPermission(aspect.permissionCheck))
+        CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> dispatcher.register(Commands.literal("aspect").requires(c -> c.isPlayer() && aspect.hasPermission.test(c.getPlayer()))
                 .then(Commands.literal(aspect.id.toString())
                         .then(Commands.argument("enabled", BoolArgumentType.bool())
                                 .executes(ctx -> {
-                                    aspect.set(BoolArgumentType.getBool(ctx, "enabled"));
-                                    ctx.getSource().sendSuccess(() -> Component.translatable("commands.mvalue.set", aspect.getText(), aspect.getValueAsString()), true);
+                                    ((Aspect<Boolean>) aspect).set(BoolArgumentType.getBool(ctx, "enabled"));
                                     return 1;
                                 })
-                        ).executes(ctx -> {
-                            ctx.getSource().sendSuccess(() -> Component.translatable("commands.mvalue.query", aspect.getText(), aspect.getValueAsString()), false);
-                            return 1;
-                        }))));
+                        ))));
     }
 }

@@ -12,6 +12,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 public final class AspectCategory {
     public final Identifier id;
@@ -51,10 +52,10 @@ public final class AspectCategory {
         }
 
         public AspectCategoryBuilder icon(@NonNull Item item) {
-            return this.icon(item.getDefaultInstance());
+            return this.icon(item::getDefaultInstance);
         }
 
-        public AspectCategoryBuilder icon(ItemStack stack) {
+        public AspectCategoryBuilder icon(Supplier<ItemStack> stack) {
             this.icons.add(new AspectIcon.AspectIconStack(stack));
             return this;
         }

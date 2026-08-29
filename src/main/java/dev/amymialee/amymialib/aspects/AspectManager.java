@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
@@ -35,18 +36,22 @@ public class AspectManager {
         try {
             var aspect = (Aspect<T>) AspectManager.ASPECTS.get(id);
             switch (aspect.saveLocation) { case CLIENT, USER -> { return; } }
-            aspect.set(data, playerValues);
+            aspect.value = data;
+            if (playerValues.isPresent()) {
+                aspect.players.clear();
+                aspect.players.putAll(playerValues.get());
+            }
         } catch (Exception e) {
             AmyMialib.LOGGER.error("Failed to receive aspect {} from server", id, e);
         }
     }
 
-    @SuppressWarnings({"unchecked", "OptionalUsedAsFieldOrParameterType"})
-    public static <T> void receiveServer(Identifier id, T data, Optional<Map<UUID, T>> playerValues, ServerPlayNetworking.@NotNull Context context) {
+    @SuppressWarnings({"unchecked"})
+    public static <T> void receiveServer(Identifier id, T data, ServerPlayNetworking.@NotNull Context context) {
         try {
             var aspect = (Aspect<T>) AspectManager.ASPECTS.get(id);
             if (!aspect.hasPermission.test(context.player())) return;
-            aspect.set(data, playerValues);
+            aspect.set(data);
         } catch (Exception e) {
             AmyMialib.LOGGER.error("Failed to receive aspect {} from {}", id, context.player().getGameProfile().name(), e);
         }
@@ -70,6 +75,11 @@ public class AspectManager {
         var config = new JsonObject();
         config.add("value", aspect.type.codec.encodeStart(JsonOps.INSTANCE, aspect.value).getOrThrow());
         config.add("players", aspect.type.playersCodec.encodeStart(JsonOps.INSTANCE, aspect.players).getOrThrow());
+        try {
+            Files.createDirectories(aspect.filePath.getParent());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         try (var fileWriter = Files.newBufferedWriter(aspect.filePath)) {
             fileWriter.write(AmyMialib.GSON.toJson(config));
         } catch (IOException e) {
@@ -99,6 +109,20 @@ public class AspectManager {
     public static <T> void sync(@NonNull Aspect<T> aspect) {
         if (SERVER != null) {
             SERVER.getPlayerList().getPlayers().forEach(p -> ServerPlayNetworking.send(p, new AspectSyncPayload(aspect)));
+        } else {
+            ClientPlayNetworking.send(new AspectSyncPayload(aspect.id, aspect.value));
+        }
+    }
+
+    public static void sync(ServerPlayer player) {
+        if (SERVER != null) {
+            ASPECTS.values().forEach(aspect -> ServerPlayNetworking.send(player, new AspectSyncPayload(aspect)));
+        }
+    }
+
+    public static <T> void sync(@NonNull Aspect<T> aspect, ServerPlayer player) {
+        if (SERVER != null) {
+            ServerPlayNetworking.send(player, new AspectSyncPayload(aspect));
         }
     }
 

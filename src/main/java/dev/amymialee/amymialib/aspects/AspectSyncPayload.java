@@ -54,7 +54,7 @@ public record AspectSyncPayload(Identifier id, Object data, Optional<Map<UUID, O
     public static class ServerHandler implements ServerPlayNetworking.PlayPayloadHandler<AspectSyncPayload> {
         @Override
         public void receive(@NotNull @NonNull AspectSyncPayload payload, ServerPlayNetworking.@NotNull Context context) {
-            AspectManager.receiveServer(payload.id, payload.data, payload.playerValues, context);
+            AspectManager.receiveServer(payload.id, payload.data, context);
         }
     }
 }

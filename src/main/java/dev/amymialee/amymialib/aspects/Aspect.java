@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public final class Aspect<T> {
     public final Identifier id;
@@ -42,10 +43,11 @@ public final class Aspect<T> {
         this.descriptionKey = id.toLanguageKey("amymialib.aspect", "description");
         this.name = Component.translatable(this.nameKey);
         this.description = Component.translatable(this.descriptionKey).append("\n").append(Component.literal(id.getNamespace()).withStyle(ChatFormatting.BLUE));
-        this.filePath = this.saveLocation.resolve(id + ".json");
+        this.filePath = this.saveLocation.resolve(id.toString().replace(":", "_") + ".json");
         this.hasPermission = hasPermission;
-        this.onChange = () -> onChange.accept(this);
+        this.onChange = onChange == null ? null : () -> onChange.accept(this);
         this.category = category;
+        this.value = this.type.defaultValue;
     }
 
     /**
@@ -137,8 +139,8 @@ public final class Aspect<T> {
             this.type = type;
             this.saveLocation = saveLocation;
             switch (saveLocation) {
-                case CONFIG, WORLD -> this.hasPermission = (p) -> p.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
-                case USER, CLIENT -> this.hasPermission = (_) -> true;
+                case CONFIG, WORLD -> this.hasPermission = p -> p.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+                case USER, CLIENT -> this.hasPermission = _ -> true;
             }
         }
 
@@ -147,11 +149,11 @@ public final class Aspect<T> {
             return this;
         }
 
-        public AspectBuilder<T> icon(@NonNull Item item) {
-            return this.icon(item.getDefaultInstance());
+        public AspectBuilder<T> icon(Item item) {
+            return this.icon(item::getDefaultInstance);
         }
 
-        public AspectBuilder<T> icon(ItemStack stack) {
+        public AspectBuilder<T> icon(Supplier<ItemStack> stack) {
             this.icons.add(new AspectIcon.AspectIconStack(stack));
             return this;
         }
