@@ -1,7 +1,7 @@
 package dev.amymialee.amymialib.util.datagentasks;
 
+import dev.amymialee.amymialib.util.AMDatagen;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
@@ -17,33 +17,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import org.jspecify.annotations.NonNull;
 
-import java.util.List;
-
 import static net.minecraft.client.data.models.BlockModelGenerators.*;
 
 public interface AMGenModels extends AMNameProvider {
     default void generateBlockStateModels(AMModelProvider provider, BlockModelGenerators generator) {}
 
     default void generateItemModels(AMModelProvider provider, ItemModelGenerators generator) {}
-
-    static FabricDataGenerator.Pack.@NonNull RegistryDependentFactory<?> listProvider(String name, List<Object> list) {
-        return (dataOutput, _) -> new AMModelProvider(new AMGenModels() {
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public void generateBlockStateModels(AMModelProvider provider, BlockModelGenerators generator) {
-                for (var object : list) if (object instanceof AMGenModels task) task.generateBlockStateModels(provider, generator);
-            }
-
-            @Override
-            public void generateItemModels(AMModelProvider provider, ItemModelGenerators generator) {
-                for (var object : list) if (object instanceof AMGenModels task) task.generateItemModels(provider, generator);
-            }
-        }, dataOutput);
-    }
 
     class AMModelProvider extends FabricModelProvider {
         private final AMGenModels dataGen;
@@ -56,11 +35,13 @@ public interface AMGenModels extends AMNameProvider {
         @Override
         public void generateBlockStateModels(@NonNull BlockModelGenerators blockModelGenerators) {
             this.dataGen.generateBlockStateModels(this, blockModelGenerators);
+            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenModels.class, p -> p.generateBlockStateModels(this, blockModelGenerators));
         }
 
         @Override
         public void generateItemModels(@NonNull ItemModelGenerators itemModelGenerators) {
             this.dataGen.generateItemModels(this, itemModelGenerators);
+            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenModels.class, p -> p.generateItemModels(this, itemModelGenerators));
         }
 
         public void grass(@NonNull BlockModelGenerators generator, Block grassy, Block base) {

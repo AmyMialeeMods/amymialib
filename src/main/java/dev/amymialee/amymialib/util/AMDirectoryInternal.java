@@ -42,7 +42,7 @@ public interface AMDirectoryInternal {
             var fallback = Path.of(userHome, ".amymialib");
             this.path = switch (Util.getPlatform()) {
                 case WINDOWS -> {
-                    String appData = System.getenv("AppData");
+                    var appData = System.getenv("AppData");
                     if (appData == null) {
                         AmyMialib.LOGGER.warn("No value for AppData env var even though we're on windows, falling back to {}", fallback);
                         yield fallback;
@@ -51,7 +51,7 @@ public interface AMDirectoryInternal {
                 }
                 case OSX -> Path.of(userHome, "Library", "Application Support", "amymialib");
                 case LINUX -> {
-                    String xdgData = System.getenv("XDG_DATA_HOME");
+                    var xdgData = System.getenv("XDG_DATA_HOME");
                     var localShare = Path.of(userHome, ".local", "share", "amymialib");
                     if (xdgData == null) {
                         AmyMialib.LOGGER.warn("No value for XDG_DATA_HOME, falling back to {}", localShare);

@@ -8,11 +8,11 @@ import org.jspecify.annotations.NonNull;
 public interface AspectBackground {
     AspectBackgroundEmpty EMPTY = new AspectBackgroundEmpty();
 
-    void renderWidget(GuiGraphicsExtractor context, int x, int y, int width, int height, int mouseX, int mouseY, float delta);
+    void renderBackground(GuiGraphicsExtractor context, int x, int y, int width, int height, double mouseX, double mouseY, float delta);
 
     class AspectBackgroundEmpty implements AspectBackground {
         @Override
-        public void renderWidget(GuiGraphicsExtractor context, int x, int y, int width, int height, int mouseX, int mouseY, float delta) {}
+        public void renderBackground(GuiGraphicsExtractor context, int x, int y, int width, int height, double mouseX, double mouseY, float delta) {}
     }
 
     class AspectBackgroundTexture implements AspectBackground {
@@ -35,25 +35,21 @@ public interface AspectBackground {
         }
 
         @Override
-        public void renderWidget(@NonNull GuiGraphicsExtractor context, int x, int y, int width, int height, int mouseX, int mouseY, float delta) {
+        public void renderBackground(@NonNull GuiGraphicsExtractor context, int x, int y, int width, int height, double mouseX, double mouseY, float delta) {
             context.blit(this.texture, x, y, x + this.width, y + this.height, this.u0, this.u1, this.v0, this.v1);
         }
     }
 
     class AspectBackgroundSprite implements AspectBackground {
         private final Identifier texture;
-        private final int width;
-        private final int height;
 
-        public AspectBackgroundSprite(Identifier texture, int width, int height) {
+        public AspectBackgroundSprite(Identifier texture) {
             this.texture = texture;
-            this.width = width;
-            this.height = height;
         }
 
         @Override
-        public void renderWidget(@NonNull GuiGraphicsExtractor context, int x, int y, int width, int height, int mouseX, int mouseY, float delta) {
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, this.texture, x, y, this.width, this.height);
+        public void renderBackground(@NonNull GuiGraphicsExtractor context, int x, int y, int width, int height, double mouseX, double mouseY, float delta) {
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, this.texture, x, y, width, height);
         }
     }
 }

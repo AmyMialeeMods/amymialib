@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.function.Consumer;
 
 /**
  * Fabric Data Generator with many fabric data providers pre-included for easy overriding.
@@ -14,7 +15,7 @@ public abstract class AMDatagen implements DataGeneratorEntrypoint,
         AMGenAdvancements, AMGenBlockLootTables, AMGenDamageTypes, AMGenDynamic, AMGenEntityLootTables, AMGenFlatGeneratorPresets, AMGenLootTables, AMGenModels, AMGenRecipes, AMGenSounds, AMGenTranslations,
         AMGenBannerPatternTags, AMGenBlockEntityTypeTags, AMGenBlockTags, AMGenEntityTypeTags, AMGenFlatGeneratorPresetTags, AMGenFluidTags, AMGenItemTags, AMGenDamageTypeTags,
         AMGenExtra, AMNameProvider {
-    private final AMRegistry heldRegistry;
+    public final AMRegistry heldRegistry;
     private String name;
 
     public AMDatagen() {
@@ -56,7 +57,13 @@ public abstract class AMDatagen implements DataGeneratorEntrypoint,
         if (set.contains("generateFlatLevelGeneratorPresetTags")) pack.addProvider((dataOutput, future) -> new AMFlatLevelGeneratorPresetTagsProvider(this, dataOutput, future));
         /* Extras */
         if (set.contains("addExtraDataProviders")) this.addExtraDataProviders(pack);
-        if (this.heldRegistry != null) this.heldRegistry.runDatagenTasks(this, pack);
+        if (this.heldRegistry != null) for (var task : this.heldRegistry.datagenTasks) if (task instanceof AMGenExtra extra) extra.addExtraDataProviders(pack);
+    }
+
+    public <T> void registryEach(Class<T> clazz, Consumer<T> consumer) {
+        if (this.heldRegistry != null) this.heldRegistry.datagenTasks.forEach(t -> {
+            if (clazz.isInstance(t)) consumer.accept((T) t);
+        });
     }
 
     public String getName() {

@@ -1,9 +1,7 @@
 package dev.amymialee.amymialib.aspects;
 
-import dev.amymialee.amymialib.aspects.builder.AspectFileManager;
-import dev.amymialee.amymialib.aspects.builder.AspectIcon;
-import dev.amymialee.amymialib.aspects.builder.AspectType;
-import dev.amymialee.amymialib.aspects.builder.AspectSaveLocation;
+import dev.amymialee.amymialib.aspects.builder.*;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -47,7 +45,10 @@ public final class Aspect<T> {
         this.nameKey = nameKey;
         this.descriptionKey = descriptionKey;
         this.name = Component.translatable(this.nameKey);
-        this.description = Component.translatable(this.descriptionKey).append("\n").append(Component.literal(id.getNamespace()).withStyle(ChatFormatting.BLUE));
+        var name = this.id.getNamespace();
+        var container = FabricLoader.getInstance().getModContainer(this.id.getNamespace());
+        if (container.isPresent()) name = container.get().getMetadata().getName();
+        this.description = Component.translatable(this.descriptionKey).append("\n").append(Component.literal(name).withStyle(ChatFormatting.BLUE));
         this.filePath = this.saveLocation.resolve(id.toString().replace(":", "_") + ".json");
         this.hasPermission = hasPermission;
         this.onChangeServer = onChangeServer == null ? null : () -> onChangeServer.accept(this, AspectManager.SERVER);
@@ -96,7 +97,7 @@ public final class Aspect<T> {
         private final AspectSaveLocation saveLocation;
         public final String nameKey;
         public final String descriptionKey;
-        private final List<AspectIcon> icons = new ArrayList<>();
+        private final List<AspectIcon<Aspect<T>>> icons = new ArrayList<>();
         private Predicate<Player> hasPermission;
         private BiConsumer<Aspect<T>, MinecraftServer> onChangeServer;
         private Consumer<Aspect<T>> onChangeClient;
@@ -114,7 +115,7 @@ public final class Aspect<T> {
             }
         }
 
-        public AspectBuilder<T> icon(AspectIcon icon) {
+        public AspectBuilder<T> icon(AspectIcon<Aspect<T>> icon) {
             this.icons.add(icon);
             return this;
         }
@@ -124,17 +125,17 @@ public final class Aspect<T> {
         }
 
         public AspectBuilder<T> icon(Supplier<ItemStack> stack) {
-            this.icons.add(new AspectIcon.AspectIconStack(stack));
+            this.icons.add(new AspectIcon.AspectIconStack<>(stack));
             return this;
         }
 
         public AspectBuilder<T> icon(Identifier texture, int width, int height, float u0, float u1, float v0, float v1) {
-            this.icons.add(new AspectIcon.AspectIconTexture(texture, width, height, u0, u1, v0, v1));
+            this.icons.add(new AspectIcon.AspectIconTexture<>(texture, width, height, u0, u1, v0, v1));
             return this;
         }
 
         public AspectBuilder<T> icon(Identifier texture, int width, int height) {
-            this.icons.add(new AspectIcon.AspectIconSprite(texture, width, height));
+            this.icons.add(new AspectIcon.AspectIconSprite<>(texture, width, height));
             return this;
         }
 
@@ -158,8 +159,13 @@ public final class Aspect<T> {
             return this;
         }
 
+        public AspectBuilder<T> category(@NonNull AspectCategory category) {
+            this.category = category.id;
+            return this;
+        }
+
         public Aspect<T> build() {
-            AspectIcon icon = icons.isEmpty() ? new AspectIcon.AspectIconEmpty() : (icons.size() == 1 ? icons.getFirst() : new AspectIcon.AspectMultiIcon(icons));
+            var icon = icons.isEmpty() ? new AspectIcon.AspectIconEmpty<>() : (icons.size() == 1 ? icons.getFirst() : new AspectIcon.AspectMultiIcon<>(icons));
             return AspectManager.registerAspect(new Aspect<>(this.id, this.type, this.saveLocation, this.nameKey, this.descriptionKey, icon, this.hasPermission, this.onChangeServer, this.onChangeClient, this.category));
         }
     }

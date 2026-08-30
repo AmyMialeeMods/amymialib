@@ -1,6 +1,6 @@
 package dev.amymialee.amymialib.util.datagentasks;
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.amymialee.amymialib.util.AMDatagen;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
@@ -10,25 +10,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorPreset;
 import org.jspecify.annotations.NonNull;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface AMGenFlatGeneratorPresetTags extends AMNameProvider {
     default void generateFlatLevelGeneratorPresetTags(AMFlatLevelGeneratorPresetTagsProvider provider, HolderLookup.Provider arg) {}
-
-    static FabricDataGenerator.Pack.@NonNull RegistryDependentFactory<?> listProvider(String name, List<Object> list) {
-        return (dataOutput, future) -> new AMFlatLevelGeneratorPresetTagsProvider(new AMGenFlatGeneratorPresetTags() {
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public void generateFlatLevelGeneratorPresetTags(AMFlatLevelGeneratorPresetTagsProvider provider, HolderLookup.Provider arg) {
-                for (var object : list) if (object instanceof AMGenFlatGeneratorPresetTags task) task.generateFlatLevelGeneratorPresetTags(provider, arg);
-            }
-        }, dataOutput, future);
-    }
 
     class AMFlatLevelGeneratorPresetTagsProvider extends FabricTagsProvider<FlatLevelGeneratorPreset> {
         private final AMGenFlatGeneratorPresetTags dataGen;
@@ -41,6 +26,7 @@ public interface AMGenFlatGeneratorPresetTags extends AMNameProvider {
         @Override
         protected void addTags(HolderLookup.@NonNull Provider arg) {
             this.dataGen.generateFlatLevelGeneratorPresetTags(this, arg);
+            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenFlatGeneratorPresetTags.class, p -> p.generateFlatLevelGeneratorPresetTags(this, arg));
         }
 
         @Override

@@ -1,6 +1,6 @@
 package dev.amymialee.amymialib.util.datagentasks;
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.amymialee.amymialib.util.AMDatagen;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
@@ -10,25 +10,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import org.jspecify.annotations.NonNull;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface AMGenBannerPatternTags extends AMNameProvider {
     default void generateBannerPatternTags(AMBannerPatternTagsProvider provider, HolderLookup.Provider arg) {}
-
-    static FabricDataGenerator.Pack.@NonNull RegistryDependentFactory<?> listProvider(String name, List<Object> list) {
-        return (dataOutput, future) -> new AMBannerPatternTagsProvider(new AMGenBannerPatternTags() {
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public void generateBannerPatternTags(AMBannerPatternTagsProvider provider, HolderLookup.Provider arg) {
-                for (var object : list) if (object instanceof AMGenBannerPatternTags task) task.generateBannerPatternTags(provider, arg);
-            }
-        }, dataOutput, future);
-    }
 
     class AMBannerPatternTagsProvider extends FabricTagsProvider<BannerPattern> {
         private final AMGenBannerPatternTags dataGen;
@@ -41,6 +26,7 @@ public interface AMGenBannerPatternTags extends AMNameProvider {
         @Override
         protected void addTags(HolderLookup.@NonNull Provider arg) {
             this.dataGen.generateBannerPatternTags(this, arg);
+            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenBannerPatternTags.class, p -> p.generateBannerPatternTags(this, arg));
         }
 
         @Override

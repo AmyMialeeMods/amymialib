@@ -1,12 +1,12 @@
 package dev.amymialee.amymialib.util;
 
 import dev.amymialee.amymialib.aspects.Aspect;
+import dev.amymialee.amymialib.aspects.builder.AspectCategory;
 import dev.amymialee.amymialib.aspects.builder.AspectType;
-import dev.amymialee.amymialib.util.datagentasks.*;
+import dev.amymialee.amymialib.util.datagentasks.AMGenTranslations;
 import dev.amymialee.amymialib.util.registry.*;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricLanguageProvider;
 import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.client.color.item.Potion;
@@ -174,6 +174,17 @@ public class AMRegistry {
         throw new IllegalStateException("Failed to register %s to the %s AMRegistry!".formatted(Identifier.fromNamespaceAndPath(this.namespace, path), this.namespace));
     }
 
+    public AspectCategory.AspectCategoryBuilder category(String path, String name, String description) {
+        var builder = this.category(path);
+        this.createTranslation(builder.nameKey, name);
+        this.createTranslation(builder.descriptionKey, description);
+        return builder;
+    }
+
+    public AspectCategory.AspectCategoryBuilder category(String path) {
+        return AspectCategory.of(Identifier.fromNamespaceAndPath(this.namespace, path));
+    }
+
     public <T> Aspect.@NonNull AspectBuilder<T> config(String path, AspectType<T> type, String name, String description) {
         var builder = this.config(path, type);
         this.createTranslation(builder.nameKey, name);
@@ -194,30 +205,6 @@ public class AMRegistry {
 
     public <T> Aspect.@NonNull AspectBuilder<T> client(String path, AspectType<T> type) {
         return Aspect.client(Identifier.fromNamespaceAndPath(this.namespace, path), type);
-    }
-
-    public void runDatagenTasks(@NonNull AMDatagen datagen, FabricDataGenerator.@NonNull Pack pack) {
-        var name = datagen.getName() + " AMRegistry";
-        pack.addProvider(AMGenAdvancements.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenBlockLootTables.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenDamageTypes.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenDynamic.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenEntityLootTables.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenFlatGeneratorPresets.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenLootTables.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenModels.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenRecipes.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenSounds.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenTranslations.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenBannerPatternTags.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenBlockEntityTypeTags.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenBlockTags.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenEntityTypeTags.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenFlatGeneratorPresetTags.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenFluidTags.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenItemTags.listProvider(name, datagenTasks));
-        pack.addProvider(AMGenDamageTypeTags.listProvider(name, datagenTasks));
-        for (var task : datagenTasks) if (task instanceof AMGenExtra extra) extra.addExtraDataProviders(pack);
     }
 
     public String createTranslation(String key, String translation) {

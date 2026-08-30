@@ -3,7 +3,7 @@ package dev.amymialee.amymialib.util.datagentasks;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.amymialee.amymialib.util.AMDatagen;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -30,20 +30,6 @@ import java.util.function.Consumer;
 public interface AMGenFlatGeneratorPresets extends AMNameProvider {
     default void generateFlatLevelGeneratorPresets(AMFlatLevelGeneratorPresetProvider provider, Consumer<AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData> consumer) {}
 
-    static FabricDataGenerator.Pack.@NonNull RegistryDependentFactory<?> listProvider(String name, List<Object> list) {
-        return (dataOutput, future) -> new AMFlatLevelGeneratorPresetProvider(new AMGenFlatGeneratorPresets() {
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public void generateFlatLevelGeneratorPresets(AMFlatLevelGeneratorPresetProvider provider, Consumer<AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData> consumer) {
-                for (var object : list) if (object instanceof AMGenFlatGeneratorPresets task) task.generateFlatLevelGeneratorPresets(provider, consumer);
-            }
-        }, dataOutput, future);
-    }
-
     class AMFlatLevelGeneratorPresetProvider implements DataProvider {
         private final AMGenFlatGeneratorPresets dataGen;
         private final PackOutput.PathProvider pathResolver;
@@ -57,6 +43,7 @@ public interface AMGenFlatGeneratorPresets extends AMNameProvider {
 
         public void generate(Consumer<FlatLevelGeneratorPresetData> consumer) {
             this.dataGen.generateFlatLevelGeneratorPresets(this, consumer);
+            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenFlatGeneratorPresets.class, p -> p.generateFlatLevelGeneratorPresets(this, consumer));
         }
 
         @Override

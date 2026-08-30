@@ -1,0 +1,6 @@
+classTweaker v1 official
+
+transitive-inject-interface	net/minecraft/network/chat/Component dev/amymialee/amymialib/util/iinterfaces/AMComponent
+
+accessible field net/minecraft/client/gui/components/AbstractButton SPRITES Lnet/minecraft/client/gui/components/WidgetSprites;
+

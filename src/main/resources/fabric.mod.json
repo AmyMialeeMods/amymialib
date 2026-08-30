@@ -18,7 +18,7 @@
   "license": "All-Rights-Reserved",
   "icon": "assets/amymialib/icon.png",
 
-  "accessWidener" : "amymialib.accesswidener",
+  "accessWidener" : "amymialib.classtweaker",
   "environment": "*",
   "entrypoints": {
     "fabric-datagen": [
@@ -42,7 +42,9 @@
   },
 
   "custom": {
-    "loom:injected_interfaces": {},
+    "loom:injected_interfaces": {
+
+    },
     "modmenu": {
       "links": {
         "modmenu.website": "https://amymialee.dev",

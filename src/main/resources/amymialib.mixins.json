@@ -4,7 +4,8 @@
   "package": "dev.amymialee.amymialib.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
-    "EndPortalBlockMixin"
+    "EndPortalBlockMixin",
+    "iinterfaces.ComponentMixin"
   ],
   "client": [
   ],

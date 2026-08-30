@@ -1,6 +1,6 @@
 package dev.amymialee.amymialib.util.datagentasks;
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.amymialee.amymialib.util.AMDatagen;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider;
 import net.minecraft.core.HolderLookup;
@@ -9,25 +9,10 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.resources.ResourceKey;
 import org.jspecify.annotations.NonNull;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface AMGenDynamic extends AMNameProvider {
     default void generateDynamic(@NonNull AMDynamicProvider provider, HolderLookup.Provider wrapperLookup, FabricDynamicRegistryProvider.@NonNull Entries entries) {}
-
-    static FabricDataGenerator.Pack.@NonNull RegistryDependentFactory<?> listProvider(String name, List<Object> list) {
-        return (dataOutput, future) -> new AMDynamicProvider(new AMGenDynamic() {
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public void generateDynamic(@NonNull AMDynamicProvider provider, HolderLookup.Provider wrapperLookup, FabricDynamicRegistryProvider.@NonNull Entries entries) {
-                for (var object : list) if (object instanceof AMGenDynamic task) task.generateDynamic(provider, wrapperLookup, entries);
-            }
-        }, dataOutput, future);
-    }
 
     class AMDynamicProvider extends FabricDynamicRegistryProvider {
         private final AMGenDynamic dataGen;
@@ -40,6 +25,7 @@ public interface AMGenDynamic extends AMNameProvider {
         @Override
         protected void configure(HolderLookup.@NonNull Provider wrapperLookup, @NonNull Entries entries) {
             this.dataGen.generateDynamic(this, wrapperLookup, entries);
+            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenDynamic.class, p -> p.generateDynamic(this, wrapperLookup, entries));
         }
 
         @Override

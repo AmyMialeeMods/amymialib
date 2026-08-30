@@ -1,6 +1,6 @@
 package dev.amymialee.amymialib.util.datagentasks;
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.amymialee.amymialib.util.AMDatagen;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider;
 import net.minecraft.core.HolderLookup;
@@ -8,25 +8,10 @@ import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import org.jspecify.annotations.NonNull;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface AMGenRecipes extends AMNameProvider {
     default void generateRecipes(AMRecipeProvider provider, RecipeProvider recipeGenerator, HolderLookup.Provider registryLookup, RecipeOutput exporter) {}
-
-    static FabricDataGenerator.Pack.@NonNull RegistryDependentFactory<?> listProvider(String name, List<Object> list) {
-        return (dataOutput, future) -> new AMRecipeProvider(new AMGenRecipes() {
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public void generateRecipes(AMRecipeProvider provider, RecipeProvider recipeGenerator, HolderLookup.Provider registryLookup, RecipeOutput exporter) {
-                for (var object : list) if (object instanceof AMGenRecipes task) task.generateRecipes(provider, recipeGenerator, registryLookup, exporter);
-            }
-        }, dataOutput, future);
-    }
 
     class AMRecipeProvider extends FabricRecipeProvider {
         private final AMGenRecipes dataGen;
@@ -42,6 +27,7 @@ public interface AMGenRecipes extends AMNameProvider {
                 @Override
                 public void buildRecipes() {
                     AMRecipeProvider.this.dataGen.generateRecipes(AMRecipeProvider.this, this, this.registries, this.output);
+                    if (AMRecipeProvider.this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenRecipes.class, p -> p.generateRecipes(AMRecipeProvider.this, this, this.registries, this.output));
                 }
             };
         }

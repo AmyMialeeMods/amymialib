@@ -6,7 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalIntRef;
-import dev.amymialee.amymialib.AmyMialib;
+import dev.amymialee.amymialib.AmyMialibClient;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -41,7 +41,7 @@ public abstract class TitleScreenMixin extends Screen {
     @Inject(method = "init", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/components/CommonButtons;friends(ILnet/minecraft/client/gui/components/Button$OnPress;Z)Lnet/minecraft/client/gui/components/FriendsButton;"))
     private void amymialib$aspects$addAspects(CallbackInfo ci, @Local(name = "currentButton") @NonNull LocalIntRef currentButton, @Local(name = "numberOfButtons") int numberOfButtons, @Local(name = "topPos") int topPos) {
         currentButton.set(currentButton.get() + 1);
-        var aspectsButton = AmyMialib.aspectsButton(this);
+        var aspectsButton = AmyMialibClient.aspectsButton(this);
         aspectsButton.setPosition(this.getHorizontalPosition(currentButton.get(), numberOfButtons, 20), topPos);
         Screens.getWidgets(this).add(aspectsButton);
     }

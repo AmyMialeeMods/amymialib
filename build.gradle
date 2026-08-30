@@ -22,7 +22,7 @@ dependencies {
 }
 
 loom {
-    accessWidenerPath = file("src/main/resources/amymialib.accesswidener")
+    accessWidenerPath = file("src/main/resources/amymialib.classtweaker")
 }
 
 fabricApi {

@@ -1,22 +1,4 @@
-//package dev.amymialee.amymialib.aspects.client;
-//
-//import dev.amymialee.amymialib.aspects.Aspect;
-//import net.fabricmc.api.EnvType;
-//import net.fabricmc.api.Environment;
-//import net.fabricmc.loader.api.FabricLoader;
-//import net.minecraft.ChatFormatting;
-//import net.minecraft.client.Minecraft;
-//import net.minecraft.client.gui.components.AbstractWidget;
-//import net.minecraft.client.gui.components.Tooltip;
-//import net.minecraft.client.gui.narration.NarrationElementOutput;
-//import net.minecraft.client.input.MouseButtonEvent;
-//import net.minecraft.client.renderer.RenderPipelines;
-//import net.minecraft.network.chat.Component;
-//import org.jetbrains.annotations.NotNull;
-//import org.jetbrains.annotations.Nullable;
-//import org.jspecify.annotations.NonNull;
-//
-//@Environment(EnvType.CLIENT)
+
 //public abstract class AspectWidgetAbs<T> extends AbstractWidget {
 //    public final Aspect<T> aspect;
 //    public double scroll;
@@ -27,21 +9,6 @@
 //        super(x, y, 90, 18, aspect.name);
 //        this.aspect = aspect;
 //        this.setTooltip(Tooltip.create(this.aspect.description));
-//    }
-//
-//    @Override
-//    public void setTooltip(@Nullable Tooltip tooltip) {
-//        if (tooltip != null) {
-//            var name = this.aspect.id.getNamespace();
-//            var container = FabricLoader.getInstance().getModContainer(this.aspect.id.getNamespace());
-//            if (container.isPresent()) {
-//                name = container.get().getMetadata().getName();
-//            }
-//            var content = tooltip.message;
-//            content = content.copy().append("\n").append(Component.literal(name).withStyle(ChatFormatting.BLUE));
-//            tooltip = Tooltip.create(content, tooltip.narration);
-//        }
-//        super.setTooltip(tooltip);
 //    }
 //
 //    @Override
@@ -96,9 +63,3 @@
 //                && mouseX < this.getX() + this.width
 //                && mouseY < this.getY() + this.height - this.scroll;
 //    }
-//
-//    @Override
-//    public void updateWidgetNarration(@NonNull NarrationElementOutput builder) {
-//        this.defaultButtonNarrationText(builder);
-//    }
-//}

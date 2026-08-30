@@ -1,6 +1,5 @@
 package dev.amymialee.amymialib.aspects.builder;
 
-import dev.amymialee.amymialib.aspects.Aspect;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
@@ -11,25 +10,23 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
-public interface AspectIcon {
-    AspectIconEmpty EMPTY = new AspectIconEmpty();
-
-    void renderWidget(GuiGraphicsExtractor context, Aspect<?> aspect, int x, int y, int mouseX, int mouseY, boolean hovered, float delta);
+public interface AspectIcon<T> {
+    void renderIcon(GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta);
 
     default int width() {
         return 18;
     }
 
-    class AspectIconEmpty implements AspectIcon {
+    class AspectIconEmpty<T> implements AspectIcon<T> {
         @Override
-        public void renderWidget(@NonNull GuiGraphicsExtractor context, Aspect<?> aspect, int x, int y, int mouseX, int mouseY, boolean hovered, float delta) {}
+        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {}
 
         public int width() {
             return 0;
         }
     }
 
-    class AspectIconStack implements AspectIcon {
+    class AspectIconStack<T> implements AspectIcon<T> {
         private final Supplier<ItemStack> stack;
 
         public AspectIconStack(Supplier<ItemStack> stack) {
@@ -37,12 +34,12 @@ public interface AspectIcon {
         }
 
         @Override
-        public void renderWidget(@NonNull GuiGraphicsExtractor context, Aspect<?> aspect, int x, int y, int mouseX, int mouseY, boolean hovered, float delta) {
+        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
             context.item(stack.get(), x, y);
         }
     }
 
-    class AspectIconTexture implements AspectIcon {
+    class AspectIconTexture<T> implements AspectIcon<T> {
         private final Identifier texture;
         private final int width;
         private final int height;
@@ -62,12 +59,12 @@ public interface AspectIcon {
         }
 
         @Override
-        public void renderWidget(@NonNull GuiGraphicsExtractor context, Aspect<?> aspect, int x, int y, int mouseX, int mouseY, boolean hovered, float delta) {
+        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
             context.blit(this.texture, x, y, x + width, y + height, this.u0, this.u1, this.v0, this.v1);
         }
     }
 
-    class AspectIconSprite implements AspectIcon {
+    class AspectIconSprite<T> implements AspectIcon<T> {
         private final Identifier texture;
         private final int width;
         private final int height;
@@ -79,27 +76,27 @@ public interface AspectIcon {
         }
 
         @Override
-        public void renderWidget(@NonNull GuiGraphicsExtractor context, Aspect<?> aspect, int x, int y, int mouseX, int mouseY, boolean hovered, float delta) {
+        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
             context.blitSprite(RenderPipelines.GUI_TEXTURED, this.texture, x, y, width, height);
         }
     }
 
-    class AspectMultiIcon implements AspectIcon {
-        private final List<AspectIcon> icons;
+    class AspectMultiIcon<T> implements AspectIcon<T> {
+        private final List<AspectIcon<T>> icons;
 
-        public AspectMultiIcon(AspectIcon ... icons) {
+        public AspectMultiIcon(AspectIcon<T> ... icons) {
             this.icons = Arrays.asList(icons);
         }
 
-        public AspectMultiIcon(List<AspectIcon> icons) {
+        public AspectMultiIcon(List<AspectIcon<T>> icons) {
             this.icons = icons;
         }
 
         @Override
-        public void renderWidget(@NonNull GuiGraphicsExtractor context, Aspect<?> aspect, int x, int y, int mouseX, int mouseY, boolean hovered, float delta) {
-            int offsetX = 0;
+        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
+            var offsetX = 0;
             for (var icon : icons) {
-                icon.renderWidget(context, aspect, x + offsetX, y, mouseX, mouseY, hovered, delta);
+                icon.renderIcon(context, aspect, x + offsetX, y, mouseX, mouseY, hovered, delta);
                 offsetX += icon.width();
             }
         }

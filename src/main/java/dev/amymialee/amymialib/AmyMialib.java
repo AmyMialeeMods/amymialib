@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.amymialee.amymialib.aspects.Aspect;
 import dev.amymialee.amymialib.aspects.AspectManager;
+import dev.amymialee.amymialib.aspects.builder.AspectCategory;
 import dev.amymialee.amymialib.aspects.builder.AspectSyncPayload;
 import dev.amymialee.amymialib.aspects.builder.AspectType;
 import dev.amymialee.amymialib.util.AMRegistry;
@@ -12,19 +13,12 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.SpriteIconButton;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.options.OptionsScreen;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.util.Random;
 import java.util.UUID;
 
@@ -38,33 +32,25 @@ public class AmyMialib implements ModInitializer {
     private static final Identifier TIER1_ID = Identifier.fromNamespaceAndPath("amymialee", "tier1");
     private static final Identifier TIER2_ID = Identifier.fromNamespaceAndPath("amymialee", "tier2");
     private static final Identifier TIER3_ID = Identifier.fromNamespaceAndPath("amymialee", "tier3");
-    private static final Component ASPECTS_SCREEN = Component.translatable(REGISTRY.createTranslation(AmyMialib.id("aspects.screen").toLanguageKey(), "Aspect Editor"));
-    private static final Component ASPECTS_SCREEN_EMPTY = ASPECTS_SCREEN.copy().append("\n").append(Component.translatable(REGISTRY.createTranslation(AmyMialib.id("aspects.screen.empty").toLanguageKey(), "No (Available) Configs Found")).withColor(new Color(0xBD6868).getRGB()));
 
-    public static final Aspect<Boolean> DISABLE_END_PORTALS = Aspect.config(AmyMialib.id("disable_end_portals"), AspectType.BOOLEAN_TRUE).icon(Items.END_PORTAL_FRAME).build();
+    public static final AspectCategory AMYMIALIB = REGISTRY.category("amymialib", "AmyMialib", "AmyMialib Aspects").icon(Items.DIAMOND).backgroundSprite(id("aspects/background_2")).build();
+    public static final Aspect<Boolean> DISABLE_END_PORTALS = REGISTRY.config("disable_end_portals", AspectType.BOOLEAN_TRUE, "Disable End Portals", "Should end portals be disabled?").icon(Items.END_PORTAL_FRAME).category(AMYMIALIB).build();
 
     @Override
     public void onInitialize() {
         PayloadTypeRegistry.serverboundPlay().register(AspectSyncPayload.ID_CHANGED, AspectSyncPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AspectSyncPayload.ID_CHANGED, AspectSyncPayload.CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(AspectSyncPayload.ID_CHANGED, (payload, context) -> AspectManager.receivePayloadServer(payload, context));
+        ServerPlayNetworking.registerGlobalReceiver(AspectSyncPayload.ID_CHANGED, AspectManager::receivePayloadServer);
         PayloadTypeRegistry.serverboundPlay().register(AspectSyncPayload.ID_UNCHANGED, AspectSyncPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AspectSyncPayload.ID_UNCHANGED, AspectSyncPayload.CODEC);
-        ServerPlayNetworking.registerGlobalReceiver(AspectSyncPayload.ID_UNCHANGED, (payload, context) -> AspectManager.receivePayloadServer(payload, context));
-    }
+        ServerPlayNetworking.registerGlobalReceiver(AspectSyncPayload.ID_UNCHANGED, AspectManager::receivePayloadServer);
 
-    public static @NonNull SpriteIconButton aspectsButton(Screen screen) {
-        var none = true;
-//        for (var category : MValueCategory.CATEGORIES) {
-//            if (!category.getValues(this.minecraft.player).isEmpty()) {
-//                none = false;
-//                break;
-//            }
-//        }
-        var tooltip = ASPECTS_SCREEN;
-        if (none) tooltip = ASPECTS_SCREEN_EMPTY;
-        return SpriteIconButton.builder(ASPECTS_SCREEN, _ -> Minecraft.getInstance().setScreenAndShow(new OptionsScreen(screen, Minecraft.getInstance().options, false)), true)
-                .tooltip(tooltip).width(20).sprite(AmyMialib.id("logo"), 16, 16).build();
+        for (var z = 1; z < 27; z++) {
+            for (var i = 0; i < z; i++) {
+                var category = AspectCategory.of(Identifier.fromNamespaceAndPath("namespace_%s".formatted(z), "amymialib_%s".formatted(i))).icon(Items.BARRIER).backgroundSprite(id("aspects/background_2")).build();
+                Aspect.config(AmyMialib.id("amymialib_%s".formatted(z)), AspectType.BOOLEAN_TRUE).icon(Items.STRUCTURE_BLOCK).category(category).build();
+            }
+        }
     }
 
     public static boolean isSupporterTier1(UUID uuid) {

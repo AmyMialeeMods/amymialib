@@ -2,8 +2,8 @@ package dev.amymialee.amymialib.aspects;
 
 import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.aspects.builder.AspectCategory;
-import dev.amymialee.amymialib.aspects.builder.AspectSyncPayload;
 import dev.amymialee.amymialib.aspects.builder.AspectSaveLocation;
+import dev.amymialee.amymialib.aspects.builder.AspectSyncPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;
@@ -24,8 +24,8 @@ public @SuppressWarnings("rawtypes") class AspectManager {
     public static MinecraftServer SERVER;
 
     public static final Map<Identifier, Aspect> ASPECTS = new HashMap<>();
-    public static final Map<Identifier, AspectCategory> CATEGORIES = new HashMap<>();
-    public static final Map<Identifier, List<Aspect>> CATEGORY_ENTRIES = new HashMap<>();
+    private static final Map<Identifier, AspectCategory> CATEGORIES = new HashMap<>();
+    private static final Map<Identifier, List<Aspect<?>>> CATEGORY_ENTRIES = new HashMap<>();
 
     /**
      * This is received from a server after an Aspect has been changed.<br>
@@ -122,5 +122,25 @@ public @SuppressWarnings("rawtypes") class AspectManager {
     public static @NonNull AspectCategory registerCategory(AspectCategory category) {
         CATEGORIES.put(category.id, category);
         return category;
+    }
+
+    /**
+     * Creates a map of all categories and all of their contained aspects.<br>
+     * Mostly used for the aspect editor.<br>
+     * Uses a copy of the aspect list to avoid unauthorised edits.
+     */
+    public static @NonNull Map<AspectCategory, List<Aspect<?>>> getCategoryEntries() {
+        var map = new HashMap<AspectCategory, List<Aspect<?>>>();
+        CATEGORIES.values().forEach(category -> map.put(category, new ArrayList<>(CATEGORY_ENTRIES.get(category.id))));
+        return map;
+    }
+
+    /**
+     * Creates a map of a category and all of its contained aspects.<br>
+     * Mostly used for the aspect editor.<br>
+     * Uses a copy of the aspect list to avoid unauthorised edits.
+     */
+    public static @NonNull List<Aspect<?>> getCategoryEntries(@NonNull AspectCategory category) {
+        return new ArrayList<>(CATEGORY_ENTRIES.getOrDefault(category.id, new ArrayList<>()));
     }
 }

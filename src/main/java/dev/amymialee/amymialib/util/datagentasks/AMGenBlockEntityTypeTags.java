@@ -1,6 +1,6 @@
 package dev.amymialee.amymialib.util.datagentasks;
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
+import dev.amymialee.amymialib.util.AMDatagen;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
@@ -9,25 +9,10 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import org.jspecify.annotations.NonNull;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface AMGenBlockEntityTypeTags extends AMNameProvider {
     default void generateBlockEntityTypeTags(AMBlockEntityTypeTagsProvider provider, HolderLookup.Provider arg) {}
-
-    static FabricDataGenerator.Pack.@NonNull RegistryDependentFactory<?> listProvider(String name, List<Object> list) {
-        return (dataOutput, future) -> new AMBlockEntityTypeTagsProvider(new AMGenBlockEntityTypeTags() {
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public void generateBlockEntityTypeTags(AMBlockEntityTypeTagsProvider provider, HolderLookup.Provider arg) {
-                for (var object : list) if (object instanceof AMGenBlockEntityTypeTags task) task.generateBlockEntityTypeTags(provider, arg);
-            }
-        }, dataOutput, future);
-    }
 
     class AMBlockEntityTypeTagsProvider extends FabricTagsProvider.BlockEntityTypeTagsProvider {
         private final AMGenBlockEntityTypeTags dataGen;
@@ -40,6 +25,7 @@ public interface AMGenBlockEntityTypeTags extends AMNameProvider {
         @Override
         protected void addTags(HolderLookup.@NonNull Provider arg) {
             this.dataGen.generateBlockEntityTypeTags(this, arg);
+            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenBlockEntityTypeTags.class, p -> p.generateBlockEntityTypeTags(this, arg));
         }
 
         @Override
