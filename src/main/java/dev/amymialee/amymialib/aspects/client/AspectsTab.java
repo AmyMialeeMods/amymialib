@@ -1,15 +1,14 @@
 package dev.amymialee.amymialib.aspects.client;
 
-import dev.amymialee.amymialib.aspects.AspectManager;
+import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.aspects.AspectCategory;
+import dev.amymialee.amymialib.aspects.AspectManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
-import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.locale.Language;
-import net.minecraft.network.chat.*;
+import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
@@ -18,15 +17,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AspectsTab {
-    private static final int[] TEST_SPLIT_OFFSETS = new int[]{0, 10, -10, 25, -25};
     public final List<Renderable> renderables = new ArrayList<>();
+    public final List<Renderable> renderablesHeader = new ArrayList<>();
     public final AspectEditorScreen screen;
-    public AspectCategory category;
+    public AspectCategory category = AmyMialib.AMYMIALIB;
     public AspectWidget hovered;
-    public StringWidget title;
+    public AspectLinkWidget hoveredLink;
+    public Component title;
     public List<FormattedCharSequence> description;
     public int height;
     public float fade;
+    public int headerTextWidth;
 
     public AspectsTab(AspectEditorScreen screen) {
         this.screen = screen;
@@ -34,8 +35,16 @@ public class AspectsTab {
 
     public void repositionElements() {
         this.renderables.clear();
+        this.renderablesHeader.clear();
         this.height = 0;
         if (category != null) {
+            this.headerTextWidth = screen.aspectOuter.width - 4 - 21 * this.category.links.size();
+            var linkSize = 21;
+            for (var i = 0; i < this.category.links.size(); i++) {
+                var aspect = this.category.links.get(i);
+                var tileOffset = 25 + i * linkSize;
+                renderablesHeader.add(new AspectLinkWidget(this.screen, aspect, (screen.aspectOuter.x + screen.aspectOuter.width - tileOffset) + 1, screen.aspectOuter.y + 7));
+            }
             var aspectWidth = 100;
             var aspectGap = 4;
             var y = screen.aspectInner.y;
@@ -51,22 +60,28 @@ public class AspectsTab {
                 if (i % screen.aspectSpaces == screen.aspectSpaces - 1) y += 30;
             }
             this.height = 4 + 30 * (aspects.size() / screen.aspectSpaces + 1);
-            var title = Language.getInstance().has(this.category.nameKey) ? category.name : Component.literal(category.id.getPath());
-            this.title = new StringWidget(0, -8, title.am$width(), 9, title, screen.getFont()).setMaxWidth(120, StringWidget.TextOverflow.SCROLLING);
-            this.description = new ArrayList<>(Language.getInstance().getVisualOrder(this.findOptimalLines(ComponentUtils.mergeStyles(this.category.description, Style.EMPTY.withColor(TextColor.GRAY)), 200)));
-            if (!this.description.isEmpty()) this.description.removeLast();
+            this.title = Language.getInstance().has(this.category.nameKey) ? category.name : Component.literal(category.id.getPath());
+            var description = this.category.description;
+            this.description = new ArrayList<>(Minecraft.getInstance().font.split(description, (int) (this.headerTextWidth / 0.6f)));
+            this.description.removeLast();
         } else {
-            this.title = new StringWidget(0, -8, 120, 9, Component.translatable("advancements.sad_label"), screen.getFont()).setMaxWidth(120, StringWidget.TextOverflow.SCROLLING);
-            this.description = new ArrayList<>(Language.getInstance().getVisualOrder(this.findOptimalLines(ComponentUtils.mergeStyles(Component.translatable("advancements.empty"), Style.EMPTY.withColor(TextColor.GRAY)), 200)));
+            this.headerTextWidth = screen.aspectOuter.width - 4;
+            this.title = Component.translatable("advancements.sad_label");
+            var description = Component.translatable("advancements.empty");
+            this.description = new ArrayList<>(Minecraft.getInstance().font.split(description, this.headerTextWidth));
         }
-        this.title.setPosition(screen.aspectOuter.x + 4, screen.aspectOuter.y + 4);
     }
 
     public void tickHovered(int mouseX, int mouseY) {
         this.hovered = null;
         if (this.screen.aspectInner.contains(mouseX, mouseY)) for (var renderable : renderables) if (renderable instanceof AspectWidget widget) if (widget.contains(mouseX, mouseY)) {
             this.hovered = widget;
-            break;
+            return;
+        }
+        this.hoveredLink = null;
+        if (this.screen.aspectOuter.contains(mouseX, mouseY)) for (var renderable : renderablesHeader) if (renderable instanceof AspectLinkWidget widget) if (widget.contains(mouseX, mouseY)) {
+            this.hoveredLink = widget;
+            return;
         }
     }
 
@@ -84,40 +99,23 @@ public class AspectsTab {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, screen.aspectOuter.x - 1, screen.aspectOuter.y - 1, screen.aspectOuter.width + 2, 37);
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.BORDER, screen.aspectOuter.x - 1, screen.aspectOuter.y - 1, screen.aspectOuter.width + 2, 37, Mth.hsvToArgb(.82f, .61f, 1f, 255));
 
-        this.title.extractRenderState(graphics, mouseX, mouseY, delta);
+        graphics.text(this.screen.getFont(), this.title, screen.aspectOuter.x - this.title.am$width() / 2 + this.headerTextWidth / 2, screen.aspectOuter.y + 5, -1);
         graphics.pose().pushMatrix();
-        graphics.pose().translate(screen.aspectOuter.x + 4, screen.aspectOuter.y + 16);
+        graphics.pose().translate(screen.aspectOuter.x + this.headerTextWidth / 2f, screen.aspectOuter.y + 16);
         graphics.pose().scale(0.6f);
         graphics.pose().translate(0, -9 / 2f);
-        this.extractMultilineText(graphics, this.description, 0, 15, -1);
+        this.extractMultilineText(graphics, this.description, 0, 16, -1);
         graphics.pose().popMatrix();
+        renderablesHeader.forEach(renderable -> renderable.extractRenderState(graphics, mouseX, mouseY, delta));
     }
 
-    private void extractMultilineText(final GuiGraphicsExtractor graphics, final @NonNull List<FormattedCharSequence> lines, final int x, final int y, final int color) {
-        var y2 = y - (lines.size() * this.screen.getFont().lineHeight) / 2;
+    private void extractMultilineText(GuiGraphicsExtractor graphics, @NonNull List<FormattedCharSequence> lines, int x, int y, int color) {
+        var width = lines.stream().mapToInt(line -> this.screen.getFont().width(line)).max().orElse(0);
+        x -= width / 2;
+        y = y - (lines.size() * this.screen.getFont().lineHeight) / 2;
         for (var i = 0; i < lines.size(); i++) {
-            graphics.text(this.screen.getFont(), lines.get(i), x, y2 + i * 10, color);
+            graphics.text(this.screen.getFont(), lines.get(i), x, y + i * 10, color);
         }
-    }
-
-    private List<FormattedText> findOptimalLines(final Component input, final int preferredWidth) {
-        var splitter = Minecraft.getInstance().font.getSplitter();
-        List<FormattedText> bestSplit = null;
-        var bestDistance = Float.MAX_VALUE;
-        for (var testMargin : TEST_SPLIT_OFFSETS) {
-            var testSplit = splitter.splitLines(input, preferredWidth - testMargin, Style.EMPTY);
-            var distance = Math.abs(getMaxWidth(splitter, testSplit) - preferredWidth);
-            if (distance <= 10.0F) return testSplit;
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                bestSplit = testSplit;
-            }
-        }
-        return bestSplit;
-    }
-
-    private static float getMaxWidth(final @NonNull StringSplitter splitter, final @NonNull List<FormattedText> input) {
-        return (float) input.stream().mapToDouble(splitter::stringWidth).max().orElse(0.0);
     }
 
     public boolean isActive(AspectCategory category) {

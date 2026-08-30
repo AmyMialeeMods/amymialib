@@ -2,6 +2,7 @@ package dev.amymialee.amymialib.util;
 
 import dev.amymialee.amymialib.aspects.Aspect;
 import dev.amymialee.amymialib.aspects.AspectCategory;
+import dev.amymialee.amymialib.aspects.AspectLink;
 import dev.amymialee.amymialib.aspects.AspectType;
 import dev.amymialee.amymialib.util.datagentasks.AMGenTranslations;
 import dev.amymialee.amymialib.util.registry.*;
@@ -172,6 +173,17 @@ public class AMRegistry {
             return new AMRegistryInstance<>(this, registry, ResourceKey.create(registry.key(), Identifier.fromNamespaceAndPath(this.namespace, path)), thing);
         }
         throw new IllegalStateException("Failed to register %s to the %s AMRegistry!".formatted(Identifier.fromNamespaceAndPath(this.namespace, path), this.namespace));
+    }
+
+    public AspectLink.AspectLinkBuilder link(String path, String link, String name, String description) {
+        var builder = this.link(path, link);
+        this.createTranslation(builder.nameKey, name);
+        this.createTranslation(builder.descriptionKey, description);
+        return builder;
+    }
+
+    public AspectLink.AspectLinkBuilder link(String path, String link) {
+        return AspectLink.of(Identifier.fromNamespaceAndPath(this.namespace, path), link);
     }
 
     public AspectCategory.AspectCategoryBuilder category(String path, String name, String description) {

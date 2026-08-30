@@ -1,5 +1,6 @@
 package dev.amymialee.amymialib.aspects;
 
+import com.google.common.collect.ImmutableList;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -20,13 +21,15 @@ public final class AspectCategory {
     public final String descriptionKey;
     public final AspectIcon<AspectCategory> icon;
     public final AspectBackground background;
+    public final List<AspectLink> links;
     public final Component name;
     public final Component description;
 
-    private AspectCategory(@NonNull Identifier id, String nameKey, String descriptionKey, AspectIcon<AspectCategory> icon, AspectBackground background) {
+    private AspectCategory(@NonNull Identifier id, String nameKey, String descriptionKey, AspectIcon<AspectCategory> icon, AspectBackground background, List<AspectLink> links) {
         this.id = id;
         this.icon = icon;
         this.background = background;
+        this.links = ImmutableList.copyOf(links);
         this.nameKey = nameKey;
         this.descriptionKey = descriptionKey;
         this.name = Component.translatable(this.nameKey);
@@ -45,6 +48,7 @@ public final class AspectCategory {
         public final String nameKey;
         public final String descriptionKey;
         private final List<AspectIcon<AspectCategory>> icons = new ArrayList<>();
+        private final List<AspectLink> links = new ArrayList<>();
         private AspectBackground background = AspectBackground.EMPTY;
 
         protected AspectCategoryBuilder(@NonNull Identifier id) {
@@ -92,9 +96,24 @@ public final class AspectCategory {
             return this;
         }
 
+        public AspectCategoryBuilder link(AspectLink link) {
+            this.links.add(link);
+            return this;
+        }
+
+        public AspectCategoryBuilder link(Identifier texture, int width, int height, float u0, float u1, float v0, float v1) {
+            this.background = new AspectBackground.AspectBackgroundTexture(texture, width, height, u0, u1, v0, v1);
+            return this;
+        }
+
+        public AspectCategoryBuilder link(Identifier sprite) {
+            this.background = new AspectBackground.AspectBackgroundSprite(sprite);
+            return this;
+        }
+
         public AspectCategory build() {
             AspectIcon<AspectCategory> icon = icons.isEmpty() ? new AspectIcon.AspectIconEmpty<>() : (icons.size() == 1 ? icons.getFirst() : new AspectIcon.AspectMultiIcon<>(icons));
-            return AspectManager.registerCategory(new AspectCategory(this.id, this.nameKey, this.descriptionKey, icon, this.background));
+            return AspectManager.registerCategory(new AspectCategory(this.id, this.nameKey, this.descriptionKey, icon, this.background, links));
         }
     }
 }

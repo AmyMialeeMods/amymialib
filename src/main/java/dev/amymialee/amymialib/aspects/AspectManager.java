@@ -23,6 +23,7 @@ public @SuppressWarnings("rawtypes") class AspectManager {
     public static final Map<Identifier, Aspect> ASPECTS = new HashMap<>();
     private static final Map<Identifier, AspectCategory> CATEGORIES = new HashMap<>();
     private static final Map<Identifier, List<Aspect<?>>> CATEGORY_ENTRIES = new HashMap<>();
+    private static final Map<Identifier, AspectLink> LINKS = new HashMap<>();
 
     /**
      * This is received from a server after an Aspect has been changed.<br>
@@ -139,5 +140,14 @@ public @SuppressWarnings("rawtypes") class AspectManager {
      */
     public static @NonNull List<Aspect<?>> getCategoryEntries(@NonNull AspectCategory category) {
         return new ArrayList<>(CATEGORY_ENTRIES.getOrDefault(category.id, new ArrayList<>()));
+    }
+
+    /**
+     * Registers an aspect link.<br>
+     * If this is not called, the link will not show up in any category menu.
+     */
+    public static @NonNull AspectLink registerLink(AspectLink aspectLink) {
+        LINKS.put(aspectLink.id, aspectLink);
+        return aspectLink;
     }
 }

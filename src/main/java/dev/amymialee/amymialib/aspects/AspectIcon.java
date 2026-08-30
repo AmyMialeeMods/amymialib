@@ -35,7 +35,9 @@ public interface AspectIcon<T> {
 
         @Override
         public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
-            context.item(stack.get(), x, y);
+            try {
+                context.item(stack.get(), x, y);
+            } catch (Exception _) {}
         }
     }
 

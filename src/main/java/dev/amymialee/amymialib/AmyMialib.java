@@ -2,11 +2,7 @@ package dev.amymialee.amymialib;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import dev.amymialee.amymialib.aspects.Aspect;
-import dev.amymialee.amymialib.aspects.AspectManager;
-import dev.amymialee.amymialib.aspects.AspectCategory;
-import dev.amymialee.amymialib.aspects.AspectSyncPayload;
-import dev.amymialee.amymialib.aspects.AspectType;
+import dev.amymialee.amymialib.aspects.*;
 import dev.amymialee.amymialib.util.AMRegistry;
 import dev.upcraft.datasync.api.util.Entitlements;
 import net.fabricmc.api.ModInitializer;
@@ -33,7 +29,8 @@ public class AmyMialib implements ModInitializer {
     private static final Identifier TIER2_ID = Identifier.fromNamespaceAndPath("amymialee", "tier2");
     private static final Identifier TIER3_ID = Identifier.fromNamespaceAndPath("amymialee", "tier3");
 
-    public static final AspectCategory AMYMIALIB = REGISTRY.category("amymialib", "AmyMialib", "AmyMialib Aspects").icon(Items.DIAMOND).backgroundSprite(id("aspects/background_2")).build();
+    public static final AspectLink p = REGISTRY.link("website", "https://amymialee.dev", "AmyMialee", "AmyMialee Website").icon(Items.DIAMOND).build();
+    public static final AspectCategory AMYMIALIB = REGISTRY.category("amymialib", "AmyMialib", "AmyMialib Aspects").link(p).link(p).link(p).link(p).icon(Items.DIAMOND).backgroundSprite(id("aspects/background_2")).build();
     public static final Aspect<Boolean> DISABLE_END_PORTALS = REGISTRY.config("disable_end_portals", AspectType.BOOLEAN_TRUE, "Disable End Portals", "Should end portals be disabled?").icon(Items.END_PORTAL_FRAME).category(AMYMIALIB).build();
 
     @Override
@@ -44,13 +41,6 @@ public class AmyMialib implements ModInitializer {
         PayloadTypeRegistry.serverboundPlay().register(AspectSyncPayload.ID_UNCHANGED, AspectSyncPayload.CODEC);
         PayloadTypeRegistry.clientboundPlay().register(AspectSyncPayload.ID_UNCHANGED, AspectSyncPayload.CODEC);
         ServerPlayNetworking.registerGlobalReceiver(AspectSyncPayload.ID_UNCHANGED, AspectManager::receivePayloadServer);
-
-        for (var z = 1; z < 27; z++) {
-            var category = AspectCategory.of(AmyMialib.id("amymialib_%s".formatted(z))).icon(Items.BARRIER).backgroundSprite(id("aspects/background_2")).build();
-            for (var i = 0; i < z; i++) {
-                Aspect.config(AmyMialib.id("amymialib_%s".formatted(z)), AspectType.BOOLEAN_TRUE).icon(Items.STRUCTURE_BLOCK).category(category).build();
-            }
-        }
     }
 
     public static boolean isSupporterTier1(UUID uuid) {

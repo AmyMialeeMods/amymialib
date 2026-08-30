@@ -54,7 +54,7 @@ public class AspectWidget implements Renderable {
     public void extractHover(final @NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         var centerY = this.shape.y + shape.height / 2;
         if (!this.description.isEmpty() && Language.getInstance().has(this.aspect.descriptionKey)) {
-            this.screen.border(graphics, this.shape.x + 2, centerY + 8, this.shape.width - 4, (int) (11 + this.description.size() * 8.25f), Mth.hsvToArgb(.82f, .61f, 1f, 255));
+            AspectEditorScreen.border(graphics, this.shape.x + 2, centerY + 8, this.shape.width - 4, (int) (11 + this.description.size() * 8.25f), Mth.hsvToArgb(.82f, .61f, 1f, 255));
             graphics.pose().pushMatrix();
             graphics.pose().translate(this.shape.x + 7, centerY + 15);
             graphics.pose().scale(0.75f);

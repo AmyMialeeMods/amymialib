@@ -125,6 +125,13 @@ public class AspectEditorScreen extends Screen {
                     break;
                 }
             }
+            if (this.aspectOuter.contains(x, y)) for (var renderable : this.aspects.renderablesHeader) {
+                if (renderable instanceof AspectLinkWidget widget && widget.contains(x, y)) {
+                    AbstractWidget.playButtonClickSound(Minecraft.getInstance().getSoundManager());
+                    widget.mouseClicked(event, x, y);
+                    break;
+                }
+            }
         }
         return super.mouseClicked(event, doubleClick);
     }
@@ -138,13 +145,14 @@ public class AspectEditorScreen extends Screen {
         if (this.dragging.is()) graphics.requestCursor(CursorTypes.RESIZE_NS);
         super.extractRenderState(graphics, mouseX, mouseY, delta);
         graphics.nextStratum();
-        graphics.nextStratum();
+        this.categories.fade = Mth.lerp(.01f, this.categories.fade, this.categories.hovered != null || this.aspects.hovered != null || this.aspects.hoveredLink != null ? .6f : 0);
+        this.aspects.fade = this.categories.fade;
         this.categories.extractCategories(graphics, mouseX, mouseY, delta);
         this.aspects.extractAspects(graphics, mouseX, mouseY, delta);
-        this.categories.fade = Mth.lerp(.01f, this.categories.fade, this.categories.hovered != null || this.aspects.hovered != null ? .6f : 0);
-        this.aspects.fade = this.categories.fade;
+        graphics.nextStratum();
         if (this.categories.hovered != null) this.categories.hovered.extractHover(graphics, delta);
         if (this.aspects.hovered != null) this.aspects.hovered.extractHover(graphics, mouseX, mouseY, delta);
+        if (this.aspects.hoveredLink != null) this.aspects.hoveredLink.extractHover(graphics, delta);
     }
 
     public static void border(@NonNull GuiGraphicsExtractor graphics, int x, int y, int width, int height, int colour) {
