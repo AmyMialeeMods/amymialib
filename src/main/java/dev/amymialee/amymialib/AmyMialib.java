@@ -4,9 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dev.amymialee.amymialib.aspects.Aspect;
 import dev.amymialee.amymialib.aspects.AspectManager;
-import dev.amymialee.amymialib.aspects.builder.AspectCategory;
-import dev.amymialee.amymialib.aspects.builder.AspectSyncPayload;
-import dev.amymialee.amymialib.aspects.builder.AspectType;
+import dev.amymialee.amymialib.aspects.AspectCategory;
+import dev.amymialee.amymialib.aspects.AspectSyncPayload;
+import dev.amymialee.amymialib.aspects.AspectType;
 import dev.amymialee.amymialib.util.AMRegistry;
 import dev.upcraft.datasync.api.util.Entitlements;
 import net.fabricmc.api.ModInitializer;
@@ -46,8 +46,8 @@ public class AmyMialib implements ModInitializer {
         ServerPlayNetworking.registerGlobalReceiver(AspectSyncPayload.ID_UNCHANGED, AspectManager::receivePayloadServer);
 
         for (var z = 1; z < 27; z++) {
+            var category = AspectCategory.of(AmyMialib.id("amymialib_%s".formatted(z))).icon(Items.BARRIER).backgroundSprite(id("aspects/background_2")).build();
             for (var i = 0; i < z; i++) {
-                var category = AspectCategory.of(Identifier.fromNamespaceAndPath("namespace_%s".formatted(z), "amymialib_%s".formatted(i))).icon(Items.BARRIER).backgroundSprite(id("aspects/background_2")).build();
                 Aspect.config(AmyMialib.id("amymialib_%s".formatted(z)), AspectType.BOOLEAN_TRUE).icon(Items.STRUCTURE_BLOCK).category(category).build();
             }
         }

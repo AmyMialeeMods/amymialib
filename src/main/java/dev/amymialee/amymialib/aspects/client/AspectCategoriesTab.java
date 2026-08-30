@@ -2,7 +2,7 @@ package dev.amymialee.amymialib.aspects.client;
 
 import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.aspects.AspectManager;
-import dev.amymialee.amymialib.aspects.builder.AspectCategory;
+import dev.amymialee.amymialib.aspects.AspectCategory;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
@@ -30,6 +30,7 @@ public class AspectCategoriesTab {
     }
 
     public void init() {
+        this.namedCategories.clear();
         AspectManager.getCategoryEntries().forEach((category, _) -> {
             var name = category.id.getNamespace();
             var container = FabricLoader.getInstance().getModContainer(category.id.getNamespace());
@@ -43,15 +44,17 @@ public class AspectCategoriesTab {
         var y = screen.categoryInner.y + 4;
         for (var entry : namedCategories.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
             var name = Component.literal(entry.getKey());
-            renderables.add(new StringWidget(name.am$center((int) screen.categoryInner.getCenterX()), y, name.am$width(), 9, name, screen.getFont()));
+            renderables.add(new StringWidget(screen.categoryInner.x, y, name.am$width(), 9, name, screen.getFont()).setMaxWidth(screen.categoryInner.width, StringWidget.TextOverflow.SCROLLING));
+            var categoryWidth = 20;
+            var categoryGap = 2;
             y += 12;
             var categories = entry.getValue();
             for (var i = 0; i < categories.size(); i++) {
                 var category = categories.get(i);
-                var tileOffset = screen.categoryInner.width / 2f - (screen.categorySpaces * 20 + (screen.categorySpaces - 1) * 2) / 2f + (i % screen.categorySpaces) * 22f;
+                var tileOffset = screen.categoryInner.width / 2f - (screen.categorySpaces * categoryWidth + (screen.categorySpaces - 1) * categoryGap) / 2f + (i % screen.categorySpaces) * (categoryWidth + categoryGap);
                 if (i >= (categories.size() / screen.categorySpaces) * screen.categorySpaces) {
                     var onRow = categories.size() % screen.categorySpaces;
-                    tileOffset = screen.categoryInner.width / 2f - (onRow * 20 + (onRow - 1) * 2) / 2f + (i % onRow) * 22f;
+                    tileOffset = screen.categoryInner.width / 2f - (onRow * categoryWidth + (onRow - 1) * categoryGap) / 2f + (i % onRow) * (categoryWidth + categoryGap);
                 }
                 renderables.add(new AspectCategoryWidget(this.screen, category, (int) (screen.categoryInner.x + tileOffset), y));
                 if (i % screen.categorySpaces == screen.categorySpaces - 1) y += 22;
@@ -69,13 +72,10 @@ public class AspectCategoriesTab {
 
     public void tickHovered(int mouseX, int mouseY) {
         this.hovered = null;
-        var hovering = false;
         if (this.screen.categoryInner.contains(mouseX, mouseY)) for (var renderable : renderables) if (renderable instanceof AspectCategoryWidget widget) if (widget.contains(mouseX, mouseY)) {
-            hovering = true;
             this.hovered = widget;
             break;
         }
-        this.fade = Mth.lerp(.25f, this.fade, hovering ? .5f : 0);
     }
 
     public void extractCategories(final @NonNull GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, float delta) {
@@ -83,11 +83,22 @@ public class AspectCategoriesTab {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ICON_BACKGROUND, screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.width + 1, screen.categoryOuter.height);
         graphics.pose().pushMatrix();
         graphics.pose().translate(0, screen.categoryScroll);
-        renderables.forEach(renderable -> renderable.extractRenderState(graphics, mouseX, mouseY, delta));
-        graphics.fill(screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.x + screen.categoryOuter.width, screen.categoryOuter.y + screen.categoryOuter.height, Mth.floor(this.fade * 255.0F) << 24);
+        renderables.forEach(renderable -> {
+            if (renderable instanceof StringWidget widget && widget.getWidth() < screen.categoryInner.width) {
+                var x = widget.getX();
+                var y = widget.getY();
+                widget.setPosition(screen.categoryInner.x + screen.categoryInner.width / 2 - widget.getWidth() / 2, y);
+                renderable.extractRenderState(graphics, mouseX, mouseY, delta);
+                widget.setPosition(x, y);
+            } else {
+                renderable.extractRenderState(graphics, mouseX, mouseY, delta);
+            }
+        });
         graphics.pose().popMatrix();
+        graphics.fill(screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.x + screen.categoryOuter.width, screen.categoryOuter.y + screen.categoryOuter.height, Mth.floor(this.fade * 255.0F) << 24);
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, COVER, screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.width, screen.categoryOuter.height);
         graphics.disableScissor();
+        this.fade = Mth.lerp(.05f, this.fade, this.hovered != null ? .3f : 0);
     }
 
     public int getHeight() {

@@ -1,4 +1,4 @@
-package dev.amymialee.amymialib.aspects.builder;
+package dev.amymialee.amymialib.aspects;
 
 import dev.amymialee.amymialib.util.AMEnvironmentType;
 import net.fabricmc.loader.api.FabricLoader;

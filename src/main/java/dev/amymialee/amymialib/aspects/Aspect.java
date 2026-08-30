@@ -1,8 +1,9 @@
 package dev.amymialee.amymialib.aspects;
 
-import dev.amymialee.amymialib.aspects.builder.*;
+import dev.amymialee.amymialib.AmyMialibClient;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
+import java.awt.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +27,7 @@ public final class Aspect<T> {
     public final Identifier id;
     public final AspectType<T> type;
     public final AspectSaveLocation saveLocation;
-    public final AspectIcon icon;
+    public final AspectIcon<Aspect<T>> icon;
     public final String nameKey;
     public final String descriptionKey;
     public final Component name;
@@ -37,7 +39,7 @@ public final class Aspect<T> {
     public final Identifier category;
     T value;
 
-    private Aspect(@NonNull Identifier id, AspectType<T> type, AspectSaveLocation saveLocation, String nameKey, String descriptionKey, AspectIcon icon, Predicate<Player> hasPermission, BiConsumer<Aspect<T>, MinecraftServer> onChangeServer, Consumer<Aspect<T>> onChangeClient, Identifier category) {
+    private Aspect(@NonNull Identifier id, AspectType<T> type, AspectSaveLocation saveLocation, String nameKey, String descriptionKey, AspectIcon<Aspect<T>> icon, Predicate<Player> hasPermission, BiConsumer<Aspect<T>, MinecraftServer> onChangeServer, Consumer<Aspect<T>> onChangeClient, Identifier category) {
         this.id = id;
         this.type = type;
         this.saveLocation = saveLocation;
@@ -48,7 +50,9 @@ public final class Aspect<T> {
         var name = this.id.getNamespace();
         var container = FabricLoader.getInstance().getModContainer(this.id.getNamespace());
         if (container.isPresent()) name = container.get().getMetadata().getName();
-        this.description = Component.translatable(this.descriptionKey).append("\n").append(Component.literal(name).withStyle(ChatFormatting.BLUE));
+        var description = Component.translatable(this.descriptionKey);
+        if (this.saveLocation == AspectSaveLocation.CLIENT) description = description.append("\n").append(AmyMialibClient.CLIENT_ONLY);
+        this.description = description.append("\n").append(Component.literal(name).withStyle(ChatFormatting.BLUE));
         this.filePath = this.saveLocation.resolve(id.toString().replace(":", "_") + ".json");
         this.hasPermission = hasPermission;
         this.onChangeServer = onChangeServer == null ? null : () -> onChangeServer.accept(this, AspectManager.SERVER);
@@ -79,6 +83,10 @@ public final class Aspect<T> {
         this.value = value;
     }
 
+    public String toString() {
+        return this.type.toString(this.value);
+    }
+
     public void saveToFile() {
         AspectFileManager.save(this);
     }
@@ -89,6 +97,14 @@ public final class Aspect<T> {
 
     public boolean hasPermission(Player player) {
         return this.hasPermission.test(player);
+    }
+
+    public void onDrag(double xProgress) {
+
+    }
+
+    public void onClick(@NonNull MouseButtonEvent event) {
+
     }
 
     public static class AspectBuilder<T> {
@@ -165,7 +181,7 @@ public final class Aspect<T> {
         }
 
         public Aspect<T> build() {
-            var icon = icons.isEmpty() ? new AspectIcon.AspectIconEmpty<>() : (icons.size() == 1 ? icons.getFirst() : new AspectIcon.AspectMultiIcon<>(icons));
+            AspectIcon<Aspect<T>> icon = icons.isEmpty() ? new AspectIcon.AspectIconEmpty<>() : (icons.size() == 1 ? icons.getFirst() : new AspectIcon.AspectMultiIcon<>(icons));
             return AspectManager.registerAspect(new Aspect<>(this.id, this.type, this.saveLocation, this.nameKey, this.descriptionKey, icon, this.hasPermission, this.onChangeServer, this.onChangeClient, this.category));
         }
     }

@@ -1,16 +1,15 @@
 package dev.amymialee.amymialib.aspects.client;
 
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
-import dev.amymialee.amymialib.AmyMialib;
+import dev.amymialee.amymialib.AmyMialibClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.layouts.HeaderAndFooterLayout;
+import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.CommonComponents;
-import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -18,10 +17,7 @@ import org.jspecify.annotations.Nullable;
 import java.awt.*;
 
 public class AspectEditorScreen extends Screen {
-    private static final Component TITLE = Component.translatable(AmyMialib.REGISTRY.createTranslation("aspects.title", "AmyMialib Aspects"));
-
-    private final HeaderAndFooterLayout layout = new HeaderAndFooterLayout(this);
-    private final @Nullable Screen lastScreen;
+    public final @Nullable Screen lastScreen;
     public int safeWidth;
     public int safeHeight;
     public int leftPos;
@@ -30,11 +26,15 @@ public class AspectEditorScreen extends Screen {
     public final AspectCategoriesTab categories = new AspectCategoriesTab(this);
     public final AspectsTab aspects = new AspectsTab(this);
 
+    public final StringWidget title = new StringWidget(AmyMialibClient.ASPECTS_SCREEN, this.font);
+    public final Button done;
+
     public Rectangle categoryOuter = new Rectangle();
     public Rectangle categoryInner = new Rectangle();
     public Rectangle aspectOuter = new Rectangle();
     public Rectangle aspectInner = new Rectangle();
     public int categorySpaces;
+    public int aspectSpaces;
 
     public float categoryScroll;
     public double categoryVelocity;
@@ -44,41 +44,61 @@ public class AspectEditorScreen extends Screen {
     public AspectWidget dragTarget = null;
 
     public AspectEditorScreen(final @Nullable Screen lastScreen) {
-        super(TITLE);
+        super(AmyMialibClient.ASPECTS_SCREEN);
         this.lastScreen = lastScreen;
+        done = Button.builder(CommonComponents.GUI_DONE, _ -> this.rebuildWidgets()).size(80, 20).build();
     }
 
     @Override
     protected void init() {
         this.categories.init();
-        this.layout.addTitleHeader(TITLE, this.font);
-        this.layout.addToFooter(Button.builder(CommonComponents.GUI_DONE, _ -> this.rebuildWidgets()).width(40).build());
-        this.layout.visitWidgets(this::addRenderableWidget);
+        this.addRenderableOnly(this.title);
+        this.addRenderableWidget(this.done);
         this.repositionElements();
     }
 
     @Override
     protected void repositionElements() {
-        this.safeWidth = (int) (this.width * .8);
+        this.safeWidth = (int) (this.width * .9);
         this.safeHeight = (int) (this.height * .8);
-
+        var remaining = this.safeWidth - 16;
+        var categorySize = 20;
+        var categoryGap = 2 + 2;
+        var aspectSize = 100;
+        var aspectGap = 4 + 2;
+        this.categorySpaces = 1;
+        this.aspectSpaces = 1;
+        remaining -= categorySize + aspectSize;
+        while (true) {
+            var hasCategorySpace = !(this.categorySpaces >= this.aspectSpaces) && this.categorySpaces < 3 && remaining > categorySize + categoryGap;
+            var hasAspectSpace = this.aspectSpaces < 4 && this.aspectSpaces <= this.categorySpaces && remaining > aspectSize + aspectGap;
+            var hasSpace = hasCategorySpace || hasAspectSpace;
+            if (!hasSpace) break;
+            if (hasAspectSpace) {
+                this.aspectSpaces++;
+                remaining -= aspectSize + aspectGap;
+            } else {
+                this.categorySpaces++;
+                remaining -= categorySize + categoryGap;
+            }
+        }
+        this.safeWidth -= remaining;
         this.leftPos = (this.width - this.safeWidth) / 2;
         this.topPos = (this.height - this.safeHeight) / 2;
-        this.layout.arrangeElements();
-
-        this.categorySpaces = (int) Math.min(4, (this.safeWidth * .3f - 6) / 23);
         var categoryWidth = this.categorySpaces * 24;
         this.categoryOuter = new Rectangle(this.leftPos, this.topPos, categoryWidth, this.safeHeight);
         this.aspectOuter = new Rectangle(this.leftPos + categoryWidth, this.topPos, this.safeWidth - categoryWidth, this.safeHeight);
         this.categoryInner = new Rectangle(this.leftPos + 4, this.topPos + 4, categoryWidth - 6, this.safeHeight - 8);
-        this.aspectInner = new Rectangle(this.leftPos + categoryWidth + 3, this.topPos + 4, this.safeWidth - categoryWidth - 8, this.safeHeight - 8);
+        this.aspectInner = new Rectangle(this.leftPos + categoryWidth + 2, this.topPos + 4, this.safeWidth - categoryWidth - 6, this.safeHeight - 8);
         this.categories.repositionElements();
         this.aspects.repositionElements();
+        this.title.setPosition(this.width / 2 - AmyMialibClient.ASPECTS_SCREEN.am$width() / 2, topPos - 12);
+        this.done.setPosition(this.width / 2 - 40, this.topPos + this.safeHeight + 4);
     }
 
     @Override
     public boolean mouseClicked(final @NonNull MouseButtonEvent event, final boolean doubleClick) {
-        if (event.button() == 0) {
+        if (event.button() == 0 || event.button() == 1) {
             var x = event.x();
             var y = event.y();
             if (this.categoryOuter.contains(x, y)) {
@@ -86,14 +106,15 @@ public class AspectEditorScreen extends Screen {
                     if (this.categories.renderables.get(i) instanceof AspectCategoryWidget widget && widget.contains(x, y)) {
                         this.aspects.category = widget.category;
                         AbstractWidget.playButtonClickSound(Minecraft.getInstance().getSoundManager());
-                        this.repositionElements();
+                        this.init();
                         break;
                     }
                 }
             }
             if (this.aspectOuter.contains(x, y)) for (var renderable : this.aspects.renderables) {
                 if (renderable instanceof AspectWidget widget && widget.contains(x, y)) {
-                    widget.mouseClicked(x, y);
+                    AbstractWidget.playButtonClickSound(Minecraft.getInstance().getSoundManager());
+                    widget.mouseClicked(event, x, y);
                     break;
                 }
             }
@@ -114,7 +135,7 @@ public class AspectEditorScreen extends Screen {
         this.categories.extractCategories(graphics, mouseX, mouseY, delta);
         this.aspects.extractAspects(graphics, mouseX, mouseY, delta);
         if (this.categories.hovered != null) this.categories.hovered.extractHover(graphics, delta);
-        if (this.aspects.hovered != null) this.aspects.hovered.extractHover(graphics, delta);
+        if (this.aspects.hovered != null) this.aspects.hovered.extractHover(graphics, mouseX, mouseY, delta);
     }
 
     @Override
@@ -163,7 +184,7 @@ public class AspectEditorScreen extends Screen {
                 for (var renderable : this.aspects.renderables) {
                     if (!(renderable instanceof AspectWidget widget) || !widget.contains(mouseX, mouseY)) continue;
                     this.dragging = Dragging.ASPECT_WIDGET;
-                    widget.mouseDragged(mouseX, mouseY, dx, dy);
+                    widget.mouseDragged(mouseX);
                     return true;
                 }
                 this.dragging = Dragging.ASPECTS;
@@ -171,7 +192,7 @@ public class AspectEditorScreen extends Screen {
         } else {
             if (dragging == Dragging.ASPECT_WIDGET) {
                 if (this.dragTarget != null) {
-                    this.dragTarget.mouseDragged(mouseX, mouseY, dx, dy);
+                    this.dragTarget.mouseDragged(mouseX);
                 } else {
                     this.dragging = Dragging.NONE;
                 }

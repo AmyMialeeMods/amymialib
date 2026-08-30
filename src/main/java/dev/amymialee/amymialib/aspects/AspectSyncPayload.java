@@ -1,8 +1,6 @@
-package dev.amymialee.amymialib.aspects.builder;
+package dev.amymialee.amymialib.aspects;
 
 import dev.amymialee.amymialib.AmyMialib;
-import dev.amymialee.amymialib.aspects.Aspect;
-import dev.amymialee.amymialib.aspects.AspectManager;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;

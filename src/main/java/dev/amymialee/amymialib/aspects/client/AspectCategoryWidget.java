@@ -1,7 +1,7 @@
 package dev.amymialee.amymialib.aspects.client;
 
 import dev.amymialee.amymialib.AmyMialib;
-import dev.amymialee.amymialib.aspects.builder.AspectCategory;
+import dev.amymialee.amymialib.aspects.AspectCategory;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -102,6 +102,6 @@ public class AspectCategoryWidget implements Renderable {
     }
 
     public boolean contains(double mouseX, double mouseY) {
-        return shape.contains(mouseX, mouseY);
+        return shape.contains(mouseX, mouseY - this.screen.categoryScroll);
     }
 }

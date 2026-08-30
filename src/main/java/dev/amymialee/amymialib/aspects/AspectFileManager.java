@@ -1,10 +1,8 @@
-package dev.amymialee.amymialib.aspects.builder;
+package dev.amymialee.amymialib.aspects;
 
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import dev.amymialee.amymialib.AmyMialib;
-import dev.amymialee.amymialib.aspects.Aspect;
-import dev.amymialee.amymialib.aspects.AspectManager;
 import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;

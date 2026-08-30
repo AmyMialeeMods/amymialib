@@ -1,9 +1,6 @@
 package dev.amymialee.amymialib.aspects;
 
 import dev.amymialee.amymialib.AmyMialib;
-import dev.amymialee.amymialib.aspects.builder.AspectCategory;
-import dev.amymialee.amymialib.aspects.builder.AspectSaveLocation;
-import dev.amymialee.amymialib.aspects.builder.AspectSyncPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;

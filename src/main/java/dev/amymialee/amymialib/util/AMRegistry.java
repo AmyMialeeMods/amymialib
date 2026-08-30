@@ -1,8 +1,8 @@
 package dev.amymialee.amymialib.util;
 
 import dev.amymialee.amymialib.aspects.Aspect;
-import dev.amymialee.amymialib.aspects.builder.AspectCategory;
-import dev.amymialee.amymialib.aspects.builder.AspectType;
+import dev.amymialee.amymialib.aspects.AspectCategory;
+import dev.amymialee.amymialib.aspects.AspectType;
 import dev.amymialee.amymialib.util.datagentasks.AMGenTranslations;
 import dev.amymialee.amymialib.util.registry.*;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;

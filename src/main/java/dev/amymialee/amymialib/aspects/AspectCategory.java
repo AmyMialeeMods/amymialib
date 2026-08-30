@@ -1,6 +1,5 @@
-package dev.amymialee.amymialib.aspects.builder;
+package dev.amymialee.amymialib.aspects;
 
-import dev.amymialee.amymialib.aspects.AspectManager;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
