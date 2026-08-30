@@ -1,6 +1,5 @@
 package dev.amymialee.amymialib.aspects.client;
 
-import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.aspects.AspectCategory;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -8,12 +7,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.StringSplitter;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.locale.Language;
-import net.minecraft.network.chat.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
 
 import java.awt.*;
@@ -22,9 +22,7 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class AspectCategoryWidget implements Renderable {
-    private static final Identifier ICON_BACKGROUND = AmyMialib.id("aspects/category_background");
     private static final int[] TEST_SPLIT_OFFSETS = new int[]{0, 10, -10, 25, -25};
-    private static final Identifier WINDOW_LOCATION2 = AmyMialib.id("aspects/background_2");
     public final AspectEditorScreen screen;
     public final AspectCategory category;
     public final List<FormattedCharSequence> titleLines;
@@ -55,15 +53,14 @@ public class AspectCategoryWidget implements Renderable {
         var titleLeft = this.shape.x - 5;
         var backgroundHeight = titleBarHeight + 7 + this.description.size() * 11;
         if (!this.description.isEmpty() && Language.getInstance().has(this.category.descriptionKey)) {
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, WINDOW_LOCATION2, titleLeft + 4, titleTop, this.descriptionWidth - 8, backgroundHeight);
+            AspectEditorScreen.border(graphics, titleLeft + 4, titleTop, this.descriptionWidth - 8, backgroundHeight, Mth.hsvToArgb(.82f, .61f, 1f, 255));
             this.extractMultilineText(graphics, this.description, titleLeft + 13, titleTop + titleBarHeight + 2 + 1, -1);
         }
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, WINDOW_LOCATION2, titleLeft, titleTop, this.descriptionWidth, titleBarHeight);
+        AspectEditorScreen.border(graphics, titleLeft, titleTop, this.descriptionWidth, titleBarHeight, Mth.hsvToArgb(.82f, .61f, 1f, 255));
         this.extractMultilineText(graphics, this.titleLines, titleLeft + 29, titleTop + 9, -1);
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ICON_BACKGROUND, this.shape.x, this.shape.y, itemSize, itemSize);
-        var mouseX = Minecraft.getInstance().mouseHandler.getScaledXPos(Minecraft.getInstance().getWindow());
-        var mouseY = Minecraft.getInstance().mouseHandler.getScaledYPos(Minecraft.getInstance().getWindow());
-        category.icon.renderIcon(graphics, category, shape.x + 2, shape.y + 2, mouseX, mouseY, screen.aspects.isActive(category), delta);
+        var mouseX = (int) Minecraft.getInstance().mouseHandler.getScaledXPos(Minecraft.getInstance().getWindow());
+        var mouseY = (int) Minecraft.getInstance().mouseHandler.getScaledYPos(Minecraft.getInstance().getWindow());
+        this.extractRenderState(graphics, mouseX, mouseY, delta);
         graphics.pose().popMatrix();
     }
 
@@ -73,7 +70,7 @@ public class AspectCategoryWidget implements Renderable {
 
     @Override
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ICON_BACKGROUND, shape.x, shape.y, 20, 20);
+        AspectEditorScreen.thin(graphics, shape.x, shape.y, 20, 20, Mth.hsvToArgb(.82f, .61f, 1f, 255));
         category.icon.renderIcon(graphics, category, shape.x + 2, shape.y + 2, mouseX, mouseY, screen.aspects.isActive(category), delta);
     }
 

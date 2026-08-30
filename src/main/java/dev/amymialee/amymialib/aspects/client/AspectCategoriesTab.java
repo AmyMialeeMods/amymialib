@@ -1,6 +1,5 @@
 package dev.amymialee.amymialib.aspects.client;
 
-import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.aspects.AspectManager;
 import dev.amymialee.amymialib.aspects.AspectCategory;
 import net.fabricmc.loader.api.FabricLoader;
@@ -9,16 +8,13 @@ import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
 public class AspectCategoriesTab {
-    private static final Identifier ICON_BACKGROUND = AmyMialib.id("aspects/category_background");
-    private static final Identifier COVER = AmyMialib.id("aspects/category_cover");
-    private final Map<String, List<AspectCategory>> namedCategories = new HashMap<>();
+    public final Map<String, List<AspectCategory>> namedCategories = new HashMap<>();
     public final List<Renderable> renderables = new ArrayList<>();
     public final AspectEditorScreen screen;
     public AspectCategoryWidget hovered;
@@ -44,7 +40,7 @@ public class AspectCategoriesTab {
         var y = screen.categoryInner.y + 4;
         for (var entry : namedCategories.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
             var name = Component.literal(entry.getKey());
-            renderables.add(new StringWidget(screen.categoryInner.x, y, name.am$width(), 9, name, screen.getFont()).setMaxWidth(screen.categoryInner.width, StringWidget.TextOverflow.SCROLLING));
+            renderables.add(new StringWidget(screen.categoryInner.x - 2, y, name.am$width(), 9, name, screen.getFont()).setMaxWidth(screen.categoryInner.width + 4, StringWidget.TextOverflow.SCROLLING));
             var categoryWidth = 20;
             var categoryGap = 2;
             y += 12;
@@ -79,8 +75,8 @@ public class AspectCategoriesTab {
     }
 
     public void extractCategories(final @NonNull GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, float delta) {
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.width + 8, screen.categoryOuter.height);
         graphics.enableScissor(screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.x + screen.categoryOuter.width, screen.categoryOuter.y + screen.categoryOuter.height);
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ICON_BACKGROUND, screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.width + 1, screen.categoryOuter.height);
         graphics.pose().pushMatrix();
         graphics.pose().translate(0, screen.categoryScroll);
         renderables.forEach(renderable -> {
@@ -95,10 +91,9 @@ public class AspectCategoriesTab {
             }
         });
         graphics.pose().popMatrix();
-        graphics.fill(screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.x + screen.categoryOuter.width, screen.categoryOuter.y + screen.categoryOuter.height, Mth.floor(this.fade * 255.0F) << 24);
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, COVER, screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.width, screen.categoryOuter.height);
         graphics.disableScissor();
-        this.fade = Mth.lerp(.05f, this.fade, this.hovered != null ? .3f : 0);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.width + 8, screen.categoryOuter.height, Mth.hsvToArgb(0f, 0f, 0f, Mth.floor(this.fade * 255.0F) << 24));
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.BORDER, screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.width + 8, screen.categoryOuter.height, Mth.hsvToArgb(.82f, .61f, 1f, 255));
     }
 
     public int getHeight() {

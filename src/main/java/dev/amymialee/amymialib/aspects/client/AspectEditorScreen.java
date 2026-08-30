@@ -1,6 +1,7 @@
 package dev.amymialee.amymialib.aspects.client;
 
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
+import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.AmyMialibClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -9,7 +10,9 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -17,6 +20,10 @@ import org.jspecify.annotations.Nullable;
 import java.awt.*;
 
 public class AspectEditorScreen extends Screen {
+    public static final Identifier FILL = AmyMialib.id("aspects/fill");
+    public static final Identifier BORDER = AmyMialib.id("aspects/border");
+    public static final Identifier THIN = AmyMialib.id("aspects/thin");
+
     public final @Nullable Screen lastScreen;
     public int safeWidth;
     public int safeHeight;
@@ -86,13 +93,13 @@ public class AspectEditorScreen extends Screen {
         this.leftPos = (this.width - this.safeWidth) / 2;
         this.topPos = (this.height - this.safeHeight) / 2;
         var categoryWidth = this.categorySpaces * 24;
-        this.categoryOuter = new Rectangle(this.leftPos, this.topPos, categoryWidth, this.safeHeight);
-        this.aspectOuter = new Rectangle(this.leftPos + categoryWidth, this.topPos, this.safeWidth - categoryWidth, this.safeHeight);
-        this.categoryInner = new Rectangle(this.leftPos + 4, this.topPos + 4, categoryWidth - 6, this.safeHeight - 8);
-        this.aspectInner = new Rectangle(this.leftPos + categoryWidth + 2, this.topPos + 4, this.safeWidth - categoryWidth - 6, this.safeHeight - 8);
+        this.categoryOuter = new Rectangle(this.leftPos, this.topPos + 8, categoryWidth, this.safeHeight - 16);
+        this.categoryInner = new Rectangle(categoryOuter.x + 4 + 1, categoryOuter.y + 4, categoryOuter.width - 6, categoryOuter.height - 8);
+        this.aspectOuter = new Rectangle(this.leftPos + categoryWidth + 1, this.topPos, this.safeWidth - categoryWidth, this.safeHeight);
+        this.aspectInner = new Rectangle(aspectOuter.x + 2, aspectOuter.y + 4 + 36, aspectOuter.width - 6, aspectOuter.height - 8 - 36);
         this.categories.repositionElements();
         this.aspects.repositionElements();
-        this.title.setPosition(this.width / 2 - AmyMialibClient.ASPECTS_SCREEN.am$width() / 2, topPos - 12);
+        this.title.setPosition((int) (aspectOuter.getCenterX() - AmyMialibClient.ASPECTS_SCREEN.am$width() / 2f), (int) (aspectOuter.getMinY() - 12));
         this.done.setPosition(this.width / 2 - 40, this.topPos + this.safeHeight + 4);
     }
 
@@ -101,7 +108,7 @@ public class AspectEditorScreen extends Screen {
         if (event.button() == 0 || event.button() == 1) {
             var x = event.x();
             var y = event.y();
-            if (this.categoryOuter.contains(x, y)) {
+            if (this.categoryInner.contains(x, y)) {
                 for (var i = 0; i < this.categories.renderables.size(); i++) {
                     if (this.categories.renderables.get(i) instanceof AspectCategoryWidget widget && widget.contains(x, y)) {
                         this.aspects.category = widget.category;
@@ -111,7 +118,7 @@ public class AspectEditorScreen extends Screen {
                     }
                 }
             }
-            if (this.aspectOuter.contains(x, y)) for (var renderable : this.aspects.renderables) {
+            if (this.aspectInner.contains(x, y)) for (var renderable : this.aspects.renderables) {
                 if (renderable instanceof AspectWidget widget && widget.contains(x, y)) {
                     AbstractWidget.playButtonClickSound(Minecraft.getInstance().getSoundManager());
                     widget.mouseClicked(event, x, y);
@@ -134,8 +141,20 @@ public class AspectEditorScreen extends Screen {
         graphics.nextStratum();
         this.categories.extractCategories(graphics, mouseX, mouseY, delta);
         this.aspects.extractAspects(graphics, mouseX, mouseY, delta);
+        this.categories.fade = Mth.lerp(.01f, this.categories.fade, this.categories.hovered != null || this.aspects.hovered != null ? .6f : 0);
+        this.aspects.fade = this.categories.fade;
         if (this.categories.hovered != null) this.categories.hovered.extractHover(graphics, delta);
         if (this.aspects.hovered != null) this.aspects.hovered.extractHover(graphics, mouseX, mouseY, delta);
+    }
+
+    public static void border(@NonNull GuiGraphicsExtractor graphics, int x, int y, int width, int height, int colour) {
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, x, y, width, height);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.BORDER, x, y, width, height, colour);
+    }
+
+    public static void thin(@NonNull GuiGraphicsExtractor graphics, int x, int y, int width, int height, int colour) {
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, x, y, width, height);
+        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.THIN, x, y, width, height, colour);
     }
 
     @Override
@@ -181,7 +200,7 @@ public class AspectEditorScreen extends Screen {
             if (this.categoryOuter.contains(mouseX, mouseY)) {
                 this.dragging = Dragging.CATEGORIES;
             } else if (this.aspectOuter.contains(mouseX, mouseY)) {
-                for (var renderable : this.aspects.renderables) {
+                if (this.aspectInner.contains(mouseX, mouseY)) for (var renderable : this.aspects.renderables) {
                     if (!(renderable instanceof AspectWidget widget) || !widget.contains(mouseX, mouseY)) continue;
                     this.dragging = Dragging.ASPECT_WIDGET;
                     widget.mouseDragged(mouseX);

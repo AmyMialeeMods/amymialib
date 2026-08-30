@@ -1,6 +1,5 @@
 package dev.amymialee.amymialib.aspects.client;
 
-import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.aspects.Aspect;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -10,12 +9,11 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
+import net.minecraft.util.Mth;
 import org.jspecify.annotations.NonNull;
 
 import java.awt.*;
@@ -25,9 +23,7 @@ import java.util.List;
 @SuppressWarnings({"unchecked", "rawtypes"})
 @Environment(EnvType.CLIENT)
 public class AspectWidget implements Renderable {
-    private static final Identifier ICON_BACKGROUND = AmyMialib.id("aspects/aspect_background");
     private static final int[] TEST_SPLIT_OFFSETS = new int[]{0, 10, -10, 25, -25};
-    private static final Identifier WINDOW_LOCATION2 = AmyMialib.id("aspects/background_2");
     public final AspectEditorScreen screen;
     public final Aspect aspect;
     public final StringWidget title;
@@ -58,7 +54,7 @@ public class AspectWidget implements Renderable {
     public void extractHover(final @NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         var centerY = this.shape.y + shape.height / 2;
         if (!this.description.isEmpty() && Language.getInstance().has(this.aspect.descriptionKey)) {
-            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, WINDOW_LOCATION2, this.shape.x + 2, centerY + 8, this.shape.width - 4, (int) (11 + this.description.size() * 8.25f));
+            this.screen.border(graphics, this.shape.x + 2, centerY + 8, this.shape.width - 4, (int) (11 + this.description.size() * 8.25f), Mth.hsvToArgb(.82f, .61f, 1f, 255));
             graphics.pose().pushMatrix();
             graphics.pose().translate(this.shape.x + 7, centerY + 15);
             graphics.pose().scale(0.75f);
@@ -72,7 +68,7 @@ public class AspectWidget implements Renderable {
     @Override
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         var centerY = this.shape.y + shape.height / 2;
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ICON_BACKGROUND, this.shape.x, this.shape.y, this.shape.width, this.shape.height);
+        AspectEditorScreen.thin(graphics, this.shape.x, this.shape.y, this.shape.width, this.shape.height, Mth.hsvToArgb(.82f, .61f, 1f, 255));
         graphics.pose().pushMatrix();
         graphics.pose().translate(this.shape.x + 24, this.shape.y + shape.height / 2f);
         graphics.pose().scale(0.75f);
@@ -80,7 +76,7 @@ public class AspectWidget implements Renderable {
         this.title.extractRenderState(graphics, mouseX, mouseY, delta);
         graphics.text(this.screen.getFont(), this.aspect.toString(), 0, 9, -1);
         graphics.pose().popMatrix();
-        graphics.blitSprite(RenderPipelines.GUI_TEXTURED, ICON_BACKGROUND, this.shape.x + 2, centerY - 10, 20, 20);
+        AspectEditorScreen.thin(graphics, this.shape.x + 2, centerY - 10, 20, 20, Mth.hsvToArgb(.82f, .61f, 1f, 255));
         aspect.icon.renderIcon(graphics, aspect, shape.x + 4, centerY - 8, mouseX, mouseY, screen.aspects.hovered == this, delta);
     }
 
