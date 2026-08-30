@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(EndPortalBlock.class)
 public class EndPortalBlockMixin {
     @WrapOperation(method = "entityInside", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;canUsePortal(Z)Z"))
-    private boolean amymialib$portalToggle(Entity instance, boolean allowVehicles, @NotNull Operation<Boolean> original) {
-        return original.call(instance, allowVehicles) && !AmyMialib.DISABLE_END_PORTALS.get();
+    private boolean amymialib$portalToggle(Entity instance, boolean ignorePassenger, @NotNull Operation<Boolean> original) {
+        return original.call(instance, ignorePassenger) && !AmyMialib.DISABLE_END_PORTALS.get();
     }
 }
