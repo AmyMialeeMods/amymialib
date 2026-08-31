@@ -31,13 +31,13 @@ public class AmyMialibDataGenerator extends AMDatagen {
     }
 
     @Override
-    public void generateFlatLevelGeneratorPresets(AMFlatLevelGeneratorPresetProvider provider, @NonNull Consumer<AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData> consumer) {
+    public void generateFlatGeneratorPresets(AMFlatLevelGeneratorPresetProvider provider, @NonNull Consumer<AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData> consumer) {
         consumer.accept(new AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData(DEV_READY, Items.AMETHYST_SHARD, Biomes.DARK_FOREST, ImmutableSet.of(), false, false, new FlatLayerInfo(15, Blocks.RED_SANDSTONE), new FlatLayerInfo(112, Blocks.DEEPSLATE), new FlatLayerInfo(1, Blocks.BEDROCK)));
         consumer.accept(new AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData(BLAST_PROOF, Items.TNT, Biomes.DARK_FOREST, ImmutableSet.of(), false, false, new FlatLayerInfo(15, Blocks.OBSIDIAN), new FlatLayerInfo(112, Blocks.REINFORCED_DEEPSLATE), new FlatLayerInfo(1, Blocks.BEDROCK)));
     }
 
     @Override
-    public void generateFlatLevelGeneratorPresetTags(@NonNull AMFlatLevelGeneratorPresetTagsProvider provider, HolderLookup.Provider arg) {
+    public void generateFlatGeneratorPresetTags(@NonNull AMFlatLevelGeneratorPresetTagsProvider provider, HolderLookup.Provider arg) {
         provider.builder(FlatLevelGeneratorPresetTags.VISIBLE).addOptional(DEV_READY).addOptional(BLAST_PROOF);
     }
 }

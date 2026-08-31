@@ -10,6 +10,7 @@ import java.util.function.Function;
 public class AspectType<T> {
     public static final AspectType<Boolean> BOOLEAN_TRUE = new AspectType<>(ByteBufCodecs.BOOL, Codec.BOOL, b -> b ? "True ✔" : "False ✖", true);
     public static final AspectType<Boolean> BOOLEAN_FALSE = new AspectType<>(ByteBufCodecs.BOOL, Codec.BOOL, b -> b ? "True ✔" : "False ✖", false);
+    public static final AspectType<Float> FLOAT = new AspectType<>(ByteBufCodecs.FLOAT, Codec.FLOAT, f -> String.format("%.2f", f), 1.f);
     public final StreamCodec<? super ByteBuf, T> stream;
     public final Codec<T> codec;
     public final Function<T, String> toString;

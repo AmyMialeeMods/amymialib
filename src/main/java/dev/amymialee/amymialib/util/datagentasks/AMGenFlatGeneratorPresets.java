@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public interface AMGenFlatGeneratorPresets extends AMNameProvider {
-    default void generateFlatLevelGeneratorPresets(AMFlatLevelGeneratorPresetProvider provider, Consumer<AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData> consumer) {}
+    default void generateFlatGeneratorPresets(AMFlatLevelGeneratorPresetProvider provider, Consumer<AMFlatLevelGeneratorPresetProvider.FlatLevelGeneratorPresetData> consumer) {}
 
     class AMFlatLevelGeneratorPresetProvider implements DataProvider {
         private final AMGenFlatGeneratorPresets dataGen;
@@ -42,8 +42,8 @@ public interface AMGenFlatGeneratorPresets extends AMNameProvider {
         }
 
         public void generate(Consumer<FlatLevelGeneratorPresetData> consumer) {
-            this.dataGen.generateFlatLevelGeneratorPresets(this, consumer);
-            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenFlatGeneratorPresets.class, p -> p.generateFlatLevelGeneratorPresets(this, consumer));
+            this.dataGen.generateFlatGeneratorPresets(this, consumer);
+            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenFlatGeneratorPresets.class, p -> p.generateFlatGeneratorPresets(this, consumer));
         }
 
         @Override

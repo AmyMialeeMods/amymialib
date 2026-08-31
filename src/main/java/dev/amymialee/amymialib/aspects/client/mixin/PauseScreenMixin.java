@@ -3,6 +3,7 @@ package dev.amymialee.amymialib.aspects.client.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.amymialee.amymialib.AmyMialibClient;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
@@ -20,7 +21,7 @@ public class PauseScreenMixin extends Screen {
     @WrapOperation(method = "createPauseMenu", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/LinearLayout;spacing(I)Lnet/minecraft/client/gui/layouts/LinearLayout;", ordinal = 0))
     private @NonNull LinearLayout amymialib$aspects$addAspects(LinearLayout instance, int spacing, @NonNull Operation<LinearLayout> original) {
         var result = original.call(instance, spacing);
-        result.addChild(AmyMialibClient.aspectsButton(this));
+        if (FabricLoader.getInstance().isDevelopmentEnvironment()) result.addChild(AmyMialibClient.aspectsButton(this));
         return result;
     }
 }

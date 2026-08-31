@@ -4,6 +4,7 @@ import dev.amymialee.amymialib.util.datagentasks.*;
 import net.fabricmc.fabric.api.datagen.v1.DataGeneratorEntrypoint;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.HashSet;
 import java.util.function.Consumer;
@@ -35,29 +36,33 @@ public abstract class AMDatagen implements DataGeneratorEntrypoint,
         var pack = generator.createPack();
         var set = new HashSet<String>();
         for (var method : this.getClass().getDeclaredMethods()) set.add(method.getName());
-        if (set.contains("generateBlockStateModels") || set.contains("generateItemModels")) pack.addProvider((dataOutput, _) -> new AMModelProvider(this, dataOutput));
-        if (set.contains("generateSounds")) pack.addProvider((dataOutput, future) -> new AMSoundsProvider(this, dataOutput, future));
-        if (set.contains("generateAdvancements")) pack.addProvider((dataOutput, future) -> new AMGenAdvancements.AMAdvancementProvider(this, dataOutput, future));
-        if (set.contains("generateBlockLootTables")) pack.addProvider((dataOutput, future) -> new AMBlockLootSubProvider(this, dataOutput, future));
-        if (set.contains("generateEntityLootTables")) pack.addProvider((dataOutput, future) -> new AMEntityLootTableProvider(this, dataOutput, future));
-        if (set.contains("generateTranslations")) pack.addProvider((dataOutput, future) -> new AMLanguageProvider(this, dataOutput, future));
-        if (set.contains("generateLootTables")) pack.addProvider((dataOutput, future) -> new AMLootTableProvider(this, dataOutput, future));
-        if (set.contains("generateRecipes")) pack.addProvider((dataOutput, future) -> new AMRecipeProvider(this, dataOutput, future));
-        if (set.contains("generateDamageTypes")) pack.addProvider((dataOutput, future) -> new AMDamageTypeProvider(this, dataOutput, future));
-        if (set.contains("generateFlatLevelGeneratorPresets")) pack.addProvider((dataOutput, future) -> new AMFlatLevelGeneratorPresetProvider(this, dataOutput, future));
-        if (set.contains("generateDynamic")) pack.addProvider((dataOutput, future) -> new AMDynamicProvider(this, dataOutput, future));
+        if (should(set, "generateBlockStateModels", AMGenModels.class) || should(set, "generateItemModels", AMGenModels.class)) pack.addProvider((dataOutput, _) -> new AMModelProvider(this, dataOutput));
+        if (should(set, "generateSounds", AMGenSounds.class)) pack.addProvider((dataOutput, future) -> new AMSoundsProvider(this, dataOutput, future));
+        if (should(set, "generateAdvancements", AMGenAdvancements.class)) pack.addProvider((dataOutput, future) -> new AMGenAdvancements.AMAdvancementProvider(this, dataOutput, future));
+        if (should(set, "generateBlockLootTables", AMGenBlockLootTables.class)) pack.addProvider((dataOutput, future) -> new AMBlockLootSubProvider(this, dataOutput, future));
+        if (should(set, "generateEntityLootTables", AMGenEntityLootTables.class)) pack.addProvider((dataOutput, future) -> new AMEntityLootTableProvider(this, dataOutput, future));
+        if (should(set, "generateTranslations", AMGenTranslations.class)) pack.addProvider((dataOutput, future) -> new AMLanguageProvider(this, dataOutput, future));
+        if (should(set, "generateLootTables", AMGenLootTables.class)) pack.addProvider((dataOutput, future) -> new AMLootTableProvider(this, dataOutput, future));
+        if (should(set, "generateRecipes", AMGenRecipes.class)) pack.addProvider((dataOutput, future) -> new AMRecipeProvider(this, dataOutput, future));
+        if (should(set, "generateDamageTypes", AMGenDamageTypes.class)) pack.addProvider((dataOutput, future) -> new AMDamageTypeProvider(this, dataOutput, future));
+        if (should(set, "generateFlatGeneratorPresets", AMGenFlatGeneratorPresets.class)) pack.addProvider((dataOutput, future) -> new AMFlatLevelGeneratorPresetProvider(this, dataOutput, future));
+        if (should(set, "generateDynamic", AMGenDynamic.class)) pack.addProvider((dataOutput, future) -> new AMDynamicProvider(this, dataOutput, future));
         /* Tag Providers */
-        if (set.contains("generateBlockTags")) pack.addProvider((dataOutput, future) -> new AMBlockTagsProvider(this, dataOutput, future));
-        if (set.contains("generateBlockEntityTypeTags")) pack.addProvider((dataOutput, future) -> new AMBlockEntityTypeTagsProvider(this, dataOutput, future));
-        if (set.contains("generateItemTags")) pack.addProvider((dataOutput, future) -> new AMItemTagsProvider(this, dataOutput, future));
-        if (set.contains("generateFluidTags")) pack.addProvider((dataOutput, future) -> new AMFluidTagsProvider(this, dataOutput, future));
-        if (set.contains("generateEntityTypeTags")) pack.addProvider((dataOutput, future) -> new AMGenEntityTypeTags.AMEntityTypeTagsProvider(this, dataOutput, future));
-        if (set.contains("generateDamageTypeTags")) pack.addProvider((dataOutput, future) -> new AMDamageTypeTagsProvider(this, dataOutput, future));
-        if (set.contains("generateBannerPatternTags")) pack.addProvider((dataOutput, future) -> new AMBannerPatternTagsProvider(this, dataOutput, future));
-        if (set.contains("generateFlatLevelGeneratorPresetTags")) pack.addProvider((dataOutput, future) -> new AMFlatLevelGeneratorPresetTagsProvider(this, dataOutput, future));
+        if (should(set, "generateBlockTags", AMGenBlockTags.class)) pack.addProvider((dataOutput, future) -> new AMBlockTagsProvider(this, dataOutput, future));
+        if (should(set, "generateBlockEntityTypeTags", AMGenBlockEntityTypeTags.class)) pack.addProvider((dataOutput, future) -> new AMBlockEntityTypeTagsProvider(this, dataOutput, future));
+        if (should(set, "generateItemTags", AMGenItemTags.class)) pack.addProvider((dataOutput, future) -> new AMItemTagsProvider(this, dataOutput, future));
+        if (should(set, "generateFluidTags", AMGenFluidTags.class)) pack.addProvider((dataOutput, future) -> new AMFluidTagsProvider(this, dataOutput, future));
+        if (should(set, "generateEntityTypeTags", AMGenEntityTypeTags.class)) pack.addProvider((dataOutput, future) -> new AMGenEntityTypeTags.AMEntityTypeTagsProvider(this, dataOutput, future));
+        if (should(set, "generateDamageTypeTags", AMGenDamageTypeTags.class)) pack.addProvider((dataOutput, future) -> new AMDamageTypeTagsProvider(this, dataOutput, future));
+        if (should(set, "generateBannerPatternTags", AMGenBannerPatternTags.class)) pack.addProvider((dataOutput, future) -> new AMBannerPatternTagsProvider(this, dataOutput, future));
+        if (should(set, "generateFlatGeneratorPresetTags", AMGenFlatGeneratorPresetTags.class)) pack.addProvider((dataOutput, future) -> new AMFlatLevelGeneratorPresetTagsProvider(this, dataOutput, future));
         /* Extras */
-        if (set.contains("addExtraDataProviders")) this.addExtraDataProviders(pack);
+        if (should(set, "addExtraDataProviders", AMGenExtra.class)) this.addExtraDataProviders(pack);
         if (this.heldRegistry != null) for (var task : this.heldRegistry.datagenTasks) if (task instanceof AMGenExtra extra) extra.addExtraDataProviders(pack);
+    }
+
+    public boolean should(@NonNull HashSet<String> set, String method, Class<?> clazz) {
+        return set.contains(method) || (this.heldRegistry != null && this.heldRegistry.datagenTasks.stream().anyMatch(clazz::isInstance));
     }
 
     public <T> void registryEach(Class<T> clazz, Consumer<T> consumer) {

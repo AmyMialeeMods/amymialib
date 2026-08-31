@@ -13,7 +13,7 @@ import org.jspecify.annotations.NonNull;
 import java.util.concurrent.CompletableFuture;
 
 public interface AMGenFlatGeneratorPresetTags extends AMNameProvider {
-    default void generateFlatLevelGeneratorPresetTags(AMFlatLevelGeneratorPresetTagsProvider provider, HolderLookup.Provider arg) {}
+    default void generateFlatGeneratorPresetTags(AMFlatLevelGeneratorPresetTagsProvider provider, HolderLookup.Provider arg) {}
 
     class AMFlatLevelGeneratorPresetTagsProvider extends FabricTagsProvider<FlatLevelGeneratorPreset> {
         private final AMGenFlatGeneratorPresetTags dataGen;
@@ -25,8 +25,8 @@ public interface AMGenFlatGeneratorPresetTags extends AMNameProvider {
 
         @Override
         protected void addTags(HolderLookup.@NonNull Provider arg) {
-            this.dataGen.generateFlatLevelGeneratorPresetTags(this, arg);
-            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenFlatGeneratorPresetTags.class, p -> p.generateFlatLevelGeneratorPresetTags(this, arg));
+            this.dataGen.generateFlatGeneratorPresetTags(this, arg);
+            if (this.dataGen instanceof AMDatagen dataGen) dataGen.registryEach(AMGenFlatGeneratorPresetTags.class, p -> p.generateFlatGeneratorPresetTags(this, arg));
         }
 
         @Override
