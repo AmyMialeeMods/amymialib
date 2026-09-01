@@ -8,7 +8,6 @@ import net.minecraft.client.gui.layouts.LinearLayout;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -19,7 +18,7 @@ public class PauseScreenMixin extends Screen {
     }
 
     @WrapOperation(method = "createPauseMenu", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/layouts/LinearLayout;spacing(I)Lnet/minecraft/client/gui/layouts/LinearLayout;", ordinal = 0))
-    private @NonNull LinearLayout amymialib$aspects$addAspects(LinearLayout instance, int spacing, @NonNull Operation<LinearLayout> original) {
+    private LinearLayout amymialib$aspects$addAspects(LinearLayout instance, int spacing, Operation<LinearLayout> original) {
         var result = original.call(instance, spacing);
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) result.addChild(AmyMialibClient.aspectsButton(this));
         return result;

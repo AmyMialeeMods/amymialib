@@ -11,7 +11,7 @@ import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,10 +21,10 @@ public class AspectsTab {
     public final List<Renderable> renderablesHeader = new ArrayList<>();
     public final AspectEditorScreen screen;
     public AspectCategory category = AmyMialib.AMYMIALIB;
-    public AspectWidget hovered;
-    public AspectLinkWidget hoveredLink;
-    public Component title;
-    public List<FormattedCharSequence> description;
+    public @Nullable AspectWidget hovered;
+    public @Nullable AspectLinkWidget hoveredLink;
+    public Component title = Component.translatable("advancements.sad_label");
+    public List<FormattedCharSequence> description = List.of();
     public int height;
     public float fade;
     public int headerTextWidth;
@@ -85,7 +85,7 @@ public class AspectsTab {
         }
     }
 
-    public void extractAspects(final @NonNull GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, float delta) {
+    public void extractAspects(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, float delta) {
         graphics.enableScissor(screen.aspectOuter.x, screen.aspectOuter.y, screen.aspectOuter.x + screen.aspectOuter.width, screen.aspectOuter.y + screen.aspectOuter.height);
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, screen.aspectOuter.x, screen.aspectOuter.y, screen.aspectOuter.width, screen.aspectOuter.height);
         graphics.pose().pushMatrix();
@@ -109,7 +109,7 @@ public class AspectsTab {
         renderablesHeader.forEach(renderable -> renderable.extractRenderState(graphics, mouseX, mouseY, delta));
     }
 
-    private void extractMultilineText(GuiGraphicsExtractor graphics, @NonNull List<FormattedCharSequence> lines, int x, int y, int color) {
+    private void extractMultilineText(GuiGraphicsExtractor graphics, List<FormattedCharSequence> lines, int x, int y, int color) {
         var width = lines.stream().mapToInt(line -> this.screen.getFont().width(line)).max().orElse(0);
         x -= width / 2;
         y = y - (lines.size() * this.screen.getFont().lineHeight) / 2;

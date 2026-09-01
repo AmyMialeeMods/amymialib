@@ -2,7 +2,6 @@ package dev.amymialee.amymialib.aspects;
 
 import dev.amymialee.amymialib.util.AMEnvironmentType;
 import net.fabricmc.loader.api.FabricLoader;
-import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Path;
 import java.util.function.Supplier;
@@ -14,7 +13,7 @@ public enum AspectSaveLocation {
     private final Supplier<Boolean> shouldSave;
     private final Supplier<Path> path;
 
-    AspectSaveLocation(@NonNull Supplier<Boolean> shouldSave, @NonNull Supplier<Path> path) {
+    AspectSaveLocation(Supplier<Boolean> shouldSave, Supplier<Path> path) {
         this.shouldSave = shouldSave;
         this.path = path;
     }
@@ -27,7 +26,7 @@ public enum AspectSaveLocation {
         return this.path.get();
     }
 
-    public @NonNull Path resolve(String path) {
+    public Path resolve(String path) {
         return this.path.get().resolve(path);
     }
 }

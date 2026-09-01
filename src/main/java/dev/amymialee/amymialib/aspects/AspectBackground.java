@@ -3,7 +3,6 @@ package dev.amymialee.amymialib.aspects;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
-import org.jspecify.annotations.NonNull;
 
 public interface AspectBackground {
     AspectBackgroundEmpty EMPTY = new AspectBackgroundEmpty();
@@ -35,7 +34,7 @@ public interface AspectBackground {
         }
 
         @Override
-        public void renderBackground(@NonNull GuiGraphicsExtractor context, int x, int y, int width, int height, double mouseX, double mouseY, float delta) {
+        public void renderBackground(GuiGraphicsExtractor context, int x, int y, int width, int height, double mouseX, double mouseY, float delta) {
             context.blit(this.texture, x, y, x + this.width, y + this.height, this.u0, this.u1, this.v0, this.v1);
         }
     }
@@ -48,7 +47,7 @@ public interface AspectBackground {
         }
 
         @Override
-        public void renderBackground(@NonNull GuiGraphicsExtractor context, int x, int y, int width, int height, double mouseX, double mouseY, float delta) {
+        public void renderBackground(GuiGraphicsExtractor context, int x, int y, int width, int height, double mouseX, double mouseY, float delta) {
             context.blitSprite(RenderPipelines.GUI_TEXTURED, this.texture, x, y, width, height);
         }
     }

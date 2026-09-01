@@ -3,7 +3,6 @@ package dev.amymialee.amymialib.aspects;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import dev.amymialee.amymialib.AmyMialib;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,7 +12,7 @@ public interface AspectFileManager {
         AspectManager.ASPECTS.values().forEach(AspectFileManager::save);
     }
 
-    static <T> void save(@NonNull Aspect<T> aspect) {
+    static <T> void save(Aspect<T> aspect) {
         if (!aspect.saveLocation.shouldSave()) return;
         var config = new JsonObject();
         config.add("value", aspect.type.codec.encodeStart(JsonOps.INSTANCE, aspect.get()).getOrThrow());
@@ -33,7 +32,7 @@ public interface AspectFileManager {
         AspectManager.ASPECTS.values().forEach(AspectFileManager::load);
     }
 
-    static <T> void load(@NonNull Aspect<T> aspect) {
+    static <T> void load(Aspect<T> aspect) {
         JsonObject data = null;
         try {
             data = AmyMialib.GSON.fromJson(Files.readString(aspect.filePath), JsonObject.class);

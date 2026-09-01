@@ -6,8 +6,6 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.net.URI;
 import java.util.function.Supplier;
@@ -21,7 +19,7 @@ public class AspectLink {
     public final Component description;
     public final URI link;
 
-    private AspectLink(@NonNull Identifier id, String nameKey, String descriptionKey, AspectIcon<AspectLink> icon, @NonNull URI link) {
+    private AspectLink(Identifier id, String nameKey, String descriptionKey, AspectIcon<AspectLink> icon, URI link) {
         this.id = id;
         this.icon = icon;
         this.nameKey = nameKey;
@@ -31,7 +29,7 @@ public class AspectLink {
         this.link = link;
     }
 
-    public static @NotNull AspectLinkBuilder of(Identifier id, String link) {
+    public static AspectLinkBuilder of(Identifier id, String link) {
         return new AspectLinkBuilder(id, link);
     }
 
@@ -42,7 +40,7 @@ public class AspectLink {
         public final String descriptionKey;
         private AspectIcon<AspectLink> icon = new AspectIcon.AspectIconEmpty<>();
 
-        protected AspectLinkBuilder(@NonNull Identifier id, String link) {
+        protected AspectLinkBuilder(Identifier id, String link) {
             this.id = id;
             this.link = URI.create(link);
             this.nameKey = id.toLanguageKey("amymialib.aspect.link");
@@ -54,7 +52,7 @@ public class AspectLink {
             return this;
         }
 
-        public AspectLinkBuilder icon(@NonNull Item item) {
+        public AspectLinkBuilder icon(Item item) {
             return this.icon(item::getDefaultInstance);
         }
 
@@ -74,7 +72,7 @@ public class AspectLink {
         }
 
         public AspectLink build() {
-            return AspectManager.registerLink(new AspectLink(this.id, this.nameKey, this.descriptionKey, icon, this.link));
+            return AspectManager.registerLink(new AspectLink(this.id, this.nameKey, this.descriptionKey, this.icon, this.link));
         }
     }
 }
