@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,8 +16,6 @@ import java.util.Map;
  * Manages aspects, namely their syncing and storing them for future use.
  */
 public @SuppressWarnings("rawtypes") class AspectManager {
-    public static @Nullable MinecraftServer SERVER;
-
     public static final Map<Identifier, Aspect> ASPECTS = new HashMap<>();
     private static final Map<Identifier, AspectCategory> CATEGORIES = new HashMap<>();
     private static final Map<Identifier, List<Aspect<?>>> CATEGORY_ENTRIES = new HashMap<>();
@@ -61,7 +58,7 @@ public @SuppressWarnings("rawtypes") class AspectManager {
             if (aspect.value != data) {
                 aspect.value = data;
                 aspect.saveToFile();
-                AspectManager.syncChangedS2C(aspect);
+                AspectManager.syncChangedS2C(context.server(), aspect);
                 if (aspect.onChangeServer != null) aspect.onChangeServer.run();
             }
         } catch (Exception e) {
@@ -82,8 +79,8 @@ public @SuppressWarnings("rawtypes") class AspectManager {
      * Syncs the given aspect to every player on the server.<br>
      * This is done after the value has been changed.
      */
-    public static void syncChangedS2C(Aspect<?> aspect) {
-        if (SERVER != null) SERVER.getPlayerList().getPlayers().forEach(p -> ServerPlayNetworking.send(p, AspectSyncPayload.changed(aspect)));
+    public static void syncChangedS2C(MinecraftServer server, Aspect<?> aspect) {
+        server.getPlayerList().getPlayers().forEach(p -> ServerPlayNetworking.send(p, AspectSyncPayload.changed(aspect)));
     }
 
     /**
@@ -91,7 +88,7 @@ public @SuppressWarnings("rawtypes") class AspectManager {
      * This is done when we believe the player doesn't have the most up-to-date configs.
      */
     public static void syncUnChangedS2C(ServerPlayer player) {
-        if (SERVER != null) ASPECTS.values().forEach(aspect -> ServerPlayNetworking.send(player, AspectSyncPayload.unchanged(aspect)));
+        ASPECTS.values().forEach(aspect -> ServerPlayNetworking.send(player, AspectSyncPayload.unchanged(aspect)));
     }
 
     /**
@@ -99,7 +96,7 @@ public @SuppressWarnings("rawtypes") class AspectManager {
      * This is only done when the player tries to change an aspect without relevant permissions.
      */
     public static void syncUnChangedS2C(Aspect<?> aspect, ServerPlayer player) {
-        if (SERVER != null) ServerPlayNetworking.send(player, AspectSyncPayload.unchanged(aspect));
+        ServerPlayNetworking.send(player, AspectSyncPayload.unchanged(aspect));
     }
 
     /**
