@@ -8,8 +8,6 @@ import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +23,13 @@ public final class AspectCategory {
     public final Component name;
     public final Component description;
 
-    private AspectCategory(@NonNull Identifier id, String nameKey, String descriptionKey, AspectIcon<AspectCategory> icon, AspectBackground background, List<AspectLink> links) {
+    private AspectCategory(
+            Identifier id,
+            String nameKey,
+            String descriptionKey,
+            AspectIcon<AspectCategory> icon,
+            AspectBackground background,
+            List<AspectLink> links) {
         this.id = id;
         this.icon = icon;
         this.background = background;
@@ -39,7 +43,7 @@ public final class AspectCategory {
         this.description = Component.translatable(this.descriptionKey).withColor(TextColor.GRAY).append("\n").append(Component.literal(name).withStyle(ChatFormatting.BLUE));
     }
 
-    public static @NotNull AspectCategoryBuilder of(Identifier id) {
+    public static AspectCategoryBuilder of(Identifier id) {
         return new AspectCategoryBuilder(id);
     }
 
@@ -51,7 +55,7 @@ public final class AspectCategory {
         private final List<AspectLink> links = new ArrayList<>();
         private AspectBackground background = AspectBackground.EMPTY;
 
-        protected AspectCategoryBuilder(@NonNull Identifier id) {
+        protected AspectCategoryBuilder(Identifier id) {
             this.id = id;
             this.nameKey = id.toLanguageKey("amymialib.aspect.category");
             this.descriptionKey = id.toLanguageKey("amymialib.aspect.category", "description");
@@ -62,7 +66,7 @@ public final class AspectCategory {
             return this;
         }
 
-        public AspectCategoryBuilder icon(@NonNull Item item) {
+        public AspectCategoryBuilder icon(Item item) {
             return this.icon(item::getDefaultInstance);
         }
 
@@ -112,8 +116,9 @@ public final class AspectCategory {
         }
 
         public AspectCategory build() {
-            AspectIcon<AspectCategory> icon = icons.isEmpty() ? new AspectIcon.AspectIconEmpty<>() : (icons.size() == 1 ? icons.getFirst() : new AspectIcon.AspectMultiIcon<>(icons));
-            return AspectManager.registerCategory(new AspectCategory(this.id, this.nameKey, this.descriptionKey, icon, this.background, links));
+            AspectIcon<AspectCategory> icon = this.icons.isEmpty() ? new AspectIcon.AspectIconEmpty<>()
+                                                                   : (this.icons.size() == 1 ? this.icons.getFirst() : new AspectIcon.AspectMultiIcon<>(this.icons));
+            return AspectManager.registerCategory(new AspectCategory(this.id, this.nameKey, this.descriptionKey, icon, this.background, this.links));
         }
     }
 }

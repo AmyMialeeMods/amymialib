@@ -4,7 +4,6 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,9 +18,9 @@ public interface AspectIcon<T> {
 
     class AspectIconEmpty<T> implements AspectIcon<T> {
         @Override
-        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {}
+        public void renderIcon(GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {}
 
-        public int width() {
+        @Override public int width() {
             return 0;
         }
     }
@@ -34,9 +33,9 @@ public interface AspectIcon<T> {
         }
 
         @Override
-        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
+        public void renderIcon(GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
             try {
-                context.item(stack.get(), x, y);
+                context.item(this.stack.get(), x, y);
             } catch (Exception _) {}
         }
     }
@@ -61,8 +60,8 @@ public interface AspectIcon<T> {
         }
 
         @Override
-        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
-            context.blit(this.texture, x, y, x + width, y + height, this.u0, this.u1, this.v0, this.v1);
+        public void renderIcon(GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
+            context.blit(this.texture, x, y, x + this.width, y + this.height, this.u0, this.u1, this.v0, this.v1);
         }
     }
 
@@ -78,15 +77,15 @@ public interface AspectIcon<T> {
         }
 
         @Override
-        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
-            context.blitSprite(RenderPipelines.GUI_TEXTURED, this.texture, x, y, width, height);
+        public void renderIcon(GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
+            context.blitSprite(RenderPipelines.GUI_TEXTURED, this.texture, x, y, this.width, this.height);
         }
     }
 
     class AspectMultiIcon<T> implements AspectIcon<T> {
         private final List<AspectIcon<T>> icons;
 
-        public AspectMultiIcon(AspectIcon<T> ... icons) {
+        @SafeVarargs public AspectMultiIcon(AspectIcon<T> ... icons) {
             this.icons = Arrays.asList(icons);
         }
 
@@ -95,16 +94,16 @@ public interface AspectIcon<T> {
         }
 
         @Override
-        public void renderIcon(@NonNull GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
+        public void renderIcon(GuiGraphicsExtractor context, T aspect, int x, int y, double mouseX, double mouseY, boolean hovered, float delta) {
             var offsetX = 0;
-            for (var icon : icons) {
+            for (var icon : this.icons) {
                 icon.renderIcon(context, aspect, x + offsetX, y, mouseX, mouseY, hovered, delta);
                 offsetX += icon.width();
             }
         }
 
-        public int width() {
-            return icons.stream().mapToInt(AspectIcon::width).sum();
+        @Override public int width() {
+            return this.icons.stream().mapToInt(AspectIcon::width).sum();
         }
     }
 }

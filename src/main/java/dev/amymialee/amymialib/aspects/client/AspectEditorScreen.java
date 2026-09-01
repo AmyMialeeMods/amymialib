@@ -14,7 +14,6 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.awt.*;
@@ -48,12 +47,12 @@ public class AspectEditorScreen extends Screen {
     public float aspectScroll;
     public double aspectVelocity;
     public Dragging dragging = Dragging.NONE;
-    public AspectWidget dragTarget = null;
+    public @Nullable AspectWidget dragTarget = null;
 
     public AspectEditorScreen(final @Nullable Screen lastScreen) {
         super(AmyMialibClient.ASPECTS_SCREEN);
         this.lastScreen = lastScreen;
-        done = Button.builder(CommonComponents.GUI_DONE, _ -> this.rebuildWidgets()).size(80, 20).build();
+        this.done = Button.builder(CommonComponents.GUI_DONE, _ -> this.rebuildWidgets()).size(80, 20).build();
     }
 
     @Override
@@ -94,17 +93,23 @@ public class AspectEditorScreen extends Screen {
         this.topPos = (this.height - this.safeHeight) / 2;
         var categoryWidth = this.categorySpaces * 24;
         this.categoryOuter = new Rectangle(this.leftPos, this.topPos + 8, categoryWidth, this.safeHeight - 16);
-        this.categoryInner = new Rectangle(categoryOuter.x + 4 + 1, categoryOuter.y + 4, categoryOuter.width - 6, categoryOuter.height - 8);
+        this.categoryInner = new Rectangle(
+                this.categoryOuter.x + 4 + 1,
+                this.categoryOuter.y + 4, this.categoryOuter.width - 6,
+                this.categoryOuter.height - 8);
         this.aspectOuter = new Rectangle(this.leftPos + categoryWidth + 1, this.topPos, this.safeWidth - categoryWidth, this.safeHeight);
-        this.aspectInner = new Rectangle(aspectOuter.x + 2, aspectOuter.y + 4 + 36, aspectOuter.width - 6, aspectOuter.height - 8 - 36);
+        this.aspectInner = new Rectangle(
+                this.aspectOuter.x + 2, this.aspectOuter.y + 4 + 36, this.aspectOuter.width - 6,
+                this.aspectOuter.height - 8 - 36);
         this.categories.repositionElements();
         this.aspects.repositionElements();
-        this.title.setPosition((int) (aspectOuter.getCenterX() - AmyMialibClient.ASPECTS_SCREEN.am$width() / 2f), (int) (aspectOuter.getMinY() - 12));
+        this.title.setPosition((int) (this.aspectOuter.getCenterX() - AmyMialibClient.ASPECTS_SCREEN.am$width() / 2f), (int) (
+                this.aspectOuter.getMinY() - 12));
         this.done.setPosition(this.width / 2 - 40, this.topPos + this.safeHeight + 4);
     }
 
     @Override
-    public boolean mouseClicked(final @NonNull MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
         if (event.button() == 0 || event.button() == 1) {
             var x = event.x();
             var y = event.y();
@@ -137,10 +142,10 @@ public class AspectEditorScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(final @NonNull GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float delta) {
-        this.categoryScroll = (float) Mth.clamp(this.categoryScroll + this.categoryVelocity, -getMaxCategoryScroll(), 0);
+    public void extractRenderState(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float delta) {
+        this.categoryScroll = (float) Mth.clamp(this.categoryScroll + this.categoryVelocity, -this.getMaxCategoryScroll(), 0);
         this.categoryVelocity *= .96f;
-        this.aspectScroll = (float) Mth.clamp(this.aspectScroll + this.aspectVelocity, -getMaxAspectScroll(), 0);
+        this.aspectScroll = (float) Mth.clamp(this.aspectScroll + this.aspectVelocity, -this.getMaxAspectScroll(), 0);
         this.aspectVelocity *= .96f;
         if (this.dragging.is()) graphics.requestCursor(CursorTypes.RESIZE_NS);
         super.extractRenderState(graphics, mouseX, mouseY, delta);
@@ -155,12 +160,12 @@ public class AspectEditorScreen extends Screen {
         if (this.aspects.hoveredLink != null) this.aspects.hoveredLink.extractHover(graphics, delta);
     }
 
-    public static void border(@NonNull GuiGraphicsExtractor graphics, int x, int y, int width, int height, int colour) {
+    public static void border(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int colour) {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, x, y, width, height);
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.BORDER, x, y, width, height, colour);
     }
 
-    public static void thin(@NonNull GuiGraphicsExtractor graphics, int x, int y, int width, int height, int colour) {
+    public static void thin(GuiGraphicsExtractor graphics, int x, int y, int width, int height, int colour) {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, x, y, width, height);
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.THIN, x, y, width, height, colour);
     }
@@ -174,10 +179,10 @@ public class AspectEditorScreen extends Screen {
         this.aspects.tickHovered(mouseX, mouseY);
     }
 
-    private void drag(final @NonNull Dragging dragging, final double scrollY) {
+    private void drag(final Dragging dragging, final double scrollY) {
         switch (dragging) {
-            case CATEGORIES -> this.categoryScroll = (float) Mth.clamp(this.categoryScroll + scrollY, -getMaxCategoryScroll(), 0);
-            case ASPECTS -> this.aspectScroll = (float) Mth.clamp(this.aspectScroll + scrollY, -getMaxAspectScroll(), 0);
+            case CATEGORIES -> this.categoryScroll = (float) Mth.clamp(this.categoryScroll + scrollY, -this.getMaxCategoryScroll(), 0);
+            case ASPECTS -> this.aspectScroll = (float) Mth.clamp(this.aspectScroll + scrollY, -this.getMaxAspectScroll(), 0);
         }
     }
 
@@ -200,7 +205,7 @@ public class AspectEditorScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(final @NonNull MouseButtonEvent event, final double dx, final double dy) {
+    public boolean mouseDragged(final MouseButtonEvent event, final double dx, final double dy) {
         if (event.button() != 0) return false;
         var mouseX = this.minecraft.mouseHandler.getScaledXPos(this.minecraft.getWindow());
         var mouseY = this.minecraft.mouseHandler.getScaledYPos(this.minecraft.getWindow());
@@ -217,7 +222,7 @@ public class AspectEditorScreen extends Screen {
                 this.dragging = Dragging.ASPECTS;
             }
         } else {
-            if (dragging == Dragging.ASPECT_WIDGET) {
+            if (this.dragging == Dragging.ASPECT_WIDGET) {
                 if (this.dragTarget != null) {
                     this.dragTarget.mouseDragged(mouseX);
                 } else {
@@ -233,7 +238,7 @@ public class AspectEditorScreen extends Screen {
     }
 
     @Override
-    public boolean mouseReleased(final @NonNull MouseButtonEvent event) {
+    public boolean mouseReleased(final MouseButtonEvent event) {
         this.dragging = Dragging.NONE;
         return super.mouseReleased(event);
     }

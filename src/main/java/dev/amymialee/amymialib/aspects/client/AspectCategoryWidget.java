@@ -14,7 +14,6 @@ import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
-import org.jspecify.annotations.NonNull;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ public class AspectCategoryWidget implements Renderable {
     public final int descriptionWidth;
     public final Rectangle shape;
 
-    public AspectCategoryWidget(@NonNull AspectEditorScreen screen, @NonNull AspectCategory category, int x, int y) {
+    public AspectCategoryWidget(AspectEditorScreen screen, AspectCategory category, int x, int y) {
         this.screen = screen;
         this.shape = new Rectangle(x, y, 20, 20);
         this.category = category;
@@ -44,7 +43,7 @@ public class AspectCategoryWidget implements Renderable {
         this.descriptionWidth = longestDescLine + 8;
     }
 
-    public void extractHover(final @NonNull GuiGraphicsExtractor graphics, float delta) {
+    public void extractHover(final GuiGraphicsExtractor graphics, float delta) {
         graphics.pose().pushMatrix();
         graphics.pose().translate(0, screen.categoryScroll);
         var itemSize = 20;
@@ -64,19 +63,19 @@ public class AspectCategoryWidget implements Renderable {
         graphics.pose().popMatrix();
     }
 
-    private void extractMultilineText(final GuiGraphicsExtractor graphics, final @NonNull List<FormattedCharSequence> lines, final int x, final int y, final int color) {
+    private void extractMultilineText(final GuiGraphicsExtractor graphics, final List<FormattedCharSequence> lines, final int x, final int y, final int color) {
         for (var i = 0; i < lines.size(); i++) graphics.text(this.screen.getFont(), lines.get(i), x, y + i * 11, color);
     }
 
     @Override
-    public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         AspectEditorScreen.thin(graphics, shape.x, shape.y, 20, 20, Mth.hsvToArgb(.82f, .61f, 1f, 255));
         category.icon.renderIcon(graphics, category, shape.x + 2, shape.y + 2, mouseX, mouseY, screen.aspects.isActive(category), delta);
     }
 
     private List<FormattedText> findOptimalLines(final Component input, final int preferredWidth) {
         var splitter = Minecraft.getInstance().font.getSplitter();
-        List<FormattedText> bestSplit = null;
+        List<FormattedText> bestSplit = List.of(input);
         var bestDistance = Float.MAX_VALUE;
         for (var testMargin : TEST_SPLIT_OFFSETS) {
             var testSplit = splitter.splitLines(input, preferredWidth - testMargin, Style.EMPTY);
@@ -90,7 +89,7 @@ public class AspectCategoryWidget implements Renderable {
         return bestSplit;
     }
 
-    private static float getMaxWidth(final @NonNull StringSplitter splitter, final @NonNull List<FormattedText> input) {
+    private static float getMaxWidth(final StringSplitter splitter, final List<FormattedText> input) {
         return (float) input.stream().mapToDouble(splitter::stringWidth).max().orElse(0.0);
     }
 

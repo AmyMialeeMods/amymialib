@@ -11,10 +11,8 @@ import net.minecraft.server.permissions.Permissions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import java.awt.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,12 +32,22 @@ public final class Aspect<T> {
     public final Component description;
     public final Path filePath;
     public final Predicate<Player> hasPermission;
-    public final Runnable onChangeServer;
-    public final Runnable onChangeClient;
-    public final Identifier category;
+    public final @Nullable Runnable onChangeServer;
+    public final @Nullable Runnable onChangeClient;
+    public final @Nullable Identifier category;
     T value;
 
-    private Aspect(@NonNull Identifier id, AspectType<T> type, AspectSaveLocation saveLocation, String nameKey, String descriptionKey, AspectIcon<Aspect<T>> icon, Predicate<Player> hasPermission, BiConsumer<Aspect<T>, MinecraftServer> onChangeServer, Consumer<Aspect<T>> onChangeClient, Identifier category) {
+    private Aspect(
+            Identifier id,
+            AspectType<T> type,
+            AspectSaveLocation saveLocation,
+            String nameKey,
+            String descriptionKey,
+            AspectIcon<Aspect<T>> icon,
+            Predicate<Player> hasPermission,
+            @Nullable BiConsumer<Aspect<T>, MinecraftServer> onChangeServer,
+            @Nullable Consumer<Aspect<T>> onChangeClient,
+            @Nullable Identifier category) {
         this.id = id;
         this.type = type;
         this.saveLocation = saveLocation;
@@ -64,14 +72,14 @@ public final class Aspect<T> {
     /**
      * Players with relevant permissions can change config Aspects at any time.
      */
-    public static <T> @NotNull AspectBuilder<T> config(Identifier id, AspectType<T> type) {
+    public static <T> AspectBuilder<T> config(Identifier id, AspectType<T> type) {
         return new AspectBuilder<>(id, type, AspectSaveLocation.CONFIG);
     }
 
     /**
      * Players can change client Aspects at any time.
      */
-    public static <T> @NotNull AspectBuilder<T> client(Identifier id, AspectType<T> type) {
+    public static <T> AspectBuilder<T> client(Identifier id, AspectType<T> type) {
         return new AspectBuilder<>(id, type, AspectSaveLocation.CLIENT);
     }
 
@@ -103,7 +111,7 @@ public final class Aspect<T> {
 
     }
 
-    public void onClick(@NonNull MouseButtonEvent event) {
+    public void onClick(MouseButtonEvent event) {
 
     }
 
@@ -115,20 +123,20 @@ public final class Aspect<T> {
         public final String descriptionKey;
         private final List<AspectIcon<Aspect<T>>> icons = new ArrayList<>();
         private Predicate<Player> hasPermission;
-        private BiConsumer<Aspect<T>, MinecraftServer> onChangeServer;
-        private Consumer<Aspect<T>> onChangeClient;
-        private Identifier category;
+        private @Nullable BiConsumer<Aspect<T>, MinecraftServer> onChangeServer;
+        private @Nullable Consumer<Aspect<T>> onChangeClient;
+        private @Nullable Identifier category;
 
-        protected AspectBuilder(@NonNull Identifier id, AspectType<T> type, @NonNull AspectSaveLocation saveLocation) {
+        protected AspectBuilder(Identifier id, AspectType<T> type, AspectSaveLocation saveLocation) {
             this.id = id;
             this.type = type;
             this.saveLocation = saveLocation;
             this.nameKey = id.toLanguageKey("amymialib.aspect");
             this.descriptionKey = id.toLanguageKey("amymialib.aspect", "description");
-            switch (saveLocation) {
-                case CONFIG -> this.hasPermission = p -> p.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
-                case CLIENT -> this.hasPermission = _ -> true;
-            }
+            this.hasPermission = switch (saveLocation) {
+                case CONFIG -> p -> p.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+                case CLIENT -> _ -> true;
+            };
         }
 
         public AspectBuilder<T> icon(AspectIcon<Aspect<T>> icon) {
@@ -136,7 +144,7 @@ public final class Aspect<T> {
             return this;
         }
 
-        public AspectBuilder<T> icon(@NonNull Item item) {
+        public AspectBuilder<T> icon(Item item) {
             return this.icon(item::getDefaultInstance);
         }
 
@@ -175,14 +183,26 @@ public final class Aspect<T> {
             return this;
         }
 
-        public AspectBuilder<T> category(@NonNull AspectCategory category) {
+        public AspectBuilder<T> category(AspectCategory category) {
             this.category = category.id;
             return this;
         }
 
         public Aspect<T> build() {
-            AspectIcon<Aspect<T>> icon = icons.isEmpty() ? new AspectIcon.AspectIconEmpty<>() : (icons.size() == 1 ? icons.getFirst() : new AspectIcon.AspectMultiIcon<>(icons));
-            return AspectManager.registerAspect(new Aspect<>(this.id, this.type, this.saveLocation, this.nameKey, this.descriptionKey, icon, this.hasPermission, this.onChangeServer, this.onChangeClient, this.category));
+            AspectIcon<Aspect<T>> icon = this.icons.isEmpty() ? new AspectIcon.AspectIconEmpty<>()
+                                                              : (this.icons.size() == 1 ? this.icons.getFirst() : new AspectIcon.AspectMultiIcon<>(
+                                                                 this.icons));
+            return AspectManager.registerAspect(new Aspect<>(
+                    this.id,
+                    this.type,
+                    this.saveLocation,
+                    this.nameKey,
+                    this.descriptionKey,
+                    icon,
+                    this.hasPermission,
+                    this.onChangeServer,
+                    this.onChangeClient,
+                    this.category));
         }
     }
 }

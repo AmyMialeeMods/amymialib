@@ -1,7 +1,7 @@
 package dev.amymialee.amymialib.aspects.client;
 
-import dev.amymialee.amymialib.aspects.AspectManager;
 import dev.amymialee.amymialib.aspects.AspectCategory;
+import dev.amymialee.amymialib.aspects.AspectManager;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Renderable;
@@ -9,15 +9,18 @@ import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AspectCategoriesTab {
     public final Map<String, List<AspectCategory>> namedCategories = new HashMap<>();
     public final List<Renderable> renderables = new ArrayList<>();
     public final AspectEditorScreen screen;
-    public AspectCategoryWidget hovered;
+    public @Nullable AspectCategoryWidget hovered;
     public int height;
     public float fade;
 
@@ -74,7 +77,7 @@ public class AspectCategoriesTab {
         }
     }
 
-    public void extractCategories(final @NonNull GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, float delta) {
+    public void extractCategories(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, float delta) {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.width + 8, screen.categoryOuter.height);
         graphics.enableScissor(screen.categoryOuter.x, screen.categoryOuter.y, screen.categoryOuter.x + screen.categoryOuter.width, screen.categoryOuter.y + screen.categoryOuter.height);
         graphics.pose().pushMatrix();
