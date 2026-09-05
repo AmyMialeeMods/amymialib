@@ -29,6 +29,9 @@
     ],
     "main": [
       "dev.amymialee.amymialib.AmyMialib"
+    ],
+    "modmenu": [
+      "dev.amymialee.amymialib.util.AMModMenu"
     ]
   },
   "mixins": [
