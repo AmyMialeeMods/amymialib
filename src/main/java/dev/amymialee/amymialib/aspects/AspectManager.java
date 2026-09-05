@@ -59,7 +59,7 @@ public @SuppressWarnings("rawtypes") class AspectManager {
                 aspect.value = data;
                 aspect.saveToFile();
                 AspectManager.syncChangedS2C(context.server(), aspect);
-                if (aspect.onChangeServer != null) aspect.onChangeServer.run();
+                if (aspect.onChangeServer != null) aspect.onChangeServer.accept(context.server());
             }
         } catch (Exception e) {
             AmyMialib.LOGGER.error("Failed to receive aspect {} from {}", id, context.player().getGameProfile().name(), e);

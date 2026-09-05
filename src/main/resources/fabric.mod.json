@@ -42,10 +42,8 @@
   },
 
   "custom": {
-    "loom:injected_interfaces": {
-
-    },
     "modmenu": {
+      "badges":["library"],
       "links": {
         "modmenu.website": "https://amymialee.dev",
         "modmenu.patreon": "https://www.patreon.com/cw/AmyMialee",

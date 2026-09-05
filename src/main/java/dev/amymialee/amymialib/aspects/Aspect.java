@@ -32,7 +32,7 @@ public final class Aspect<T> {
     public final Component description;
     public final Path filePath;
     public final Predicate<Player> hasPermission;
-    public final @Nullable Runnable onChangeServer;
+    public final @Nullable Consumer<MinecraftServer> onChangeServer;
     public final @Nullable Runnable onChangeClient;
     public final @Nullable Identifier category;
     T value;
@@ -63,7 +63,7 @@ public final class Aspect<T> {
         this.description = description.append("\n").append(Component.literal(name).withStyle(ChatFormatting.BLUE));
         this.filePath = this.saveLocation.resolve(id.toString().replace(":", "_") + ".json");
         this.hasPermission = hasPermission;
-        this.onChangeServer = onChangeServer == null ? null : () -> onChangeServer.accept(this, AspectManager.SERVER);
+        this.onChangeServer = onChangeServer == null ? null : s -> onChangeServer.accept(this, s);
         this.onChangeClient = onChangeClient == null ? null : () -> onChangeClient.accept(this);
         this.category = category;
         this.value = this.type.defaultValue;
