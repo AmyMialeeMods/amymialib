@@ -27,6 +27,13 @@ public class Scribble<T> {
         AutoQueue.addScribble(this);
     }
 
+    @ApiStatus.Internal
+    public Scribble(Scribbler scribbler, Holder.Reference<T> holder) {
+        this.scribbler = scribbler;
+        this.getter = () -> holder;
+        this.holder = holder;
+    }
+
     /**
      * Adds a translation to generate with datagen.
      * Automatically creates the translation key.
