@@ -22,7 +22,7 @@
   "environment": "*",
   "entrypoints": {
     "fabric-datagen": [
-      "dev.amymialee.amymialib.AmyMialibDataGenerator"
+      "dev.amymialee.amymialib.AmyMialibDossier"
     ],
     "client": [
       "dev.amymialee.amymialib.AmyMialibClient"
@@ -31,13 +31,15 @@
       "dev.amymialee.amymialib.AmyMialib"
     ],
     "modmenu": [
-      "dev.amymialee.amymialib.util.AMModMenu"
+      "dev.amymialee.amymialib.modules.AMModMenu"
     ]
   },
   "mixins": [
     "amymialib.mixins.json",
-    "amymialib.aspects.client.mixins.json",
-    "amymialib.aspects.server.mixins.json"
+    "amymialib.module.aspects.client.mixins.json",
+    "amymialib.module.aspects.server.mixins.json",
+    "amymialib.module.iinterfaces.mixins.json",
+    "amymialib.module.scribbler.mixins.json"
   ],
 
   "depends": {

@@ -1,12 +1,6 @@
 {
   "values": [
-    {
-      "id": "amymialib:dev_ready",
-      "required": false
-    },
-    {
-      "id": "amymialib:blast_proof",
-      "required": false
-    }
+    "amymialib:dev_ready",
+    "amymialib:blast_proof"
   ]
 }
