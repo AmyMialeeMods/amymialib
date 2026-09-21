@@ -5,7 +5,6 @@ import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.minecraft.core.HolderLookup;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -13,8 +12,9 @@ import java.util.concurrent.CompletableFuture;
 public interface DossierBlockLoot extends DossierLanyard {
     void commitBlockLoot(Provider provider);
 
-    @ApiStatus.Internal
-    class Provider extends FabricBlockLootSubProvider {
+    @Override default String name() { return "Block Loot"; }
+
+    final class Provider extends FabricBlockLootSubProvider {
         private final Dossier dossier;
         public final FabricPackOutput output;
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;

@@ -5,12 +5,20 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "ComponentMixin",
-    "TranslationBuilderMixin"
+    "SoundEventMixin",
+    "notinjected.ConfigurationBuilderMixin",
+    "notinjected.ReflectionsMixin"
   ],
   "client": [
     "WeighedSoundEventsMixin"
   ],
-  "injectors": { "defaultRequire": 1 },
-  "overwrites": { "requireAnnotations": true },
-  "mixinextras": { "minVersion": "0.5.4" }
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  },
+  "mixinextras": {
+    "minVersion": "0.5.4"
+  }
 }

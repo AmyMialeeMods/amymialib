@@ -17,7 +17,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -27,15 +26,18 @@ public interface DossierModels {
     @FunctionalInterface
     interface DossierBlockModels extends DossierModels, DossierLanyard {
         void commitBlockModels(Provider provider, BlockModelGenerators generator);
+
+        @Override default String name() { return "Block Models"; }
     }
 
     @FunctionalInterface
     interface DossierItemModels extends DossierModels, DossierLanyard {
         void commitItemModels(Provider provider, ItemModelGenerators generator);
+
+        @Override default String name() { return "Item Models"; }
     }
 
-    @ApiStatus.Internal
-    class Provider extends FabricModelProvider {
+    final class Provider extends FabricModelProvider {
         private final Dossier dossier;
         public final FabricPackOutput output;
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;
@@ -48,13 +50,13 @@ public interface DossierModels {
         }
 
         @Override
-        public void generateBlockStateModels(BlockModelGenerators blockModelGenerators) {
-            this.dossier.registryEach(DossierBlockModels.class, p -> p.commitBlockModels(this, blockModelGenerators));
+        public void generateBlockStateModels(BlockModelGenerators generator) {
+            this.dossier.registryEach(DossierBlockModels.class, p -> p.commitBlockModels(this, generator));
         }
 
         @Override
-        public void generateItemModels(ItemModelGenerators itemModelGenerators) {
-            this.dossier.registryEach(DossierItemModels.class, p -> p.commitItemModels(this, itemModelGenerators));
+        public void generateItemModels(ItemModelGenerators generator) {
+            this.dossier.registryEach(DossierItemModels.class, p -> p.commitItemModels(this, generator));
         }
 
         public void grass(BlockModelGenerators generator, Block grassy, Block base) {

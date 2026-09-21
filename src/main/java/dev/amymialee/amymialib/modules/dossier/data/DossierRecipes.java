@@ -9,16 +9,16 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.world.item.crafting.Recipe;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.concurrent.CompletableFuture;
 
 @FunctionalInterface
 public interface DossierRecipes extends DossierLanyard {
-    void commitRecipes(Provider provider, RecipeProvider recipeGenerator, HolderLookup.Provider registries, BootstrapContext<Recipe<?>> recipes, BootstrapContext<Advancement> advancements);
+    void commitRecipes(Provider provider, RecipeProvider recipeProvider, HolderLookup.Provider registries, BootstrapContext<Recipe<?>> recipes, BootstrapContext<Advancement> advancements);
 
-    @ApiStatus.Internal
-    class Provider extends FabricRecipeProvider {
+    @Override default String name() { return "Recipes"; }
+
+    final class Provider extends FabricRecipeProvider {
         private final Dossier dossier;
         public final FabricPackOutput output;
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;

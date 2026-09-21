@@ -11,7 +11,6 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.tags.TagAppender;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,8 +20,9 @@ import java.util.concurrent.CompletableFuture;
 public interface DossierTags extends DossierLanyard {
     void commitTags(Provider provider);
 
-    @ApiStatus.Internal
-    class Provider implements DataProvider {
+    @Override default String name() { return "Tags"; }
+
+    final class Provider implements DataProvider {
         private final Dossier dossier;
         public final FabricPackOutput output;
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;

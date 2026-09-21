@@ -1,7 +1,9 @@
 package dev.amymialee.amymialib.modules.iinterfaces;
 
-public interface AMWeighedSoundEvents {
-    default String am$getSubtitleKey() {
+import javax.annotation.Nullable;
+
+public interface AMTranslationKeyHolder {
+    default @Nullable String am$key() {
         throw new UnsupportedOperationException("Implemented via mixin.");
     }
 }

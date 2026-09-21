@@ -1,15 +1,15 @@
 package dev.amymialee.amymialib.modules.scribbler;
 
-import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
-import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.modules.aspects.Aspect;
 import dev.amymialee.amymialib.modules.aspects.AspectCategory;
 import dev.amymialee.amymialib.modules.aspects.AspectLink;
 import dev.amymialee.amymialib.modules.aspects.AspectType;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
+import dev.amymialee.amymialib.modules.scribbler.scribbles.Scribble;
 import dev.amymialee.amymialib.modules.scribbler.scribbles.ScribbleBlock;
 import dev.amymialee.amymialib.modules.scribbler.scribbles.ScribbleEntity;
+import dev.amymialee.amymialib.modules.scribbler.scribbles.ScribbleTag;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.triggers.CriterionTrigger;
@@ -29,7 +29,6 @@ import net.minecraft.server.jsonrpc.OutgoingRpcMethod;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.stats.StatType;
-import net.minecraft.tags.TagKey;
 import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.util.debug.DebugSubscription;
 import net.minecraft.world.attribute.AttributeType;
@@ -102,7 +101,7 @@ public class Scribbler {
     public Scribbler(String namespace) {
         this.namespace = namespace;
         this.modName = FabricLoader.getInstance().getModContainer(namespace).orElseThrow().getMetadata().getName();
-        this.logger = LoggerFactory.getLogger(this.modName);
+        this.logger = LoggerFactory.getLogger(this.modName + " " + FabricLoader.getInstance().getEnvironmentType());
     }
 
     /**
@@ -111,7 +110,7 @@ public class Scribbler {
      * @param packageName Package to scan
      */
     public Scribbler auto(String packageName) {
-        AmyMialib.AUTO_QUEUE.add(Pair.of(this, packageName));
+        AutoQueue.add(this, packageName);
         return this;
     }
 
@@ -121,7 +120,7 @@ public class Scribbler {
      * @param iconGenerator Supplier for the icon of the tab
      */
     public Scribbler tab(String name, Supplier<ItemStack> iconGenerator) {
-        var translationKey = Identifier.fromNamespaceAndPath(this.namespace, this.namespace).toLanguageKey("itemGroup");
+        var translationKey = id(this.namespace).toLanguageKey("itemGroup");
         return this.tab(this.of(this.namespace, FabricCreativeModeTab.builder().title(Component.translatable(translationKey)).icon(iconGenerator).build()).translation(translationKey, name).key());
     }
 
@@ -130,7 +129,7 @@ public class Scribbler {
      * @param iconGenerator Supplier for the icon of the tab
      */
     public Scribbler tab(Supplier<ItemStack> iconGenerator) {
-        var translationKey = Identifier.fromNamespaceAndPath(this.namespace, this.namespace).toLanguageKey("itemGroup");
+        var translationKey = id(this.namespace).toLanguageKey("itemGroup");
         return this.tab(this.of(this.namespace, FabricCreativeModeTab.builder().title(Component.translatable(translationKey)).icon(iconGenerator).build()).key());
     }
 
@@ -141,7 +140,7 @@ public class Scribbler {
      * @param access Access to the tab builder, with the translation key provided
      */
     public Scribbler tab(String name, BiFunction<CreativeModeTab.Builder, String, CreativeModeTab.Builder> access) {
-        var translationKey = Identifier.fromNamespaceAndPath(this.namespace, this.namespace).toLanguageKey("itemGroup");
+        var translationKey = id(this.namespace).toLanguageKey("itemGroup");
         return this.tab(this.of(this.namespace, access.apply(FabricCreativeModeTab.builder().title(Component.translatable(translationKey)).icon(Items.DIAMOND::getDefaultInstance), translationKey).build()).translation(translationKey, name).key());
     }
 
@@ -151,7 +150,7 @@ public class Scribbler {
      * @param access Access to the tab builder, with the translation key provided
      */
     public Scribbler tab(BiFunction<CreativeModeTab.Builder, String, CreativeModeTab.Builder> access) {
-        var translationKey = Identifier.fromNamespaceAndPath(this.namespace, this.namespace).toLanguageKey("itemGroup");
+        var translationKey = id(this.namespace).toLanguageKey("itemGroup");
         return this.tab(this.of(this.namespace, access.apply(FabricCreativeModeTab.builder().title(Component.translatable(translationKey)), translationKey).build()).key());
     }
 
@@ -165,12 +164,19 @@ public class Scribbler {
     }
 
     /**
+     * Registers a tag.
+     */
+    public <T> ScribbleTag<T> tag(ResourceKey<Registry<T>> registry, String path) {
+        return new ScribbleTag<>(this, registry, path);
+    }
+
+    /**
      * Registers an entity type.
      * If the entity is a LivingEntity, you will need to register its attributes.
      */
     public <T extends Entity> ScribbleEntity<T> of(String path, EntityType.Builder<T> builder) {
         return new ScribbleEntity<>(this, () -> {
-            var key = ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(this.namespace, path));
+            var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
             return Registry.registerForHolder(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
         });
     }
@@ -187,7 +193,7 @@ public class Scribbler {
      */
     public <T extends Block> ScribbleBlock<T> of(String path, Function<BlockBehaviour.Properties, T> function, BlockBehaviour.Properties settings) {
         return new ScribbleBlock<>(this, () -> {
-            var key = ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(this.namespace, path));
+            var key = ResourceKey.create(Registries.BLOCK, id(path));
             return Registry.registerForHolder(BuiltInRegistries.BLOCK, key, function.apply(settings.setId(key)));
         });
     }
@@ -204,7 +210,7 @@ public class Scribbler {
      */
     public <T extends Item> Scribble<T> of(String path, Function<Item.Properties, T> function, Item.Properties settings) {
         return new Scribble<>(this, () -> {
-            var key = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(this.namespace, path));
+            var key = ResourceKey.create(Registries.ITEM, id(path));
             return Registry.registerForHolder(BuiltInRegistries.ITEM, key, function.apply(settings.setId(key)));
         });
     }
@@ -214,8 +220,8 @@ public class Scribbler {
      */
     public Scribble<SoundEvent> of(String path) {
         return new Scribble<>(this, () -> {
-            var key = ResourceKey.create(Registries.SOUND_EVENT, Identifier.fromNamespaceAndPath(this.namespace, path));
-            return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, key, SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(this.namespace, path)));
+            var key = ResourceKey.create(Registries.SOUND_EVENT, id(path));
+            return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, key, SoundEvent.createVariableRangeEvent(id(path)));
         });
     }
 
@@ -224,8 +230,8 @@ public class Scribbler {
      */
     public Scribble<SoundEvent> of(String path, float range) {
         return new Scribble<>(this, () -> {
-            var key = ResourceKey.create(Registries.SOUND_EVENT, Identifier.fromNamespaceAndPath(this.namespace, path));
-            return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, key, SoundEvent.createFixedRangeEvent(Identifier.fromNamespaceAndPath(this.namespace, path), range));
+            var key = ResourceKey.create(Registries.SOUND_EVENT, id(path));
+            return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, key, SoundEvent.createFixedRangeEvent(id(path), range));
         });
     }
 
@@ -238,7 +244,7 @@ public class Scribbler {
             if (!entry.getKey().isInstance(thing)) continue;
             var registry = (Registry<T>) entry.getValue();
             return new Scribble<>(this, () -> {
-                var key = ResourceKey.create(registry.key(), Identifier.fromNamespaceAndPath(this.namespace, path));
+                var key = ResourceKey.create(registry.key(), id(path));
                 return Registry.registerForHolder(registry, key, thing);
             });
         }
@@ -253,80 +259,25 @@ public class Scribbler {
         return key;
     }
 
-
-
-
-
-
-
-
-
-
-
-    public <T> TagKey<T> makeTag(ResourceKey<Registry<T>> registry, String path) {
-        return TagKey.create(registry, Identifier.fromNamespaceAndPath(this.namespace, path));
-    }
-
-    public AspectLink.AspectLinkBuilder link(String path, String link, String name, String description) {
-        var builder = this.link(path, link);
-        this.translation(builder.nameKey, name);
-        this.translation(builder.descriptionKey, description);
-        return builder;
-    }
-
     public AspectLink.AspectLinkBuilder link(String path, String link) {
-        return AspectLink.of(Identifier.fromNamespaceAndPath(this.namespace, path), link);
-    }
-
-    public AspectCategory.AspectCategoryBuilder category(String path, String name, String description) {
-        var builder = this.category(path);
-        this.translation(builder.nameKey, name);
-        this.translation(builder.descriptionKey, description);
-        return builder;
+        return AspectLink.of(id(path), link);
     }
 
     public AspectCategory.AspectCategoryBuilder category(String path) {
-        return AspectCategory.of(Identifier.fromNamespaceAndPath(this.namespace, path));
-    }
-
-    public <T> Aspect.AspectBuilder<T> config(String path, AspectType<T> type, String name, String description) {
-        var builder = this.config(path, type);
-        this.translation(builder.nameKey, name);
-        this.translation(builder.descriptionKey, description);
-        return builder;
+        return AspectCategory.of(id(path));
     }
 
     public <T> Aspect.AspectBuilder<T> config(String path, AspectType<T> type) {
-        return Aspect.config(Identifier.fromNamespaceAndPath(this.namespace, path), type);
-    }
-
-    public <T> Aspect.AspectBuilder<T> client(String path, AspectType<T> type, String name, String description) {
-        var builder = this.client(path, type);
-        this.translation(builder.nameKey, name);
-        this.translation(builder.descriptionKey, description);
-        return builder;
+        return Aspect.config(id(path), type);
     }
 
     public <T> Aspect.AspectBuilder<T> client(String path, AspectType<T> type) {
-        return Aspect.client(Identifier.fromNamespaceAndPath(this.namespace, path), type);
+        return Aspect.client(id(path), type);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    public Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(this.namespace, path);
+    }
 
     private static <T> void addAutoRegistry(Class<? super T> clazz, Registry<T> registry) {
         if (AUTO_REGISTRIES.containsKey(clazz)) {

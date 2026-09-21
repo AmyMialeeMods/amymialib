@@ -17,7 +17,7 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
     implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-    compileOnly 'org.checkerframework:checker-qual:3.49.3'
+    compileOnly "org.checkerframework:checker-qual:3.49.3"
 
     implementation include ("org.reflections:reflections:0.10.2")
     implementation include ("org.apache.commons:commons-text:1.15.0")

@@ -1,6 +1,7 @@
 package dev.amymialee.amymialib.modules.aspects;
 
-import dev.amymialee.amymialib.AmyMialibClient;
+import dev.amymialee.amymialib.AmyMialib;
+import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleInit;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -13,6 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
 
+import java.awt.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +23,10 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+@ScribbleInit
 public final class Aspect<T> {
+    public static final int CLIENT_COLOUR = new Color(0xBD6868).getRGB();
+    public static final Component CLIENT_ONLY = Component.translatable(AmyMialib.SCRIBBLER.translation(AmyMialib.id("aspects.client_only").toLanguageKey(), "[Client Only]")).withColor(CLIENT_COLOUR);
     public final Identifier id;
     public final AspectType<T> type;
     public final AspectSaveLocation saveLocation;
@@ -59,7 +64,7 @@ public final class Aspect<T> {
         var container = FabricLoader.getInstance().getModContainer(this.id.getNamespace());
         if (container.isPresent()) name = container.get().getMetadata().getName();
         var description = Component.translatable(this.descriptionKey);
-        if (this.saveLocation == AspectSaveLocation.CLIENT) description = description.append("\n").append(AmyMialibClient.CLIENT_ONLY);
+        if (this.saveLocation == AspectSaveLocation.CLIENT) description = description.append("\n").append(CLIENT_ONLY);
         this.description = description.append("\n").append(Component.literal(name).withStyle(ChatFormatting.BLUE));
         this.filePath = this.saveLocation.resolve(id.toString().replace(":", "_") + ".json");
         this.hasPermission = hasPermission;

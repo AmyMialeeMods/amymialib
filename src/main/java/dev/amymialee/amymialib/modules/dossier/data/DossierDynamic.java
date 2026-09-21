@@ -7,16 +7,18 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import org.jetbrains.annotations.ApiStatus;
 
+import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
 
 @FunctionalInterface
 public interface DossierDynamic extends DossierLanyard {
-    void commitDynamic(Provider provider, HolderLookup.Provider wrapperLookup, FabricDynamicRegistryProvider.Entries entries);
+    void commitDynamic(Provider provider, HolderLookup.Provider lookup, FabricDynamicRegistryProvider.Entries entries);
 
-    @ApiStatus.Internal
-    class Provider extends FabricDynamicRegistryProvider {
+    @Override default String name() { return "Dynamic"; }
+
+    final class Provider extends FabricDynamicRegistryProvider {
+        private static final HashSet<ResourceKey<?>> registered = new HashSet<>();
         private final Dossier dossier;
         public final FabricPackOutput output;
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;
@@ -29,12 +31,20 @@ public interface DossierDynamic extends DossierLanyard {
         }
 
         @Override
-        protected void configure(HolderLookup.Provider wrapperLookup, Entries entries) {
-            this.dossier.registryEach(DossierDynamic.class, p -> p.commitDynamic(this, wrapperLookup, entries));
+        protected void configure(HolderLookup.Provider lookup, Entries entries) {
+            this.dossier.registryEach(DossierDynamic.class, p -> p.commitDynamic(this, lookup, entries));
         }
 
         public <T> void add(Entries entries, ResourceKey<Registry<T>> key) {
-            entries.addAll((HolderLookup.RegistryLookup<T>) entries.getLookup(key));
+            var registry = (HolderLookup.RegistryLookup<T>) entries.getLookup(key);
+            registry.listElementIds()
+                    .filter(resourceKey -> resourceKey.identifier().getNamespace().equals(output.getModId()))
+                    .filter(resourceKey -> !registered.contains(resourceKey))
+                    .forEach(k -> {
+                        entries.add(registry, k);
+                        registered.add(k);
+                    }
+            );
         }
 
         @Override

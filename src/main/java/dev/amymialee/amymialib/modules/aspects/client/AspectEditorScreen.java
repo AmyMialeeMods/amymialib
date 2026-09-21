@@ -2,23 +2,27 @@ package dev.amymialee.amymialib.modules.aspects.client;
 
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import dev.amymialee.amymialib.AmyMialib;
-import dev.amymialee.amymialib.AmyMialibClient;
+import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.SpriteIconButton;
 import net.minecraft.client.gui.components.StringWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jspecify.annotations.Nullable;
 
 import java.awt.*;
 
+@ScribbleInit
 public class AspectEditorScreen extends Screen {
+    public static final Component ASPECTS_SCREEN = Component.translatable(AmyMialib.SCRIBBLER.translation(AmyMialib.id("aspects.screen").toLanguageKey(), "Aspect Editor"));
     public static final Identifier FILL = AmyMialib.id("aspects/fill");
     public static final Identifier BORDER = AmyMialib.id("aspects/border");
     public static final Identifier THIN = AmyMialib.id("aspects/thin");
@@ -32,7 +36,7 @@ public class AspectEditorScreen extends Screen {
     public final AspectCategoriesTab categories = new AspectCategoriesTab(this);
     public final AspectsTab aspects = new AspectsTab(this);
 
-    public final StringWidget title = new StringWidget(AmyMialibClient.ASPECTS_SCREEN, this.font);
+    public final StringWidget title = new StringWidget(ASPECTS_SCREEN, this.font);
     public final Button done;
 
     public Rectangle categoryOuter = new Rectangle();
@@ -50,9 +54,13 @@ public class AspectEditorScreen extends Screen {
     public @Nullable AspectWidget dragTarget = null;
 
     public AspectEditorScreen(final @Nullable Screen lastScreen) {
-        super(AmyMialibClient.ASPECTS_SCREEN);
+        super(ASPECTS_SCREEN);
         this.lastScreen = lastScreen;
         this.done = Button.builder(CommonComponents.GUI_DONE, _ -> this.rebuildWidgets()).size(80, 20).build();
+    }
+
+    public static SpriteIconButton aspectsButton(Screen screen) {
+        return SpriteIconButton.builder(ASPECTS_SCREEN, _ -> Minecraft.getInstance().setScreenAndShow(new AspectEditorScreen(screen)), true).tooltip(ASPECTS_SCREEN).width(20).sprite(AmyMialib.id("logo"), 16, 16).build();
     }
 
     @Override
@@ -103,7 +111,7 @@ public class AspectEditorScreen extends Screen {
                 this.aspectOuter.height - 8 - 36);
         this.categories.repositionElements();
         this.aspects.repositionElements();
-        this.title.setPosition((int) (this.aspectOuter.getCenterX() - AmyMialibClient.ASPECTS_SCREEN.am$width() / 2f), (int) (
+        this.title.setPosition((int) (this.aspectOuter.getCenterX() - ASPECTS_SCREEN.am$width() / 2f), (int) (
                 this.aspectOuter.getMinY() - 12));
         this.done.setPosition(this.width / 2 - 40, this.topPos + this.safeHeight + 4);
     }

@@ -1,5 +1,7 @@
 package dev.amymialee.amymialib.modules.aspects;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import dev.amymialee.amymialib.AmyMialib;
@@ -8,6 +10,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 public interface AspectFileManager {
+    Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
     static void saveAll() {
         AspectManager.ASPECTS.values().forEach(AspectFileManager::save);
     }
@@ -22,7 +26,7 @@ public interface AspectFileManager {
             AmyMialib.LOGGER.error("Couldn't write Aspect file for {}", aspect.id, e);
         }
         try (var fileWriter = Files.newBufferedWriter(aspect.filePath)) {
-            fileWriter.write(AmyMialib.GSON.toJson(config));
+            fileWriter.write(GSON.toJson(config));
         } catch (IOException e) {
             AmyMialib.LOGGER.error("Couldn't write Aspect file for {}", aspect.id, e);
         }
@@ -35,7 +39,7 @@ public interface AspectFileManager {
     static <T> void load(Aspect<T> aspect) {
         JsonObject data = null;
         try {
-            data = AmyMialib.GSON.fromJson(Files.readString(aspect.filePath), JsonObject.class);
+            data = GSON.fromJson(Files.readString(aspect.filePath), JsonObject.class);
         } catch (Exception _) {}
         if (data == null) return;
         var value = data.get("value");

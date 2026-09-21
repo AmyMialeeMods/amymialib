@@ -5,16 +5,16 @@ import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricSoundsProvider;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.core.HolderLookup;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.concurrent.CompletableFuture;
 
 @FunctionalInterface
 public interface DossierSounds extends DossierLanyard {
-    void commitSounds(Provider provider, HolderLookup.Provider registryLookup, FabricSoundsProvider.SoundExporter exporter);
+    void commitSounds(Provider provider, HolderLookup.Provider lookup, FabricSoundsProvider.SoundExporter exporter);
 
-    @ApiStatus.Internal
-    class Provider extends FabricSoundsProvider {
+    @Override default String name() { return "Sounds"; }
+
+    final class Provider extends FabricSoundsProvider {
         private final Dossier dossier;
         public final FabricPackOutput output;
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;
@@ -27,8 +27,8 @@ public interface DossierSounds extends DossierLanyard {
         }
 
         @Override
-        protected void configure(HolderLookup.Provider registryLookup, SoundExporter exporter) {
-            this.dossier.registryEach(DossierSounds.class, p -> p.commitSounds(this, registryLookup, exporter));
+        protected void configure(HolderLookup.Provider lookup, SoundExporter exporter) {
+            this.dossier.registryEach(DossierSounds.class, p -> p.commitSounds(this, lookup, exporter));
         }
 
         @Override

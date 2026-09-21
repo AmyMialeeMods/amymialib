@@ -1,9 +1,10 @@
-package dev.amymialee.amymialib.modules.dossier.data;
+package dev.amymialee.amymialib.modules.dossier;
 
-import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator;
 
 @FunctionalInterface
 public interface DossierExtras extends DossierLanyard {
     void commitProviders(FabricDataGenerator.Pack pack);
+
+    @Override default String name() { return "Extras"; }
 }

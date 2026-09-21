@@ -60,7 +60,7 @@ public interface AMDirectoryInternal {
                 }
                 case UNKNOWN, SOLARIS -> fallback;
             };
-            AmyMialib.LOGGER.info("Set amymialib directory to {}", this.path);
+            AmyMialib.LOGGER.info("Set AmyMialib directory to {}", this.path);
         }
     }
 }

@@ -1,6 +1,5 @@
 package dev.amymialee.amymialib.modules.scribbler.scribbles;
 
-import dev.amymialee.amymialib.modules.scribbler.Scribble;
 import dev.amymialee.amymialib.modules.scribbler.Scribbler;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
@@ -8,7 +7,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -27,8 +25,8 @@ public class ScribbleEntity<T extends Entity> extends Scribble<EntityType<T>> {
     private @Nullable Scribble<SpawnEggItem> spawnEgg;
 
     @ApiStatus.Internal
-    public ScribbleEntity(Scribbler registry, Supplier<Holder.Reference<EntityType<T>>> getter) {
-        super(registry, getter);
+    public ScribbleEntity(Scribbler scribbler, Supplier<Holder.Reference<EntityType<T>>> getter) {
+        super(scribbler, getter);
     }
 
     @Override @ApiStatus.Internal @SuppressWarnings({"unchecked", "DataFlowIssue"})
@@ -38,15 +36,15 @@ public class ScribbleEntity<T extends Entity> extends Scribble<EntityType<T>> {
             if (LivingEntity.class.isAssignableFrom(this.get().getBaseClass())) {
                 FabricDefaultAttributeRegistry.register((EntityType<? extends LivingEntity>) this.get(), this.attributes.get());
             } else {
-                this.registry.logger.error("Attributes are not required for non-living entities, tried add them to {}.", this.key());
+                this.scribbler.logger.error("Attributes are not required for non-living entities, tried add them to {}.", this.key());
             }
         }
         if (this.itemProperties != null) {
-            this.spawnEgg = new Scribble<>(this.registry, () -> {
+            this.spawnEgg = new Scribble<>(this.scribbler, () -> {
                 var entityKey = this.key();
-                var itemKey = ResourceKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(this.registry.namespace, "%s_%s".formatted(entityKey.identifier().getPath(), "spawn_egg")));
+                var itemKey = ResourceKey.create(Registries.ITEM, this.scribbler.id("%s_%s".formatted(entityKey.identifier().getPath(), "spawn_egg")));
                 var item = Registry.registerForHolder(BuiltInRegistries.ITEM, itemKey, new SpawnEggItem(this.itemProperties.get().setId(itemKey).spawnEgg(this.get())));
-                if (this.registry.creativeTab != null) CreativeModeTabEvents.modifyOutputEvent(this.registry.creativeTab).register(output -> output.accept(item.value()));
+                if (this.scribbler.creativeTab != null) CreativeModeTabEvents.modifyOutputEvent(this.scribbler.creativeTab).register(output -> output.accept(item.value()));
                 return item;
             });
         }
@@ -59,7 +57,7 @@ public class ScribbleEntity<T extends Entity> extends Scribble<EntityType<T>> {
         return this;
     }
 
-    public Scribble<SpawnEggItem> spawnEgg() {
+    public @Nullable Scribble<SpawnEggItem> spawnEgg() {
         return this.spawnEgg;
     }
 

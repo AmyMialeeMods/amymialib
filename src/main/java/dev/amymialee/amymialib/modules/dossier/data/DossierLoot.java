@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.datagen.v1.provider.SimpleFabricLootTableSubProvi
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.storage.loot.LootTable;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -16,8 +15,9 @@ import java.util.function.BiConsumer;
 public interface DossierLoot extends DossierLanyard {
     void commitLoot(Provider provider, BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer);
 
-    @ApiStatus.Internal
-    class Provider extends SimpleFabricLootTableSubProvider {
+    @Override default String name() { return "Loot"; }
+
+    final class Provider extends SimpleFabricLootTableSubProvider {
         private final Dossier dossier;
         public final FabricPackOutput output;
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;
@@ -30,8 +30,8 @@ public interface DossierLoot extends DossierLanyard {
         }
 
         @Override
-        public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> lootTableBiConsumer) {
-            this.dossier.registryEach(DossierLoot.class, p -> p.commitLoot(this, lootTableBiConsumer));
+        public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer) {
+            this.dossier.registryEach(DossierLoot.class, p -> p.commitLoot(this, consumer));
         }
 
         @Override

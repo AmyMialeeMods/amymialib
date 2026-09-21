@@ -1,9 +1,12 @@
-package dev.amymialee.amymialib.modules.scribbler;
+package dev.amymialee.amymialib.modules.scribbler.scribbles;
 
-import dev.amymialee.amymialib.AmyMialib;
+import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
+import dev.amymialee.amymialib.modules.scribbler.AutoQueue;
+import dev.amymialee.amymialib.modules.scribbler.Scribbler;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Util;
 import net.minecraft.world.item.DyeColor;
 import org.apache.commons.text.WordUtils;
@@ -13,15 +16,15 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Supplier;
 
 public class Scribble<T> {
-    protected final Scribbler registry;
+    protected final Scribbler scribbler;
     private final Supplier<Holder.Reference<T>> getter;
     private @Nullable Holder.Reference<T> holder;
 
     @ApiStatus.Internal
-    public Scribble(Scribbler registry, Supplier<Holder.Reference<T>> getter) {
-        this.registry = registry;
+    public Scribble(Scribbler scribbler, Supplier<Holder.Reference<T>> getter) {
+        this.scribbler = scribbler;
         this.getter = getter;
-        AmyMialib.SCRIBBLES.add(this);
+        AutoQueue.addScribble(this);
     }
 
     /**
@@ -29,7 +32,7 @@ public class Scribble<T> {
      * Automatically creates the translation key.
      */
     public Scribble<T> translation(String translation) {
-        this.registry.dossierData.add((DossierTranslations) (_, _, builder) -> {
+        this.scribbler.dossierData.add((DossierTranslations) (_, _, builder) -> {
             var key = Scribble.this.key();
             builder.add(Util.makeDescriptionId(key.registry().toLanguageKey(), key.identifier()), translation);
         });
@@ -40,7 +43,7 @@ public class Scribble<T> {
      * Adds a translation to generate with datagen.
      */
     public Scribble<T> translation(String key, String translation) {
-        this.registry.translation(key, translation);
+        this.scribbler.translation(key, translation);
         return this;
     }
 
@@ -51,6 +54,14 @@ public class Scribble<T> {
      */
     public Scribble<T> dyeTranslation(String key, String translation) {
         for (var dye : DyeColor.values()) this.translation(key.formatted(dye.getName()), translation.formatted(WordUtils.capitalize(dye.getName().replace('_', ' '))));
+        return this;
+    }
+
+    /**
+     * Adds this object to a given tag.
+     */
+    public Scribble<T> addTo(TagKey<T> target) {
+        this.scribbler.dossierData.add((DossierTags) (provider) -> provider.builder(target).add(this.key()));
         return this;
     }
 
