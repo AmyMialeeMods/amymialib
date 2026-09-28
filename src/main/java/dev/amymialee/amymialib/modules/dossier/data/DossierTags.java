@@ -2,6 +2,7 @@ package dev.amymialee.amymialib.modules.dossier.data;
 
 import dev.amymialee.amymialib.modules.dossier.Dossier;
 import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
+import dev.amymialee.amymialib.modules.scribbler.scribbles.ScribbleBlock;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
@@ -9,7 +10,9 @@ import net.minecraft.core.Registry;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.tags.TagAppender;
+import net.minecraft.references.BlockItemId;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.BlockItemTagId;
 import net.minecraft.tags.TagKey;
 
 import java.util.HashMap;
@@ -28,8 +31,49 @@ public interface DossierTags extends DossierLanyard {
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;
         private @SuppressWarnings("rawtypes") final Map<ResourceKey, DossierTagProvider> tagProviders = new HashMap<>();
 
-        public @SuppressWarnings("unchecked") <T> TagAppender<T> builder(TagKey<T> tag) {
+        public @SuppressWarnings("unchecked") <T> TagAppender<T> tag(TagKey<T> tag) {
             return this.tagProviders.computeIfAbsent(tag.registry(), DossierTagProvider::new).builder(tag);
+        }
+
+        public @SuppressWarnings("unchecked") DoubleAppender tag(BlockItemTagId tag) {
+            var item = this.tagProviders.computeIfAbsent(tag.block().registry(), DossierTagProvider::new).builder(tag.item());
+            var block = this.tagProviders.computeIfAbsent(tag.item().registry(), DossierTagProvider::new).builder(tag.block());
+            return new DoubleAppender() {
+                @Override
+                public DoubleAppender add(BlockItemId id) {
+                    item.add(id.item());
+                    block.add(id.block());
+                    return this;
+                }
+
+                @Override
+                public DoubleAppender addTag(BlockItemTagId id) {
+                    item.addTag(id.item());
+                    block.addTag(id.block());
+                    return this;
+                }
+            };
+        }
+
+        public interface DoubleAppender {
+            DoubleAppender add(BlockItemId id);
+
+            DoubleAppender addTag(BlockItemTagId id);
+
+            default DoubleAppender add(BlockItemId ... ids) {
+                for (var id : ids) this.add(id);
+                return this;
+            }
+
+            default DoubleAppender addTag(BlockItemTagId ... ids) {
+                for (var id : ids) this.addTag(id);
+                return this;
+            }
+
+            default DoubleAppender add(ScribbleBlock ... ids) {
+                for (var id : ids) this.add(id.blockItemId());
+                return this;
+            }
         }
 
         public Provider(Dossier dossier, FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
@@ -41,9 +85,9 @@ public interface DossierTags extends DossierLanyard {
         @Override
         public CompletableFuture<?> run(CachedOutput cache) {
             return this.registriesFuture.thenApply(registries -> {
-                this.dossier.registryEach(DossierTags.class, p -> p.commitTags(this));
+                this.dossier.registryEach(p -> p.commitTags(this), DossierTags.class);
                 for (var entry : this.tagProviders.entrySet()) entry.getValue().run(cache).join();
-                this.dossier.registryEach(DossierTags.class, p -> p.commitTags(this));
+                this.dossier.registryEach(p -> p.commitTags(this), DossierTags.class);
                 return registries;
             });
         }

@@ -5,6 +5,9 @@ import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
 import dev.amymialee.amymialib.modules.scribbler.AutoQueue;
 import dev.amymialee.amymialib.modules.scribbler.Scribbler;
 import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.TypedInstance;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Util;
@@ -13,25 +16,29 @@ import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Supplier;
 
-public class Scribble<T> {
-    protected final Scribbler scribbler;
-    private final Supplier<Holder.Reference<T>> getter;
-    private @Nullable Holder.Reference<T> holder;
+public class Scribble<T> implements AutoScribbler, TypedInstance<T> {
+    public final Scribbler scribbler;
+    protected final Registry<T> registry;
+    protected final @Nullable Supplier<Holder.Reference<T>> getter;
+    protected @Nullable Holder.Reference<T> holder;
 
     @ApiStatus.Internal
-    public Scribble(Scribbler scribbler, Supplier<Holder.Reference<T>> getter) {
+    public Scribble(Scribbler scribbler, Registry<T> registry, @Nullable Supplier<Holder.Reference<T>> getter) {
         this.scribbler = scribbler;
+        this.registry = registry;
         this.getter = getter;
         AutoQueue.addScribble(this);
     }
 
-    @ApiStatus.Internal
-    public Scribble(Scribbler scribbler, Holder.Reference<T> holder) {
-        this.scribbler = scribbler;
-        this.getter = () -> holder;
-        this.holder = holder;
+    @ApiStatus.Internal @SuppressWarnings({"unchecked", "DataFlowIssue", "OptionalGetWithoutIsPresent"})
+    public static <T> Scribble<T> fake(Scribbler scribbler, ResourceKey<T> key) {
+        var registry = (Registry<T>) BuiltInRegistries.REGISTRY.getValue(key.registry());
+        var scribble = new Scribble<>(scribbler, registry, null);
+        scribble.holder = registry.get(key.identifier()).get();
+        return scribble;
     }
 
     /**
@@ -39,9 +46,9 @@ public class Scribble<T> {
      * Automatically creates the translation key.
      */
     public Scribble<T> translation(String translation) {
-        this.scribbler.dossierData.add((DossierTranslations) (_, _, builder) -> {
+        if (this.getter != null) this.scribbler.dossierData.add((DossierTranslations) (_, _, builder) -> {
             var key = Scribble.this.key();
-            builder.add(Util.makeDescriptionId(key.registry().toLanguageKey(), key.identifier()), translation);
+            builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translation);
         });
         return this;
     }
@@ -65,10 +72,23 @@ public class Scribble<T> {
     }
 
     /**
-     * Adds this object to a given tag.
+     * Adds this object to given tags.
      */
-    public Scribble<T> addTo(TagKey<T> target) {
-        this.scribbler.dossierData.add((DossierTags) (provider) -> provider.builder(target).add(this.key()));
+    public Scribble<T> addTo(TagKey... targets) {
+        this.scribbler.dossierData.add((DossierTags) (provider) -> {
+            for (var target : targets) provider.tag(target).add(this.key());
+        });
+        return this;
+    }
+
+    /**
+     * Adds this object to given tags.
+     */
+    public Scribble<T> addTo(List<TagKey> targets1, TagKey ... targets2) {
+        this.scribbler.dossierData.add((DossierTags) (provider) -> {
+            for (var target : targets1) provider.tag(target).add(this.key());
+            for (var target : targets2) provider.tag(target).add(this.key());
+        });
         return this;
     }
 
@@ -88,5 +108,15 @@ public class Scribble<T> {
 
     public T get() {
         return this.holder().value();
+    }
+
+    @Override
+    public Holder<T> typeHolder() {
+        return this.holder();
+    }
+
+    @Override
+    public String debugName() {
+        return this.key().toString();
     }
 }

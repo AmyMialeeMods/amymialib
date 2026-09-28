@@ -16,19 +16,15 @@ public interface DossierEntityLoot extends DossierLanyard {
 
     final class Provider extends FabricEntityLootSubProvider {
         private final Dossier dossier;
-        public final FabricPackOutput output;
-        public final CompletableFuture<HolderLookup.Provider> registriesFuture;
 
         public Provider(Dossier dossier, FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
             super(output, registriesFuture);
             this.dossier = dossier;
-            this.output = output;
-            this.registriesFuture = registriesFuture;
         }
 
         @Override
         public void generate() {
-            this.dossier.registryEach(DossierEntityLoot.class, p -> p.commitEntityLoot(this));
+            this.dossier.registryEach(p -> p.commitEntityLoot(this), DossierEntityLoot.class);
         }
 
         @Override

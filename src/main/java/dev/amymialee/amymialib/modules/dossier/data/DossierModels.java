@@ -13,12 +13,9 @@ import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.data.models.model.TextureSlot;
 import net.minecraft.client.data.models.model.TexturedModel;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-
-import java.util.concurrent.CompletableFuture;
 
 import static net.minecraft.client.data.models.BlockModelGenerators.*;
 
@@ -39,24 +36,20 @@ public interface DossierModels {
 
     final class Provider extends FabricModelProvider {
         private final Dossier dossier;
-        public final FabricPackOutput output;
-        public final CompletableFuture<HolderLookup.Provider> registriesFuture;
 
-        public Provider(Dossier dossier, FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+        public Provider(Dossier dossier, FabricPackOutput output) {
             super(output);
             this.dossier = dossier;
-            this.output = output;
-            this.registriesFuture = registriesFuture;
         }
 
         @Override
         public void generateBlockStateModels(BlockModelGenerators generator) {
-            this.dossier.registryEach(DossierBlockModels.class, p -> p.commitBlockModels(this, generator));
+            this.dossier.registryEach(p -> p.commitBlockModels(this, generator), DossierBlockModels.class);
         }
 
         @Override
         public void generateItemModels(ItemModelGenerators generator) {
-            this.dossier.registryEach(DossierItemModels.class, p -> p.commitItemModels(this, generator));
+            this.dossier.registryEach(p -> p.commitItemModels(this, generator), DossierItemModels.class);
         }
 
         public void grass(BlockModelGenerators generator, Block grassy, Block base) {

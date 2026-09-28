@@ -12,23 +12,42 @@ import java.util.concurrent.CompletableFuture;
 public interface DossierSounds extends DossierLanyard {
     void commitSounds(Provider provider, HolderLookup.Provider lookup, FabricSoundsProvider.SoundExporter exporter);
 
+    @FunctionalInterface
+    interface DossierCtxSounds extends DossierSounds {
+        @Override
+        default void commitSounds(Provider provider, HolderLookup.Provider lookup, FabricSoundsProvider.SoundExporter exporter) {
+            commitSounds(provider);
+        }
+
+        void commitSounds(Provider ctx);
+    }
+
     @Override default String name() { return "Sounds"; }
 
     final class Provider extends FabricSoundsProvider {
         private final Dossier dossier;
-        public final FabricPackOutput output;
-        public final CompletableFuture<HolderLookup.Provider> registriesFuture;
+        private HolderLookup.Provider lookup;
+        private SoundExporter exporter;
 
         public Provider(Dossier dossier, FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
             super(output, registriesFuture);
             this.dossier = dossier;
-            this.output = output;
-            this.registriesFuture = registriesFuture;
         }
 
         @Override
         protected void configure(HolderLookup.Provider lookup, SoundExporter exporter) {
-            this.dossier.registryEach(DossierSounds.class, p -> p.commitSounds(this, lookup, exporter));
+            this.lookup = lookup;
+            this.exporter = exporter;
+            this.dossier.registryEach(p -> p.commitSounds(this, lookup, exporter), DossierSounds.class);
+            this.dossier.registryEach(p -> p.commitSounds(this), DossierCtxSounds.class);
+        }
+
+        public HolderLookup.Provider lookup() {
+            return lookup;
+        }
+
+        public SoundExporter exporter() {
+            return exporter;
         }
 
         @Override

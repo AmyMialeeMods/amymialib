@@ -19,7 +19,6 @@ public class ScribbleTag<T> {
     public ScribbleTag(Scribbler scribbler, ResourceKey<Registry<T>> registry, String path) {
         this.scribbler = scribbler;
         this.tag = TagKey.create(registry, scribbler.id(path));
-        this.scribbler.dossierData.add(this);
     }
 
     /**
@@ -43,7 +42,7 @@ public class ScribbleTag<T> {
      * Adds this tag to another target tag.
      */
     public ScribbleTag<T> addTo(TagKey<T> target) {
-        this.scribbler.dossierData.add((DossierTags) (provider) -> provider.builder(target).addTag(this.tag));
+        this.scribbler.dossierData.add((DossierTags) (provider) -> provider.tag(target).addTag(this.tag));
         return this;
     }
 
@@ -51,7 +50,44 @@ public class ScribbleTag<T> {
      * Provides a tag appender for the current tag.
      */
     public ScribbleTag<T> with(Consumer<TagAppender<T>> consumer) {
-        this.scribbler.dossierData.add((DossierTags) (provider) -> consumer.accept(provider.builder(this.tag)));
+        this.scribbler.dossierData.add((DossierTags) (provider) -> consumer.accept(provider.tag(this.tag)));
         return this;
+    }
+
+    /**
+     * Adds an object to this tag.
+     */
+    @SafeVarargs
+    public final ScribbleTag<T> add(ResourceKey<T>... targets) {
+        this.scribbler.dossierData.add((DossierTags) (provider) -> {
+            for (var target : targets) provider.tag(this.get()).add(target);
+        });
+        return this;
+    }
+
+    /**
+     * Adds an object to this tag.
+     */
+    @SafeVarargs
+    public final ScribbleTag<T> add(ScribbleKey<T>... targets) {
+        this.scribbler.dossierData.add((DossierTags) (provider) -> {
+            for (var target : targets) provider.tag(this.get()).add(target.get());
+        });
+        return this;
+    }
+
+    /**
+     * Adds an object to this tag.
+     */
+    @SafeVarargs
+    public final ScribbleTag<T> add(Scribble<T>... targets) {
+        this.scribbler.dossierData.add((DossierTags) (provider) -> {
+            for (var target : targets) provider.tag(this.get()).add(target.key());
+        });
+        return this;
+    }
+
+    public TagKey<T> get() {
+        return this.tag;
     }
 }

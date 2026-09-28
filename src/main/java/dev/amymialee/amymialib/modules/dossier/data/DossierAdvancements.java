@@ -14,23 +14,47 @@ import java.util.function.Consumer;
 public interface DossierAdvancements extends DossierLanyard {
     void commitAdvancements(Provider provider, HolderLookup.Provider lookup, Consumer<AdvancementHolder> consumer);
 
+    @FunctionalInterface
+    interface DossierCtxAdvancements extends DossierAdvancements {
+        @Override
+        default void commitAdvancements(Provider provider, HolderLookup.Provider lookup, Consumer<AdvancementHolder> consumer) {
+            commitAdvancements(provider);
+        }
+
+        void commitAdvancements(Provider ctx);
+    }
+
     @Override default String name() { return "Advancements"; }
 
     final class Provider extends FabricAdvancementProvider {
         private final Dossier dossier;
-        public final FabricPackOutput output;
-        public final CompletableFuture<HolderLookup.Provider> registriesFuture;
+        private HolderLookup.Provider lookup;
+        private Consumer<AdvancementHolder> consumer;
 
         public Provider(Dossier dossier, FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
             super(output, registriesFuture);
             this.dossier = dossier;
-            this.output = output;
-            this.registriesFuture = registriesFuture;
         }
 
         @Override
         public void generateAdvancement(HolderLookup.Provider lookup, Consumer<AdvancementHolder> consumer) {
-            this.dossier.registryEach(DossierAdvancements.class, d -> d.commitAdvancements(this, lookup, consumer));
+            this.lookup = lookup;
+            this.consumer = consumer;
+            this.dossier.registryEach(d -> d.commitAdvancements(this, lookup, consumer), DossierAdvancements.class);
+            this.dossier.registryEach(d -> d.commitAdvancements(this), DossierCtxAdvancements.class);
+        }
+
+        public AdvancementHolder create(AdvancementHolder holder) {
+            this.consumer.accept(holder);
+            return holder;
+        }
+
+        public HolderLookup.Provider lookup() {
+            return lookup;
+        }
+
+        public Consumer<AdvancementHolder> consumer() {
+            return consumer;
         }
 
         @Override

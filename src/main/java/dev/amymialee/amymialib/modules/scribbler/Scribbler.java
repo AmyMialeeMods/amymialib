@@ -6,16 +6,15 @@ import dev.amymialee.amymialib.modules.aspects.AspectCategory;
 import dev.amymialee.amymialib.modules.aspects.AspectLink;
 import dev.amymialee.amymialib.modules.aspects.AspectType;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
-import dev.amymialee.amymialib.modules.scribbler.scribbles.Scribble;
-import dev.amymialee.amymialib.modules.scribbler.scribbles.ScribbleBlock;
-import dev.amymialee.amymialib.modules.scribbler.scribbles.ScribbleEntity;
-import dev.amymialee.amymialib.modules.scribbler.scribbles.ScribbleTag;
+import dev.amymialee.amymialib.modules.scribbler.scribbles.*;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.component.predicates.DataComponentPredicate;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -102,6 +101,7 @@ public class Scribbler {
         this.namespace = namespace;
         this.modName = FabricLoader.getInstance().getModContainer(namespace).orElseThrow().getMetadata().getName();
         this.logger = LoggerFactory.getLogger(this.modName + " " + FabricLoader.getInstance().getEnvironmentType());
+        AutoQueue.add(this);
     }
 
     /**
@@ -171,11 +171,25 @@ public class Scribbler {
     }
 
     /**
+     * Creates a resource key.
+     */
+    public <T> ScribbleKey<T> key(ResourceKey<? extends Registry<T>> registryName, String path) {
+        return new ScribbleKey<>(this, registryName, this.id(path));
+    }
+
+    /**
+     * Creates a resource key.
+     */
+    public <T> ScribbleKey<T> key(ResourceKey<T> key) {
+        return new ScribbleKey<>(this, key);
+    }
+
+    /**
      * Registers an entity type.
      * If the entity is a LivingEntity, you will need to register its attributes.
      */
     public <T extends Entity> ScribbleEntity<T> of(String path, EntityType.Builder<T> builder) {
-        return new ScribbleEntity<>(this, () -> {
+        return new ScribbleEntity<>(this, (Registry<EntityType<T>>) (Object) BuiltInRegistries.ENTITY_TYPE, () -> {
             var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
             return Registry.registerForHolder(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
         });
@@ -184,18 +198,50 @@ public class Scribbler {
     /**
      * Registers a simple block.
      */
-    public ScribbleBlock<Block> of(String path, BlockBehaviour.Properties settings) {
+    public ScribbleBlock of(String path, BlockBehaviour.Properties settings) {
         return this.of(path, Block::new, settings);
     }
 
     /**
      * Registers a simple block with a unique block class.
      */
-    public <T extends Block> ScribbleBlock<T> of(String path, Function<BlockBehaviour.Properties, T> function, BlockBehaviour.Properties settings) {
-        return new ScribbleBlock<>(this, () -> {
-            var key = ResourceKey.create(Registries.BLOCK, id(path));
+    public ScribbleBlock of(String path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties settings) {
+        return new ScribbleBlock(this, () -> {
+            var key = ResourceKey.create(Registries.BLOCK, this.id(path));
             return Registry.registerForHolder(BuiltInRegistries.BLOCK, key, function.apply(settings.setId(key)));
         });
+    }
+
+    /**
+     * Registers a simple block with no item.
+     */
+    public Scribble<Block> ofItemless(String path, BlockBehaviour.Properties settings) {
+        return this.ofItemless(path, Block::new, settings);
+    }
+
+    /**
+     * Registers a simple block with a unique block class with no item.
+     */
+    public Scribble<Block> ofItemless(String path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties settings) {
+        return new Scribble<>(this, BuiltInRegistries.BLOCK, () -> {
+            var key = ResourceKey.create(Registries.BLOCK, this.id(path));
+            return Registry.registerForHolder(BuiltInRegistries.BLOCK, key, function.apply(settings.setId(key)));
+        });
+    }
+
+    /**
+     * Registers a simple block set.
+     */
+    public ScribbleBlockBatch batch(String path, BlockBehaviour.Properties settings) {
+        return this.batch(path, Block::new, settings);
+    }
+
+    /**
+     * Registers a simple block set with a unique base block class.
+     * Other blocks in the set will still use basic blocks.
+     */
+    public ScribbleBlockBatch batch(String path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties settings) {
+        return new ScribbleBlockBatch(this, path, function, settings);
     }
 
     /**
@@ -208,18 +254,58 @@ public class Scribbler {
     /**
      * Registers a simple item with a unique item class.
      */
-    public <T extends Item> Scribble<T> of(String path, Function<Item.Properties, T> function, Item.Properties settings) {
-        return new Scribble<>(this, () -> {
+    public <T extends Item> Scribble<Item> of(String path, Function<Item.Properties, T> function, Item.Properties settings) {
+        return new Scribble<>(this, BuiltInRegistries.ITEM, () -> {
             var key = ResourceKey.create(Registries.ITEM, id(path));
             return Registry.registerForHolder(BuiltInRegistries.ITEM, key, function.apply(settings.setId(key)));
         });
     }
 
     /**
+     * Registers a simple banner pattern.
+     */
+    public ScribbleBannerPattern bannerPattern(String path) {
+        return bannerPattern(path, new Item.Properties());
+    }
+
+    /**
+     * Registers a simple banner pattern.
+     */
+    public ScribbleBannerPattern bannerPattern(String path, Item.Properties settings) {
+        var ref = new Object() { ScribbleBannerPattern ref = null; };
+        var pattern = new ScribbleBannerPattern(this, path, () -> {
+            var key = ResourceKey.create(Registries.ITEM, id("%s_banner_pattern".formatted(path)));
+            return Registry.registerForHolder(BuiltInRegistries.ITEM, key, new Item(settings.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(ref.ref.patternTag.get())).stacksTo(1).setId(key)));
+        });
+        ref.ref = pattern;
+        return pattern;
+    }
+
+    /**
+     * Registers a simple music disc.
+     */
+    public ScribbleMusicDisc musicDisc(String path, Holder.Reference<SoundEvent> song, int lengthInSeconds, int comparatorOutput) {
+        return musicDisc(path, song, lengthInSeconds, comparatorOutput, new Item.Properties());
+    }
+
+    /**
+     * Registers a simple music disc.
+     */
+    public ScribbleMusicDisc musicDisc(String path, Holder.Reference<SoundEvent> song, int lengthInSeconds, int comparatorOutput, Item.Properties settings) {
+        var ref = new Object() { ScribbleMusicDisc ref = null; };
+        var disc = new ScribbleMusicDisc(this, path, song, lengthInSeconds, comparatorOutput, () -> {
+            var key = ResourceKey.create(Registries.ITEM, id("music_disc_%s".formatted(path)));
+            return Registry.registerForHolder(BuiltInRegistries.ITEM, key, new Item(settings.stacksTo(1).jukeboxPlayable(ref.ref.songKey.get()).setId(key)));
+        });
+        ref.ref = disc;
+        return disc;
+    }
+
+    /**
      * Registers a variable range sound event.
      */
     public Scribble<SoundEvent> of(String path) {
-        return new Scribble<>(this, () -> {
+        return new Scribble<>(this, BuiltInRegistries.SOUND_EVENT, () -> {
             var key = ResourceKey.create(Registries.SOUND_EVENT, id(path));
             return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, key, SoundEvent.createVariableRangeEvent(id(path)));
         });
@@ -229,7 +315,7 @@ public class Scribbler {
      * Registers a fixed range sound event.
      */
     public Scribble<SoundEvent> of(String path, float range) {
-        return new Scribble<>(this, () -> {
+        return new Scribble<>(this, BuiltInRegistries.SOUND_EVENT, () -> {
             var key = ResourceKey.create(Registries.SOUND_EVENT, id(path));
             return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, key, SoundEvent.createFixedRangeEvent(id(path), range));
         });
@@ -243,12 +329,12 @@ public class Scribbler {
         for (var entry : AUTO_REGISTRIES.entrySet()) {
             if (!entry.getKey().isInstance(thing)) continue;
             var registry = (Registry<T>) entry.getValue();
-            return new Scribble<>(this, () -> {
+            return new Scribble<>(this, registry, () -> {
                 var key = ResourceKey.create(registry.key(), id(path));
                 return Registry.registerForHolder(registry, key, thing);
             });
         }
-        throw new IllegalStateException("Failed to register %s with the %s scribbler — no AUTO_REGISTRIES entry matched %s.".formatted(path, this.modName, thing.getClass().getName()));
+        throw new IllegalStateException("Failed to register %s with the %s scribbler - no AUTO_REGISTRIES matched %s.".formatted(path, this.modName, thing.getClass().getName()));
     }
 
     /**

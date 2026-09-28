@@ -2,10 +2,12 @@ classTweaker v1 official
 
 transitive-inject-interface	net/minecraft/network/chat/Component dev/amymialee/amymialib/modules/iinterfaces/AMComponent
 transitive-inject-interface	net/minecraft/sounds/SoundEvent dev/amymialee/amymialib/modules/iinterfaces/AMSubtitleTranslator
+transitive-inject-interface	net/minecraft/core/TypedInstance dev/amymialee/amymialib/modules/iinterfaces/AMTypedInstance
 transitive-inject-interface	net/minecraft/client/sounds/WeighedSoundEvents dev/amymialee/amymialib/modules/iinterfaces/AMTranslationKeyHolder
+transitive-inject-interface	net/minecraft/world/item/Item$Properties dev/amymialee/amymialib/modules/iinterfaces/AMItemProperties
 
-transitive-accessible method net/fabricmc/fabric/api/datagen/v1/provider/FabricTagsProvider builder (Lnet/minecraft/tags/TagKey;)Lnet/minecraft/data/tags/TagAppender;
-accessible method net/fabricmc/fabric/api/datagen/v1/provider/FabricTagsProvider builder (Lnet/minecraft/tags/TagKey;)Lnet/minecraft/data/tags/TagAppender;
+transitive-accessible field net/minecraft/data/recipes/RecipeProvider output Lnet/minecraft/data/recipes/RecipeOutput;
 
 accessible field net/minecraft/client/gui/components/AbstractButton SPRITES Lnet/minecraft/client/gui/components/WidgetSprites;
 accessible field net/minecraft/data/tags/TagsProvider builders Ljava/util/Map;
+accessible method net/minecraft/core/Holder$Reference bindKey (Lnet/minecraft/resources/ResourceKey;)V

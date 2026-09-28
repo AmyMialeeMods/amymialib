@@ -15,23 +15,36 @@ import java.util.function.BiConsumer;
 public interface DossierLoot extends DossierLanyard {
     void commitLoot(Provider provider, BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer);
 
+    @FunctionalInterface
+    interface DossierCtxLoot extends DossierLoot {
+        @Override
+        default void commitLoot(Provider provider, BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer) {
+            commitLoot(provider);
+        }
+
+        void commitLoot(Provider ctx);
+    }
+
     @Override default String name() { return "Loot"; }
 
     final class Provider extends SimpleFabricLootTableSubProvider {
         private final Dossier dossier;
-        public final FabricPackOutput output;
-        public final CompletableFuture<HolderLookup.Provider> registriesFuture;
+        private BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer;
 
         public Provider(Dossier dossier, FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
             super(output, registriesFuture, LootTable.DEFAULT_PARAM_SET);
             this.dossier = dossier;
-            this.output = output;
-            this.registriesFuture = registriesFuture;
         }
 
         @Override
         public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer) {
-            this.dossier.registryEach(DossierLoot.class, p -> p.commitLoot(this, consumer));
+            this.consumer = consumer;
+            this.dossier.registryEach(p -> p.commitLoot(this, consumer), DossierLoot.class);
+            this.dossier.registryEach(p -> p.commitLoot(this), DossierCtxLoot.class);
+        }
+
+        public BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer() {
+            return consumer;
         }
 
         @Override

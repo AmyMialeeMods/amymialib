@@ -3,10 +3,10 @@ package dev.amymialee.amymialib.modules.scribbler.mixin;
 import com.google.common.reflect.Reflection;
 import dev.amymialee.amymialib.modules.scribbler.AutoQueue;
 import dev.amymialee.amymialib.modules.scribbler.AutoScanner;
-import dev.amymialee.amymialib.modules.scribbler.scribbles.Scribble;
 import dev.amymialee.amymialib.modules.scribbler.Scribbler;
 import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleInit;
 import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleTranslation;
+import dev.amymialee.amymialib.modules.scribbler.scribbles.Scribble;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
@@ -34,14 +34,17 @@ public class BuiltInRegistriesMixin {
                 method.setAccessible(true);
                 method.invoke(null);
             } catch (Throwable t) {
+                var reason = "";
                 if (method.getParameterCount() > 0) {
-                    scribbler.logger.error("Unable to invoke method {}, it needs to have no parameters.", method.getName());
+                    reason = "Unable to invoke method %s.%s(), as it needs to have no parameters.".formatted(method.getDeclaringClass().getName(), method.getName());
                 } else if (!method.accessFlags().contains(AccessFlag.STATIC)) {
-                    scribbler.logger.error("Unable to invoke method {}, it needs to be static.", method.getName());
+                    reason = "Unable to invoke method %s.%s(), as it needs to be static.".formatted(method.getDeclaringClass().getName(), method.getName());
                 } else {
-                    scribbler.logger.error("Unable to invoke method {}, unknown reason.", method.getName());
+                    scribbler.logger.error("Unable to invoke method {}.{}(), due to an unknown reason.", method.getDeclaringClass().getName(), method.getName());
+                    throw new RuntimeException(t);
                 }
-                throw new RuntimeException(t);
+                scribbler.logger.error(reason);
+                throw new RuntimeException(reason, null, true, false) {};
             }
         });
         reflections.getFieldsAnnotatedWith(ScribbleTranslation.class).forEach(field -> {
@@ -54,7 +57,7 @@ public class BuiltInRegistriesMixin {
                         i += 2;
                     } else if (field.get(null) instanceof Scribble<?> scribble) {
                         var key = scribble.key();
-                        scribbler.translation(Util.makeDescriptionId(key.registry().toLanguageKey(), key.identifier()), translations[i]);
+                        scribbler.translation(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translations[i]);
                         i++;
                     }
                 }

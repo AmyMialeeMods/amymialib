@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_25",
   "mixins": [
     "ComponentMixin",
+    "ItemPropertiesMixin",
     "SoundEventMixin",
+    "TypedInstanceMixin",
     "notinjected.ConfigurationBuilderMixin",
     "notinjected.ReflectionsMixin"
   ],

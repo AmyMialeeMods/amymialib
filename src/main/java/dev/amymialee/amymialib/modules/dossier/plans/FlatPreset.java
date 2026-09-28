@@ -1,7 +1,7 @@
 package dev.amymialee.amymialib.modules.dossier.plans;
 
-import dev.amymialee.amymialib.modules.dossier.data.DossierDynamic;
 import dev.amymialee.amymialib.modules.dossier.DossierRegistries;
+import dev.amymialee.amymialib.modules.dossier.data.DossierDynamic;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
 import dev.amymialee.amymialib.modules.scribbler.Scribbler;
@@ -64,7 +64,7 @@ public class FlatPreset implements DossierDynamic, DossierRegistries, DossierTra
 
     @Override
     public void commitTags(DossierTags.Provider provider) {
-        provider.builder(FlatLevelGeneratorPresetTags.VISIBLE).add(key);
+        provider.tag(FlatLevelGeneratorPresetTags.VISIBLE).add(key);
     }
 
     @Override

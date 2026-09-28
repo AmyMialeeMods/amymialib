@@ -30,14 +30,17 @@ public class BuiltInRegistriesClientMixin {
                 method.setAccessible(true);
                 method.invoke(null);
             } catch (Throwable t) {
+                var reason = "";
                 if (method.getParameterCount() > 0) {
-                    scribbler.logger.error("Unable to invoke method {}, it needs to have no parameters.", method.getName());
+                    reason = "Unable to invoke method %s.%s(), as it needs to have no parameters.".formatted(method.getDeclaringClass().getName(), method.getName());
                 } else if (!method.accessFlags().contains(AccessFlag.STATIC)) {
-                    scribbler.logger.error("Unable to invoke method {}, it needs to be static.", method.getName());
+                    reason = "Unable to invoke method %s.%s(), as it needs to be static.".formatted(method.getDeclaringClass().getName(), method.getName());
                 } else {
-                    scribbler.logger.error("Unable to invoke method {}, unknown reason.", method.getName());
+                    scribbler.logger.error("Unable to invoke method {}.{}(), due to an unknown reason.", method.getDeclaringClass().getName(), method.getName());
+                    throw new RuntimeException(t);
                 }
-                throw new RuntimeException(t);
+                scribbler.logger.error(reason);
+                throw new RuntimeException(reason, null, true, false) {};
             }
         });
     }

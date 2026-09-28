@@ -4,4 +4,5 @@ package dev.amymialee.amymialib;
 import org.checkerframework.framework.qual.DefaultQualifier;
 import org.jspecify.annotations.NonNull;
 
-import static org.checkerframework.framework.qual.TypeUseLocation.*;
+import static org.checkerframework.framework.qual.TypeUseLocation.PARAMETER;
+import static org.checkerframework.framework.qual.TypeUseLocation.RETURN;
