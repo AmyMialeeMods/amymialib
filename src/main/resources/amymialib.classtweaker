@@ -1,13 +1,31 @@
 classTweaker v1 official
 
-transitive-inject-interface	net/minecraft/network/chat/Component dev/amymialee/amymialib/modules/iinterfaces/AMComponent
-transitive-inject-interface	net/minecraft/sounds/SoundEvent dev/amymialee/amymialib/modules/iinterfaces/AMSubtitleTranslator
-transitive-inject-interface	net/minecraft/core/TypedInstance dev/amymialee/amymialib/modules/iinterfaces/AMTypedInstance
-transitive-inject-interface	net/minecraft/client/sounds/WeighedSoundEvents dev/amymialee/amymialib/modules/iinterfaces/AMTranslationKeyHolder
-transitive-inject-interface	net/minecraft/world/item/Item$Properties dev/amymialee/amymialib/modules/iinterfaces/AMItemProperties
+transitive-inject-interface	net/minecraft/world/level/block/Block dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledBlock
+transitive-inject-interface	net/minecraft/world/item/CreativeModeTab dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledCreativeTab
+transitive-inject-interface	net/minecraft/world/entity/EntityType dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledEntity
+transitive-inject-interface	net/minecraft/world/item/Item dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledItem
+transitive-inject-interface	net/minecraft/sounds/SoundEvent dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledSoundEvent
+
+transitive-inject-interface	net/minecraft/network/chat/Component dev/amymialee/amymialib/modules/interfaces/ScrawledComponent
+
+transitive-inject-interface	net/minecraft/world/item/Item$Properties dev/amymialee/amymialib/modules/interfaces/ScrawledItemProperties
+
+transitive-inject-interface	net/minecraft/tags/TagKey dev/amymialee/amymialib/modules/interfaces/ScrawledTagKey
+transitive-inject-interface	net/minecraft/resources/ResourceKey dev/amymialee/amymialib/modules/interfaces/ScrawledResourceKey
+
+transitive-inject-interface	net/minecraft/client/sounds/WeighedSoundEvents dev/amymialee/amymialib/modules/interfaces/ScrawledTranslationKeyHolder
 
 transitive-accessible field net/minecraft/data/recipes/RecipeProvider output Lnet/minecraft/data/recipes/RecipeOutput;
 
 accessible field net/minecraft/client/gui/components/AbstractButton SPRITES Lnet/minecraft/client/gui/components/WidgetSprites;
 accessible field net/minecraft/data/tags/TagsProvider builders Ljava/util/Map;
 accessible method net/minecraft/core/Holder$Reference bindKey (Lnet/minecraft/resources/ResourceKey;)V
+
+
+
+
+
+
+
+
+

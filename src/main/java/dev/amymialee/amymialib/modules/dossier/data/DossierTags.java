@@ -2,7 +2,6 @@ package dev.amymialee.amymialib.modules.dossier.data;
 
 import dev.amymialee.amymialib.modules.dossier.Dossier;
 import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
-import dev.amymialee.amymialib.modules.scribbler.scribbles.ScribbleBlock;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
@@ -14,6 +13,7 @@ import net.minecraft.references.BlockItemId;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockItemTagId;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.block.Block;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,13 +29,13 @@ public interface DossierTags extends DossierLanyard {
         private final Dossier dossier;
         public final FabricPackOutput output;
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;
-        private @SuppressWarnings("rawtypes") final Map<ResourceKey, DossierTagProvider> tagProviders = new HashMap<>();
+        private final Map<ResourceKey, DossierTagProvider> tagProviders = new HashMap<>();
 
-        public @SuppressWarnings("unchecked") <T> TagAppender<T> tag(TagKey<T> tag) {
+        public <T> TagAppender<T> tag(TagKey<T> tag) {
             return this.tagProviders.computeIfAbsent(tag.registry(), DossierTagProvider::new).builder(tag);
         }
 
-        public @SuppressWarnings("unchecked") DoubleAppender tag(BlockItemTagId tag) {
+        public DoubleAppender tag(BlockItemTagId tag) {
             var item = this.tagProviders.computeIfAbsent(tag.block().registry(), DossierTagProvider::new).builder(tag.item());
             var block = this.tagProviders.computeIfAbsent(tag.item().registry(), DossierTagProvider::new).builder(tag.block());
             return new DoubleAppender() {
@@ -60,18 +60,18 @@ public interface DossierTags extends DossierLanyard {
 
             DoubleAppender addTag(BlockItemTagId id);
 
-            default DoubleAppender add(BlockItemId ... ids) {
+            default DoubleAppender add(BlockItemId... ids) {
                 for (var id : ids) this.add(id);
                 return this;
             }
 
-            default DoubleAppender addTag(BlockItemTagId ... ids) {
+            default DoubleAppender addTag(BlockItemTagId... ids) {
                 for (var id : ids) this.addTag(id);
                 return this;
             }
 
-            default DoubleAppender add(ScribbleBlock ... ids) {
-                for (var id : ids) this.add(id.blockItemId());
+            default DoubleAppender add(Block... ids) {
+                for (var id : ids) this.add(id.amy$blockItemId());
                 return this;
             }
         }

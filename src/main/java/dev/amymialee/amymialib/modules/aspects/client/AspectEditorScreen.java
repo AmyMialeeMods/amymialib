@@ -111,7 +111,7 @@ public class AspectEditorScreen extends Screen {
                 this.aspectOuter.height - 8 - 36);
         this.categories.repositionElements();
         this.aspects.repositionElements();
-        this.title.setPosition((int) (this.aspectOuter.getCenterX() - ASPECTS_SCREEN.am$width() / 2f), (int) (
+        this.title.setPosition((int) (this.aspectOuter.getCenterX() - ASPECTS_SCREEN.amy$width() / 2f), (int) (
                 this.aspectOuter.getMinY() - 12));
         this.done.setPosition(this.width / 2 - 40, this.topPos + this.safeHeight + 4);
     }

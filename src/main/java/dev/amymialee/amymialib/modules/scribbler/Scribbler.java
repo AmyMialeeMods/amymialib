@@ -5,8 +5,11 @@ import dev.amymialee.amymialib.modules.aspects.Aspect;
 import dev.amymialee.amymialib.modules.aspects.AspectCategory;
 import dev.amymialee.amymialib.modules.aspects.AspectLink;
 import dev.amymialee.amymialib.modules.aspects.AspectType;
+import dev.amymialee.amymialib.modules.dossier.DossierRegistries;
+import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
-import dev.amymialee.amymialib.modules.scribbler.scribbles.*;
+import dev.amymialee.amymialib.modules.interfaces.registerable.ScrawledRegisterable;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.triggers.CriterionTrigger;
@@ -28,6 +31,9 @@ import net.minecraft.server.jsonrpc.OutgoingRpcMethod;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.stats.StatType;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.util.Util;
 import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.util.debug.DebugSubscription;
 import net.minecraft.world.attribute.AttributeType;
@@ -46,7 +52,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.JukeboxSong;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.consume_effects.ConsumeEffect;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
@@ -55,6 +61,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
@@ -84,7 +91,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -106,7 +112,6 @@ public class Scribbler {
 
     /**
      * Scans through a given package and will run relevant Annotated classes.
-     *
      * @param packageName Package to scan
      */
     public Scribbler auto(String packageName) {
@@ -115,48 +120,7 @@ public class Scribbler {
     }
 
     /**
-     * Creates the primary Creative Tab. All items in the registry from here on will be added to this tab.
-     * @param name Translated name for datagen
-     * @param iconGenerator Supplier for the icon of the tab
-     */
-    public Scribbler tab(String name, Supplier<ItemStack> iconGenerator) {
-        var translationKey = id(this.namespace).toLanguageKey("itemGroup");
-        return this.tab(this.of(this.namespace, FabricCreativeModeTab.builder().title(Component.translatable(translationKey)).icon(iconGenerator).build()).translation(translationKey, name).key());
-    }
-
-    /**
-     * Creates the primary Creative Tab. All items in the registry from here on will be added to this tab.
-     * @param iconGenerator Supplier for the icon of the tab
-     */
-    public Scribbler tab(Supplier<ItemStack> iconGenerator) {
-        var translationKey = id(this.namespace).toLanguageKey("itemGroup");
-        return this.tab(this.of(this.namespace, FabricCreativeModeTab.builder().title(Component.translatable(translationKey)).icon(iconGenerator).build()).key());
-    }
-
-    /**
-     * Creates the primary Creative Tab. All items in the registry from here on will be added to this tab.
-     * Bifunction allows access to the builder for customisation of the tab.
-     * @param name Translated name for en_us.json
-     * @param access Access to the tab builder, with the translation key provided
-     */
-    public Scribbler tab(String name, BiFunction<CreativeModeTab.Builder, String, CreativeModeTab.Builder> access) {
-        var translationKey = id(this.namespace).toLanguageKey("itemGroup");
-        return this.tab(this.of(this.namespace, access.apply(FabricCreativeModeTab.builder().title(Component.translatable(translationKey)).icon(Items.DIAMOND::getDefaultInstance), translationKey).build()).translation(translationKey, name).key());
-    }
-
-    /**
-     * Creates the primary Creative Tab. All items in the registry from here on will be added to this tab.
-     * Bifunction allows access to the builder for customisation of the tab.
-     * @param access Access to the tab builder, with the translation key provided
-     */
-    public Scribbler tab(BiFunction<CreativeModeTab.Builder, String, CreativeModeTab.Builder> access) {
-        var translationKey = id(this.namespace).toLanguageKey("itemGroup");
-        return this.tab(this.of(this.namespace, access.apply(FabricCreativeModeTab.builder().title(Component.translatable(translationKey)), translationKey).build()).key());
-    }
-
-    /**
      * Sets the primary Creative Tab. All items in the registry from here on will be added to this tab.
-     * @param tab Tab to use
      */
     public Scribbler tab(ResourceKey<CreativeModeTab> tab) {
         this.creativeTab = tab;
@@ -164,177 +128,159 @@ public class Scribbler {
     }
 
     /**
+     * Creates the primary Creative Tab. All items in the registry from here on will be added to this tab.
+     * @param icon Supplier for the icon of the tab
+     */
+    public Scribbler tab(Supplier<ItemStack> icon) {
+        return this.tab(this.of(this.namespace, FabricCreativeModeTab.builder().title(Component.translatable(id(this.namespace).toLanguageKey("itemGroup"))).icon(icon).build()).amy$key());
+    }
+
+    /**
+     * Creates the primary Creative Tab. All items in the registry from here on will be added to this tab.
+     * @param access Access to the tab builder
+     */
+    public Scribbler tab(Function<CreativeModeTab.Builder, CreativeModeTab.Builder> access) {
+        return this.tab(this.of(this.namespace, access.apply(FabricCreativeModeTab.builder().title(Component.translatable(id(this.namespace).toLanguageKey("itemGroup")))).build()).amy$key());
+    }
+
+    /**
      * Registers a tag.
      */
-    public <T> ScribbleTag<T> tag(ResourceKey<Registry<T>> registry, String path) {
-        return new ScribbleTag<>(this, registry, path);
+    @SuppressWarnings("unchecked")
+    public <T> TagKey<T> tag(ResourceKey<Registry<T>> reg, String path) {
+        return TagKey.create(reg, id(path)).amymialib$onScribble(this);
     }
 
     /**
      * Creates a resource key.
      */
-    public <T> ScribbleKey<T> key(ResourceKey<? extends Registry<T>> registryName, String path) {
-        return new ScribbleKey<>(this, registryName, this.id(path));
-    }
-
-    /**
-     * Creates a resource key.
-     */
-    public <T> ScribbleKey<T> key(ResourceKey<T> key) {
-        return new ScribbleKey<>(this, key);
-    }
-
-    /**
-     * Registers an entity type.
-     * If the entity is a LivingEntity, you will need to register its attributes.
-     */
-    public <T extends Entity> ScribbleEntity<T> of(String path, EntityType.Builder<T> builder) {
-        return new ScribbleEntity<>(this, (Registry<EntityType<T>>) (Object) BuiltInRegistries.ENTITY_TYPE, () -> {
-            var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
-            return Registry.registerForHolder(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
-        });
-    }
-
-    /**
-     * Registers a simple block.
-     */
-    public ScribbleBlock of(String path, BlockBehaviour.Properties settings) {
-        return this.of(path, Block::new, settings);
-    }
-
-    /**
-     * Registers a simple block with a unique block class.
-     */
-    public ScribbleBlock of(String path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties settings) {
-        return new ScribbleBlock(this, () -> {
-            var key = ResourceKey.create(Registries.BLOCK, this.id(path));
-            return Registry.registerForHolder(BuiltInRegistries.BLOCK, key, function.apply(settings.setId(key)));
-        });
-    }
-
-    /**
-     * Registers a simple block with no item.
-     */
-    public Scribble<Block> ofItemless(String path, BlockBehaviour.Properties settings) {
-        return this.ofItemless(path, Block::new, settings);
-    }
-
-    /**
-     * Registers a simple block with a unique block class with no item.
-     */
-    public Scribble<Block> ofItemless(String path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties settings) {
-        return new Scribble<>(this, BuiltInRegistries.BLOCK, () -> {
-            var key = ResourceKey.create(Registries.BLOCK, this.id(path));
-            return Registry.registerForHolder(BuiltInRegistries.BLOCK, key, function.apply(settings.setId(key)));
-        });
-    }
-
-    /**
-     * Registers a simple block set.
-     */
-    public ScribbleBlockBatch batch(String path, BlockBehaviour.Properties settings) {
-        return this.batch(path, Block::new, settings);
-    }
-
-    /**
-     * Registers a simple block set with a unique base block class.
-     * Other blocks in the set will still use basic blocks.
-     */
-    public ScribbleBlockBatch batch(String path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties settings) {
-        return new ScribbleBlockBatch(this, path, function, settings);
-    }
-
-    /**
-     * Registers a simple item.
-     */
-    public Scribble<Item> of(String path, Item.Properties settings) {
-        return this.of(path, Item::new, settings);
-    }
-
-    /**
-     * Registers a simple item with a unique item class.
-     */
-    public <T extends Item> Scribble<Item> of(String path, Function<Item.Properties, T> function, Item.Properties settings) {
-        return new Scribble<>(this, BuiltInRegistries.ITEM, () -> {
-            var key = ResourceKey.create(Registries.ITEM, id(path));
-            return Registry.registerForHolder(BuiltInRegistries.ITEM, key, function.apply(settings.setId(key)));
-        });
-    }
-
-    /**
-     * Registers a simple banner pattern.
-     */
-    public ScribbleBannerPattern bannerPattern(String path) {
-        return bannerPattern(path, new Item.Properties());
-    }
-
-    /**
-     * Registers a simple banner pattern.
-     */
-    public ScribbleBannerPattern bannerPattern(String path, Item.Properties settings) {
-        var ref = new Object() { ScribbleBannerPattern ref = null; };
-        var pattern = new ScribbleBannerPattern(this, path, () -> {
-            var key = ResourceKey.create(Registries.ITEM, id("%s_banner_pattern".formatted(path)));
-            return Registry.registerForHolder(BuiltInRegistries.ITEM, key, new Item(settings.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(ref.ref.patternTag.get())).stacksTo(1).setId(key)));
-        });
-        ref.ref = pattern;
-        return pattern;
-    }
-
-    /**
-     * Registers a simple music disc.
-     */
-    public ScribbleMusicDisc musicDisc(String path, Holder.Reference<SoundEvent> song, int lengthInSeconds, int comparatorOutput) {
-        return musicDisc(path, song, lengthInSeconds, comparatorOutput, new Item.Properties());
-    }
-
-    /**
-     * Registers a simple music disc.
-     */
-    public ScribbleMusicDisc musicDisc(String path, Holder.Reference<SoundEvent> song, int lengthInSeconds, int comparatorOutput, Item.Properties settings) {
-        var ref = new Object() { ScribbleMusicDisc ref = null; };
-        var disc = new ScribbleMusicDisc(this, path, song, lengthInSeconds, comparatorOutput, () -> {
-            var key = ResourceKey.create(Registries.ITEM, id("music_disc_%s".formatted(path)));
-            return Registry.registerForHolder(BuiltInRegistries.ITEM, key, new Item(settings.stacksTo(1).jukeboxPlayable(ref.ref.songKey.get()).setId(key)));
-        });
-        ref.ref = disc;
-        return disc;
+    @SuppressWarnings("unchecked")
+    public <T> ResourceKey<T> key(ResourceKey<? extends Registry<T>> reg, String path) {
+        return ResourceKey.create(reg, id(path)).amymialib$onScribble(this);
     }
 
     /**
      * Registers a variable range sound event.
      */
-    public Scribble<SoundEvent> of(String path) {
-        return new Scribble<>(this, BuiltInRegistries.SOUND_EVENT, () -> {
-            var key = ResourceKey.create(Registries.SOUND_EVENT, id(path));
-            return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, key, SoundEvent.createVariableRangeEvent(id(path)));
-        });
+    public SoundEvent of(String path) {
+        var id = id(path);
+        return of(ResourceKey.create(Registries.SOUND_EVENT, id), SoundEvent.createVariableRangeEvent(id));
     }
 
     /**
      * Registers a fixed range sound event.
      */
-    public Scribble<SoundEvent> of(String path, float range) {
-        return new Scribble<>(this, BuiltInRegistries.SOUND_EVENT, () -> {
-            var key = ResourceKey.create(Registries.SOUND_EVENT, id(path));
-            return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, key, SoundEvent.createFixedRangeEvent(id(path), range));
+    public SoundEvent of(String path, float range) {
+        var id = id(path);
+        return of(ResourceKey.create(Registries.SOUND_EVENT, id), SoundEvent.createFixedRangeEvent(id, range));
+    }
+
+    /**
+     * Registers a simple block.
+     */
+    public Block of(String path, BlockBehaviour.Properties properties) {
+        return this.of(path, Block::new, properties);
+    }
+
+    /**
+     * Registers a block.
+     */
+    public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties) {
+        var key = key(Registries.BLOCK, path);
+        return of(key, func.apply(properties.setId(key)));
+    }
+
+    /**
+     * Registers an entity type.
+     */
+    public <T extends Entity> EntityType<T> of(String path, EntityType.Builder<T> builder) {
+        var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
+        return (EntityType<T>) of(key, builder.build(key));
+    }
+
+    /**
+     * Registers a simple item.
+     */
+    public Item of(String path, Item.Properties properties) {
+        return this.of(path, Item::new, properties);
+    }
+
+    /**
+     * Registers an item.
+     */
+    public Item of(String path, Function<Item.Properties, Item> func, Item.Properties properties) {
+        var key = key(Registries.ITEM, path);
+        var item = of(key, func.apply(properties.setId(key)));
+        if (creativeTab != null) CreativeModeTabEvents.modifyOutputEvent(creativeTab).register(output -> output.accept(item));
+        return item;
+    }
+
+    /**
+     * Registers a simple banner pattern.
+     */
+    public BannerHelper bannerPattern(String path, Item.Properties properties) {
+        var patternTag = tag(Registries.BANNER_PATTERN, "pattern_item/%s".formatted(path));
+        var patternKey = key(Registries.BANNER_PATTERN, path);
+        var key = ResourceKey.create(Registries.ITEM, id("%s_banner_pattern".formatted(path)));
+        this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.BANNER_PATTERN, registerable -> registerable.register(patternKey, new BannerPattern(patternKey.identifier(), "block.%s.banner.%s".formatted(patternKey.identifier().getNamespace(), patternKey.identifier().getPath())))));
+        this.dossierData.add((DossierTags) (provider) -> {
+            provider.tag(patternTag).addOptional(patternKey);
+            provider.tag(ItemTags.LOOM_PATTERNS).add(key);
         });
+        return new BannerHelper(this, of(key, new Item(properties.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(patternTag)).stacksTo(1).setId(key))), patternTag, patternKey);
+    }
+
+    /**
+     * Registers a simple music disc.
+     */
+    public DiscHelper musicDisc(String path, int lengthInSeconds, int comparatorOutput, Item.Properties settings) {
+        var songKey = key(Registries.JUKEBOX_SONG, path);
+        var song = (Holder.Reference<SoundEvent>) of(path).amy$holder();
+        var key = ResourceKey.create(Registries.ITEM, id("music_disc_%s".formatted(path)));
+        this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.JUKEBOX_SONG, registerable -> registerable.register(songKey, new JukeboxSong(song, Component.translatable(Util.makeDescriptionId("jukebox_song", songKey.identifier())), lengthInSeconds, comparatorOutput))));
+        return new DiscHelper(this, of(key, new Item(settings.stacksTo(1).jukeboxPlayable(songKey).setId(key))), songKey, song, lengthInSeconds, comparatorOutput);
+    }
+
+    /**
+     * Creates a simple block set.
+     */
+    public BlockBatch batch(String path, Block block) {
+        return new BlockBatch(this, block);
+    }
+
+    /**
+     * Creates a simple block set.
+     */
+    public BlockBatch batch(String path, BlockBehaviour.Properties properties) {
+        return new BlockBatch(this, of(path, properties).amy$withItem());
+    }
+
+    /**
+     * Creates a block set.
+     */
+    public BlockBatch batch(String path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties properties) {
+        return new BlockBatch(this, of(path, function, properties).amy$withItem());
     }
 
     /**
      * Registers an object to the relevant registry if found within {@link AUTO_REGISTRIES}.<br>
      * If no fitting registry is found, it will throw an exception.
      */
-    public @SuppressWarnings("unchecked") <T> Scribble<T> of(String path, T thing) {
+    public <T> T of(String path, T thing) {
         for (var entry : AUTO_REGISTRIES.entrySet()) {
             if (!entry.getKey().isInstance(thing)) continue;
             var registry = (Registry<T>) entry.getValue();
-            return new Scribble<>(this, registry, () -> {
-                var key = ResourceKey.create(registry.key(), id(path));
-                return Registry.registerForHolder(registry, key, thing);
-            });
+            return of(ResourceKey.create(registry.key(), id(path)), thing);
         }
         throw new IllegalStateException("Failed to register %s with the %s scribbler - no AUTO_REGISTRIES matched %s.".formatted(path, this.modName, thing.getClass().getName()));
+    }
+
+    /**
+     * Registers an object with a given registry key.
+     */
+    public <T> T of(ResourceKey<T> key, T thing) {
+        if (thing instanceof ScrawledRegisterable<?> r) r.amymialib$onScribble(this);
+        return Registry.register((Registry<T>) BuiltInRegistries.REGISTRY.getValue(key.registry()), key, thing);
     }
 
     /**

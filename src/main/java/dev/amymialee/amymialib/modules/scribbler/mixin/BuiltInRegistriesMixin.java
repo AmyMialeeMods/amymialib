@@ -5,10 +5,7 @@ import dev.amymialee.amymialib.modules.scribbler.AutoQueue;
 import dev.amymialee.amymialib.modules.scribbler.AutoScanner;
 import dev.amymialee.amymialib.modules.scribbler.Scribbler;
 import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleInit;
-import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleTranslation;
-import dev.amymialee.amymialib.modules.scribbler.scribbles.Scribble;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.util.Util;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,9 +17,8 @@ import java.lang.reflect.AccessFlag;
 @Mixin(BuiltInRegistries.class)
 public class BuiltInRegistriesMixin {
     @Inject(method = "bootStrap", at = @At(value = "HEAD"), order = 900)
-    private static void am$fullAuto(CallbackInfo ci) {
+    private static void amy$fullAuto(CallbackInfo ci) {
         AutoQueue.forEach(BuiltInRegistriesMixin::runAuto);
-        AutoQueue.initializeScribbles();
     }
 
     @Unique
@@ -46,22 +42,6 @@ public class BuiltInRegistriesMixin {
                 scribbler.logger.error(reason);
                 throw new RuntimeException(reason, null, true, false) {};
             }
-        });
-        reflections.getFieldsAnnotatedWith(ScribbleTranslation.class).forEach(field -> {
-            try {
-                field.setAccessible(true);
-                var translations = field.getAnnotation(ScribbleTranslation.class).value();
-                for (var i = 0; i < translations.length;) {
-                    if (translations.length > i + 1) {
-                        scribbler.translation(translations[i], translations[i + 1]);
-                        i += 2;
-                    } else if (field.get(null) instanceof Scribble<?> scribble) {
-                        var key = scribble.key();
-                        scribbler.translation(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translations[i]);
-                        i++;
-                    }
-                }
-            } catch (Throwable _) {}
         });
     }
 }

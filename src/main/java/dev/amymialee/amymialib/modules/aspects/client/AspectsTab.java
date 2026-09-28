@@ -99,7 +99,7 @@ public class AspectsTab {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, this.screen.aspectOuter.x - 1, this.screen.aspectOuter.y - 1, this.screen.aspectOuter.width + 2, 37);
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.BORDER, this.screen.aspectOuter.x - 1, this.screen.aspectOuter.y - 1, this.screen.aspectOuter.width + 2, 37, Mth.hsvToArgb(.82f, .61f, 1f, 255));
 
-        graphics.text(this.screen.getFont(), this.title, this.screen.aspectOuter.x - this.title.am$width() / 2 + this.headerTextWidth / 2, this.screen.aspectOuter.y + 5, -1);
+        graphics.text(this.screen.getFont(), this.title, this.screen.aspectOuter.x - this.title.amy$width() / 2 + this.headerTextWidth / 2, this.screen.aspectOuter.y + 5, -1);
         graphics.pose().pushMatrix();
         graphics.pose().translate(this.screen.aspectOuter.x + this.headerTextWidth / 2f, this.screen.aspectOuter.y + 16);
         graphics.pose().scale(0.6f);

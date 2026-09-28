@@ -43,7 +43,7 @@ public class AspectCategoriesTab {
         var y = this.screen.categoryInner.y + 4;
         for (var entry : this.namedCategories.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
             var name = Component.literal(entry.getKey());
-            this.renderables.add(new StringWidget(this.screen.categoryInner.x - 2, y, name.am$width(), 9, name, this.screen.getFont()).setMaxWidth(this.screen.categoryInner.width + 4, StringWidget.TextOverflow.SCROLLING));
+            this.renderables.add(new StringWidget(this.screen.categoryInner.x - 2, y, name.amy$width(), 9, name, this.screen.getFont()).setMaxWidth(this.screen.categoryInner.width + 4, StringWidget.TextOverflow.SCROLLING));
             var categoryWidth = 20;
             var categoryGap = 2;
             y += 12;

@@ -1,8 +1,6 @@
-package dev.amymialee.amymialib.modules.scribbler.scribbles;
+package dev.amymialee.amymialib.modules.scribbler;
 
 import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
-import dev.amymialee.amymialib.modules.scribbler.Scribbler;
-import net.minecraft.references.BlockItemId;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -22,45 +20,36 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ScribbleBlockBatch {
+@SuppressWarnings({"unused", "UnusedReturnValue"})
+public class BlockBatch {
     public final Scribbler scribbler;
-    private final HashMap<Variant, ScribbleBlock> blocks = new HashMap<>();
+    private final HashMap<Variant, Block> blocks = new HashMap<>();
     private @Nullable Supplier<Item.Properties> itemProperties = () -> new Item.Properties().useBlockDescriptionPrefix();
 
     @ApiStatus.Internal
-    public ScribbleBlockBatch(Scribbler scribbler, ScribbleBlock block) {
+    public BlockBatch(Scribbler scribbler, Block block) {
         this.scribbler = scribbler;
         this.blocks.put(Variant.BLOCK, block);
     }
 
-    @ApiStatus.Internal
-    public ScribbleBlockBatch(Scribbler scribbler, String path, Function<BlockBehaviour.Properties,Block> function, BlockBehaviour.Properties settings) {
-        this.scribbler = scribbler;
-        this.blocks.put(Variant.BLOCK, scribbler.of(path, function, settings));
-    }
-
-    public static ScribbleBlockBatch fake(Scribbler scribbler, BlockItemId key) {
-        return new ScribbleBlockBatch(scribbler, ScribbleBlock.fakeBlock(scribbler, key.block()));
-    }
-
-    public ScribbleBlockBatch translation(String translation) {
+    public BlockBatch translate(String translation) {
         for (var entry : this.blocks.entrySet()) {
-            entry.getValue().translation(entry.getKey() == Variant.BLOCK ? translation : "%s %s".formatted(translation, WordUtils.capitalizeFully(entry.getKey().name.replace('_', ' '))));
+            entry.getValue().amy$translate(entry.getKey() == Variant.BLOCK ? translation : "%s %s".formatted(translation, WordUtils.capitalizeFully(entry.getKey().name.replace('_', ' '))));
         }
         return this;
     }
 
-    public ScribbleBlockBatch addTo(TagKey<Block> target) {
-        for (var entry : this.blocks.entrySet()) this.scribbler.dossierData.add((DossierTags) (provider) -> provider.tag(target).add(entry.getValue().key()));
+    public BlockBatch addTo(TagKey<Block> target) {
+        for (var entry : this.blocks.entrySet()) this.scribbler.dossierData.add((DossierTags) (provider) -> provider.tag(target).add(entry.getValue().amy$key()));
         return this;
     }
 
-    public ScribbleBlockBatch noItem() {
+    public BlockBatch noItem() {
         this.itemProperties = null;
         return this;
     }
 
-    public ScribbleBlockBatch setItem(Supplier<Item.Properties> properties) {
+    public BlockBatch setItem(Supplier<Item.Properties> properties) {
         if (this.itemProperties != null) throw new IllegalStateException("Item properties already set");
         this.itemProperties = () -> properties.get().useBlockDescriptionPrefix();
         return this;
@@ -147,103 +136,103 @@ public class ScribbleBlockBatch {
     }
 
     public ResourceKey<Block> key() {
-        return this.blocks.get(Variant.BLOCK).key();
+        return this.blocks.get(Variant.BLOCK).amy$key();
     }
 
-    public ScribbleBlockBatch setStairs(BlockItemId existing) {
-        this.blocks.put(Variant.STAIRS, ScribbleBlock.fakeBlock(this.scribbler, existing.block()));
+    public BlockBatch setStairs(Block existing) {
+        this.blocks.put(Variant.STAIRS, existing);
         return this;
     }
 
-    public ScribbleBlockBatch setSlab(BlockItemId existing) {
-        this.blocks.put(Variant.SLAB, ScribbleBlock.fakeBlock(this.scribbler, existing.block()));
+    public BlockBatch setSlab(Block existing) {
+        this.blocks.put(Variant.SLAB, existing);
         return this;
     }
 
-    public ScribbleBlockBatch setCarpet(BlockItemId existing) {
-        this.blocks.put(Variant.CARPET, ScribbleBlock.fakeBlock(this.scribbler, existing.block()));
+    public BlockBatch setCarpet(Block existing) {
+        this.blocks.put(Variant.CARPET, existing);
         return this;
     }
 
-    public ScribbleBlockBatch setWall(BlockItemId existing) {
-        this.blocks.put(Variant.WALL, ScribbleBlock.fakeBlock(this.scribbler, existing.block()));
+    public BlockBatch setWall(Block existing) {
+        this.blocks.put(Variant.WALL, existing);
         return this;
     }
 
-    public ScribbleBlockBatch setPane(BlockItemId existing) {
-        this.blocks.put(Variant.PANE, ScribbleBlock.fakeBlock(this.scribbler, existing.block()));
+    public BlockBatch setPane(Block existing) {
+        this.blocks.put(Variant.PANE, existing);
         return this;
     }
 
-    public ScribbleBlockBatch setFence(BlockItemId existing) {
-        this.blocks.put(Variant.FENCE, ScribbleBlock.fakeBlock(this.scribbler, existing.block()));
+    public BlockBatch setFence(Block existing) {
+        this.blocks.put(Variant.FENCE, existing);
         return this;
     }
 
-    public ScribbleBlockBatch setFenceGate(BlockItemId existing) {
-        this.blocks.put(Variant.FENCE_GATE, ScribbleBlock.fakeBlock(this.scribbler, existing.block()));
+    public BlockBatch setFenceGate(Block existing) {
+        this.blocks.put(Variant.FENCE_GATE, existing);
         return this;
     }
 
-    public ScribbleBlockBatch setPressurePlate(BlockItemId existing) {
-        this.blocks.put(Variant.PRESSURE_PLATE, ScribbleBlock.fakeBlock(this.scribbler, existing.block()));
+    public BlockBatch setPressurePlate(Block existing) {
+        this.blocks.put(Variant.PRESSURE_PLATE, existing);
         return this;
     }
 
-    public ScribbleBlockBatch setButton(BlockItemId existing) {
-        this.blocks.put(Variant.BUTTON, ScribbleBlock.fakeBlock(this.scribbler, existing.block()));
+    public BlockBatch setButton(Block existing) {
+        this.blocks.put(Variant.BUTTON, existing);
         return this;
     }
 
-    public ScribbleBlockBatch addStairs() {
+    public BlockBatch addStairs() {
         return this.add(Variant.STAIRS, p -> new StairBlock(this.get().defaultBlockState(), p));
     }
 
-    public ScribbleBlockBatch addSlab() {
+    public BlockBatch addSlab() {
         return this.add(Variant.SLAB, SlabBlock::new);
     }
 
-    public ScribbleBlockBatch addCarpet() {
+    public BlockBatch addCarpet() {
         return this.add(Variant.CARPET, CarpetBlock::new, p -> p.strength(0.1F).pushReaction(PushReaction.POPPED));
     }
 
-    public ScribbleBlockBatch addWall() {
+    public BlockBatch addWall() {
         return this.add(Variant.WALL, WallBlock::new, BlockBehaviour.Properties::forceSolidOn);
     }
 
-    public ScribbleBlockBatch addPane() {
+    public BlockBatch addPane() {
         return this.add(Variant.PANE, IronBarsBlock::new, BlockBehaviour.Properties::noOcclusion);
     }
 
-    public ScribbleBlockBatch addFence() {
+    public BlockBatch addFence() {
         return this.add(Variant.FENCE, FenceBlock::new);
     }
 
-    public ScribbleBlockBatch addFenceGate(WoodType type) {
+    public BlockBatch addFenceGate(WoodType type) {
         return this.add(Variant.FENCE_GATE, p -> new FenceGateBlock(type, p), BlockBehaviour.Properties::forceSolidOn);
     }
 
-    public ScribbleBlockBatch addPressurePlate(BlockSetType type) {
+    public BlockBatch addPressurePlate(BlockSetType type) {
         return this.add(Variant.PRESSURE_PLATE, p -> new PressurePlateBlock(type, p), p -> p.forceSolidOn().noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
     }
 
-    public ScribbleBlockBatch addButton(BlockSetType type, int ticksToStayPressed) {
+    public BlockBatch addButton(BlockSetType type, int ticksToStayPressed) {
         return this.add(Variant.BUTTON, p -> new ButtonBlock(type, ticksToStayPressed, p), p -> p.noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
     }
 
-    public ScribbleBlockBatch stonelike() {
+    public BlockBatch stonelike() {
         this.addStairs();
         this.addSlab();
         this.addWall();
         return this;
     }
 
-    public ScribbleBlockBatch stonelike(BlockSetType type, int ticksToStayPressed) {
+    public BlockBatch stonelike(BlockSetType type, int ticksToStayPressed) {
         this.addPlateAndButton(type, ticksToStayPressed);
         return this.stonelike();
     }
 
-    public ScribbleBlockBatch woodLike(WoodType wood, BlockSetType type, int ticksToStayPressed) {
+    public BlockBatch woodLike(WoodType wood, BlockSetType type, int ticksToStayPressed) {
         this.addStairs();
         this.addSlab();
         this.addFence();
@@ -252,51 +241,31 @@ public class ScribbleBlockBatch {
         return this;
     }
 
-    public ScribbleBlockBatch addPlateAndButton(BlockSetType type, int ticksToStayPressed) {
+    public BlockBatch addPlateAndButton(BlockSetType type, int ticksToStayPressed) {
         this.addPressurePlate(type);
         this.addButton(type, ticksToStayPressed);
         return this;
     }
 
     @ApiStatus.Internal
-    private @Nullable Block get(Variant variant) {
-        return this.blocks.get(variant).get();
+    public @Nullable Block get(Variant variant) {
+        return this.blocks.get(variant);
     }
 
     @ApiStatus.Internal
-    private @Nullable Item getItem(Variant variant) {
+    public @Nullable Item getItem(Variant variant) {
         if (!this.blocks.containsKey(variant)) return null;
-        return Optional.ofNullable(this.blocks.get(variant)).map(ScribbleBlock::item).map(Scribble::get).orElse(null);
-    }
-
-    public Optional<Block> fetchBlock(Variant variant) {
-        if (!this.blocks.containsKey(variant) || this.blocks.get(variant).getter == null) return Optional.empty();
-        return Optional.of(this.blocks.get(variant).get());
-    }
-
-    public Optional<Item> fetchItem(Variant variant) {
-        if (!this.blocks.containsKey(variant)) return Optional.empty();
-        return Optional.ofNullable(this.blocks.get(variant)).map(ScribbleBlock::item).map(Scribble::get);
-    }
-
-    public Optional<Scribble<Block>> fetchBlockScribble(Variant variant) {
-        if (!this.blocks.containsKey(variant) || this.blocks.get(variant).getter == null) return Optional.empty();
-        return Optional.of(this.blocks.get(variant));
-    }
-
-    public Optional<Scribble<Item>> fetchItemScribble(Variant variant) {
-        if (!this.blocks.containsKey(variant) || this.blocks.get(variant).getter == null) return Optional.empty();
-        return Optional.ofNullable(this.blocks.get(variant).item());
+        return Optional.ofNullable(this.blocks.get(variant)).map(Block::asItem).orElse(null);
     }
 
     @ApiStatus.Internal
-    private ScribbleBlockBatch add(Variant var, Function<BlockBehaviour.Properties, Block> function) {
+    public BlockBatch add(Variant var, Function<BlockBehaviour.Properties, Block> function) {
         return this.add(var, function, p -> p);
     }
 
     @ApiStatus.Internal
-    private ScribbleBlockBatch add(Variant var, Function<BlockBehaviour.Properties, Block> function, Function<BlockBehaviour.Properties, BlockBehaviour.Properties> settings) {
-        if (!this.blocks.containsKey(var)) this.blocks.put(var, scribbler.of("%s_%s".formatted(this.blocks.get(Variant.BLOCK).key().identifier().getPath(), var.name().toLowerCase(Locale.ROOT)), function, settings.apply(BlockBehaviour.Properties.ofFullCopy(this.get()))));
+    public BlockBatch add(Variant var, Function<BlockBehaviour.Properties, Block> function, Function<BlockBehaviour.Properties, BlockBehaviour.Properties> settings) {
+        if (!this.blocks.containsKey(var)) this.blocks.put(var, scribbler.of("%s_%s".formatted(this.blocks.get(Variant.BLOCK).amy$key().identifier().getPath(), var.name().toLowerCase(Locale.ROOT)), function, settings.apply(BlockBehaviour.Properties.ofFullCopy(this.get()))).amy$withItem());
         return this;
     }
 

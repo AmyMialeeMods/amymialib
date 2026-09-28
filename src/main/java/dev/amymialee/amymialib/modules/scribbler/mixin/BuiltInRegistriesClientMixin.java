@@ -17,7 +17,7 @@ import java.lang.reflect.AccessFlag;
 @Mixin(BuiltInRegistries.class)
 public class BuiltInRegistriesClientMixin {
     @Inject(method = "bootStrap", at = @At(value = "HEAD"))
-    private static void am$fullAuto(CallbackInfo ci) {
+    private static void amy$fullAuto(CallbackInfo ci) {
         AutoQueue.forEach(BuiltInRegistriesClientMixin::runAutoClient);
     }
 

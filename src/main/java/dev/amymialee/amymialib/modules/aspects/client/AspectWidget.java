@@ -34,7 +34,7 @@ public class AspectWidget implements Renderable {
         this.shape = new Rectangle(x, y, width, height);
         this.aspect = aspect;
         var title = Language.getInstance().has(this.aspect.nameKey) ? aspect.name : Component.literal(aspect.id.getPath());
-        this.title = new StringWidget(0, -8, title.am$width(), 9, title, screen.getFont()).setMaxWidth(120, StringWidget.TextOverflow.SCROLLING);
+        this.title = new StringWidget(0, -8, title.amy$width(), 9, title, screen.getFont()).setMaxWidth(120, StringWidget.TextOverflow.SCROLLING);
         this.description = new ArrayList<>(Language.getInstance().getVisualOrder(this.findOptimalLines(ComponentUtils.mergeStyles(aspect.description, Style.EMPTY.withColor(TextColor.GRAY)), 115)));
         if (!this.description.isEmpty()) this.description.removeLast();
     }
