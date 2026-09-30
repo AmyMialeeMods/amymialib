@@ -1,10 +1,10 @@
-package dev.amymialee.amymialib.modules.interfaces;
+package dev.amymialee.amymialib.modules.iinterfaces;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.util.Unit;
 import net.minecraft.world.item.Item;
 
-public interface ScrawledItemProperties {
+public interface AmyMialibItemProperties {
     default Item.Properties amy$unit(DataComponentType<Unit> type) {
         return ((Item.Properties) this).component(type, Unit.INSTANCE);
     }

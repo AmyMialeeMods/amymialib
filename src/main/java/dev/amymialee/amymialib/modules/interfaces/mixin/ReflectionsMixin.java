@@ -2,7 +2,7 @@ package dev.amymialee.amymialib.modules.interfaces.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import dev.amymialee.amymialib.modules.interfaces.ScrawledSilencer;
+import dev.amymialee.amymialib.modules.interfaces.AmyMialibSilencer;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.reflections.Configuration;
@@ -18,8 +18,8 @@ public class ReflectionsMixin {
     @Shadow @Final protected transient Configuration configuration;
 
     @WrapOperation(method = "scan", at = @At(value = "FIELD", target = "Lorg/reflections/Reflections;log:Lorg/slf4j/Logger;", opcode = Opcodes.GETSTATIC, ordinal = 0))
-    private @Nullable Logger amy$explode(Operation<Logger> original) {
-        if (this.configuration instanceof ScrawledSilencer<?> silencer && silencer.amy$isSilenced()) return null;
+    private @Nullable Logger amymialib$explode(Operation<Logger> original) {
+        if (this.configuration instanceof AmyMialibSilencer<?> silencer && silencer.amymialib$isSilenced()) return null;
         return original.call();
     }
 }

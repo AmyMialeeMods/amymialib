@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin({Main.class})
 public class MainServerMixin {
     @Inject(method = "main", at = @At(value = "TAIL"))
-    private static void amy$fullAuto(CallbackInfo ci) {
+    private static void amymialib$fullAuto(CallbackInfo ci) {
         AutoQueue.clearDatagen();
     }
 }

@@ -1,31 +1,33 @@
 classTweaker v1 official
 
-transitive-inject-interface	net/minecraft/world/level/block/Block dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledBlock
-transitive-inject-interface	net/minecraft/world/item/CreativeModeTab dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledCreativeTab
-transitive-inject-interface	net/minecraft/world/entity/EntityType dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledEntity
-transitive-inject-interface	net/minecraft/world/item/Item dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledItem
-transitive-inject-interface	net/minecraft/sounds/SoundEvent dev/amymialee/amymialib/modules/interfaces/registerable/ScrawledSoundEvent
+# AmyMialibBlock
+transitive-inject-interface	net/minecraft/world/level/block/Block dev/amymialee/amymialib/modules/iinterfaces/AmyMialibBlock
+# AmyMialibComponent
+transitive-inject-interface	net/minecraft/network/chat/Component dev/amymialee/amymialib/modules/iinterfaces/AmyMialibComponent
+# AmyMialibItemConvertible
+transitive-inject-interface	net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase dev/amymialee/amymialib/modules/iinterfaces/AmyMialibItemConvertible
+transitive-inject-interface	net/minecraft/world/entity/EntityType dev/amymialee/amymialib/modules/iinterfaces/AmyMialibItemConvertible
+transitive-inject-interface	net/minecraft/world/level/ItemLike dev/amymialee/amymialib/modules/iinterfaces/AmyMialibItemConvertible
+# AmyMialibItemProperties
+transitive-inject-interface	net/minecraft/world/item/Item$Properties dev/amymialee/amymialib/modules/iinterfaces/AmyMialibItemProperties
+# AmyMialibTaggable
+transitive-inject-interface net/minecraft/world/level/block/entity/BlockEntityType dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaggable
+transitive-inject-interface net/minecraft/references/BlockItemId dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaggable
+transitive-inject-interface net/minecraft/tags/BlockItemTagId dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaggable
+transitive-inject-interface net/minecraft/world/level/block/Block dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaggable
+transitive-inject-interface net/minecraft/world/entity/EntityType dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaggable
+transitive-inject-interface net/minecraft/world/level/material/Fluid dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaggable
+transitive-inject-interface net/minecraft/world/item/Item dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaggable
+transitive-inject-interface net/minecraft/resources/ResourceKey dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaggable
+transitive-inject-interface net/minecraft/tags/TagKey dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaggable
+# AmyMialibTaglike
+transitive-inject-interface net/minecraft/tags/BlockItemTagId dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaglike
+transitive-inject-interface net/minecraft/tags/TagKey dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTaglike
 
-transitive-inject-interface	net/minecraft/network/chat/Component dev/amymialee/amymialib/modules/interfaces/ScrawledComponent
-
-transitive-inject-interface	net/minecraft/world/item/Item$Properties dev/amymialee/amymialib/modules/interfaces/ScrawledItemProperties
-
-transitive-inject-interface	net/minecraft/tags/TagKey dev/amymialee/amymialib/modules/interfaces/ScrawledTagKey
-transitive-inject-interface	net/minecraft/resources/ResourceKey dev/amymialee/amymialib/modules/interfaces/ScrawledResourceKey
-
-transitive-inject-interface	net/minecraft/client/sounds/WeighedSoundEvents dev/amymialee/amymialib/modules/interfaces/ScrawledTranslationKeyHolder
-
+# Transitive Accessible
 transitive-accessible field net/minecraft/data/recipes/RecipeProvider output Lnet/minecraft/data/recipes/RecipeOutput;
 
+# Accessible
 accessible field net/minecraft/client/gui/components/AbstractButton SPRITES Lnet/minecraft/client/gui/components/WidgetSprites;
 accessible field net/minecraft/data/tags/TagsProvider builders Ljava/util/Map;
 accessible method net/minecraft/core/Holder$Reference bindKey (Lnet/minecraft/resources/ResourceKey;)V
-
-
-
-
-
-
-
-
-

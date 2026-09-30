@@ -1,6 +1,6 @@
 package dev.amymialee.amymialib.modules.scribbler;
 
-import dev.amymialee.amymialib.modules.interfaces.ScrawledSilencer;
+import dev.amymialee.amymialib.modules.interfaces.AmyMialibSilencer;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NonNull;
 import org.reflections.Reflections;
@@ -25,7 +25,7 @@ public class AutoScanner {
     private static final HashMap<String, Reflections> reflected = new HashMap<>();
 
     public static Reflections findAnnotations(String packageName) {
-        return reflected.computeIfAbsent(packageName, p -> new Reflections(((ScrawledSilencer<ConfigurationBuilder>) new ConfigurationBuilder()).amy$silence().forPackage(p).filterInputsBy(new FilterBuilder().includePackage(p)).setScanners(Scanners.TypesAnnotated, Scanners.MethodsAnnotated, Scanners.FieldsAnnotated)));
+        return reflected.computeIfAbsent(packageName, p -> new Reflections(((AmyMialibSilencer<ConfigurationBuilder>) new ConfigurationBuilder()).amymialib$silence().forPackage(p).filterInputsBy(new FilterBuilder().includePackage(p)).setScanners(Scanners.TypesAnnotated, Scanners.MethodsAnnotated, Scanners.FieldsAnnotated)));
     }
 
     public static <FI> List<FI> findFunctionalInterfaces(Logger errorLogger, Class<? extends Annotation> annotation, String packageName, Class<FI> functionalInterface) {

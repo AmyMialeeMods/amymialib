@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 @ScribbleInit
 public final class Aspect<T> {
     public static final int CLIENT_COLOUR = new Color(0xBD6868).getRGB();
-    public static final Component CLIENT_ONLY = Component.translatable(AmyMialib.SCRIBBLER.translation(AmyMialib.id("aspects.client_only").toShortLanguageKey(), "[Client Only]")).withColor(CLIENT_COLOUR);
+    public static final Component CLIENT_ONLY = Component.translatable(AmyMialib.SCRIBBLER.translate(AmyMialib.id("aspects.client_only").toShortLanguageKey(), "[Client Only]")).withColor(CLIENT_COLOUR);
     public final Identifier id;
     public final AspectType<T> type;
     public final AspectSaveLocation saveLocation;

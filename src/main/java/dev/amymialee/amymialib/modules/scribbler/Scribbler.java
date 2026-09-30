@@ -8,9 +8,13 @@ import dev.amymialee.amymialib.modules.aspects.AspectType;
 import dev.amymialee.amymialib.modules.dossier.DossierRegistries;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
-import dev.amymialee.amymialib.modules.interfaces.registerable.ScrawledRegisterable;
+import dev.amymialee.amymialib.modules.scribbler.auto.Decipher;
+import dev.amymialee.amymialib.modules.scribbler.helpers.BannerHelper;
+import dev.amymialee.amymialib.modules.scribbler.helpers.BlockBatch;
+import dev.amymialee.amymialib.modules.scribbler.helpers.DiscHelper;
 import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
+import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
@@ -41,7 +45,9 @@ import net.minecraft.world.attribute.EnvironmentAttribute;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.sensing.SensorType;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
@@ -49,10 +55,7 @@ import net.minecraft.world.entity.npc.villager.VillagerProfession;
 import net.minecraft.world.entity.npc.villager.VillagerType;
 import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.JukeboxSong;
+import net.minecraft.world.item.*;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.consume_effects.ConsumeEffect;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
@@ -83,14 +86,13 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.RuleTestType;
 import net.minecraft.world.level.levelgen.structure.templatesystem.rule.blockentity.RuleBlockEntityModifierType;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
+import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -132,7 +134,7 @@ public class Scribbler {
      * @param icon Supplier for the icon of the tab
      */
     public Scribbler tab(Supplier<ItemStack> icon) {
-        return this.tab(this.of(this.namespace, FabricCreativeModeTab.builder().title(Component.translatable(id(this.namespace).toLanguageKey("itemGroup"))).icon(icon).build()).amy$key());
+        return this.tab(Registry.registerForHolder(BuiltInRegistries.CREATIVE_MODE_TAB, id(this.namespace), FabricCreativeModeTab.builder().title(Component.translatable(id(this.namespace).toLanguageKey("itemGroup"))).icon(icon).build()).key());
     }
 
     /**
@@ -140,39 +142,37 @@ public class Scribbler {
      * @param access Access to the tab builder
      */
     public Scribbler tab(Function<CreativeModeTab.Builder, CreativeModeTab.Builder> access) {
-        return this.tab(this.of(this.namespace, access.apply(FabricCreativeModeTab.builder().title(Component.translatable(id(this.namespace).toLanguageKey("itemGroup")))).build()).amy$key());
+        return this.tab(Registry.registerForHolder(BuiltInRegistries.CREATIVE_MODE_TAB, id(this.namespace), access.apply(FabricCreativeModeTab.builder().title(Component.translatable(id(this.namespace).toLanguageKey("itemGroup")))).build()).key());
     }
 
     /**
      * Registers a tag.
      */
-    @SuppressWarnings("unchecked")
     public <T> TagKey<T> tag(ResourceKey<Registry<T>> reg, String path) {
-        return TagKey.create(reg, id(path)).amymialib$onScribble(this);
+        return TagKey.create(reg, id(path));
     }
 
     /**
      * Creates a resource key.
      */
-    @SuppressWarnings("unchecked")
     public <T> ResourceKey<T> key(ResourceKey<? extends Registry<T>> reg, String path) {
-        return ResourceKey.create(reg, id(path)).amymialib$onScribble(this);
+        return ResourceKey.create(reg, id(path));
     }
 
     /**
      * Registers a variable range sound event.
      */
-    public SoundEvent of(String path) {
+    public Holder.Reference<SoundEvent> of(String path) {
         var id = id(path);
-        return of(ResourceKey.create(Registries.SOUND_EVENT, id), SoundEvent.createVariableRangeEvent(id));
+        return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, ResourceKey.create(Registries.SOUND_EVENT, id), SoundEvent.createVariableRangeEvent(id));
     }
 
     /**
      * Registers a fixed range sound event.
      */
-    public SoundEvent of(String path, float range) {
+    public Holder.Reference<SoundEvent> of(String path, float range) {
         var id = id(path);
-        return of(ResourceKey.create(Registries.SOUND_EVENT, id), SoundEvent.createFixedRangeEvent(id, range));
+        return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, ResourceKey.create(Registries.SOUND_EVENT, id), SoundEvent.createFixedRangeEvent(id, range));
     }
 
     /**
@@ -186,16 +186,17 @@ public class Scribbler {
      * Registers a block.
      */
     public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties) {
-        var key = key(Registries.BLOCK, path);
-        return of(key, func.apply(properties.setId(key)));
+        return of(path, func, properties, new Item.Properties());
     }
 
     /**
-     * Registers an entity type.
+     * Registers a block.
      */
-    public <T extends Entity> EntityType<T> of(String path, EntityType.Builder<T> builder) {
-        var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
-        return (EntityType<T>) of(key, builder.build(key));
+    public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties, Item.Properties itemProperties) {
+        var key = key(Registries.BLOCK, path);
+        var block = Registry.register(BuiltInRegistries.BLOCK, key, func.apply(properties.setId(key)));
+        this.of(path, p -> new BlockItem(block, p), itemProperties.useBlockDescriptionPrefix());
+        return block;
     }
 
     /**
@@ -210,9 +211,36 @@ public class Scribbler {
      */
     public Item of(String path, Function<Item.Properties, Item> func, Item.Properties properties) {
         var key = key(Registries.ITEM, path);
-        var item = of(key, func.apply(properties.setId(key)));
+        var item = Registry.register(BuiltInRegistries.ITEM, key, func.apply(properties.setId(key)));
         if (creativeTab != null) CreativeModeTabEvents.modifyOutputEvent(creativeTab).register(output -> output.accept(item));
         return item;
+    }
+
+    /**
+     * Registers an entity type.
+     */
+    public <T extends Entity> EntityType<T> of(String path, EntityType.Builder<T> builder) {
+        var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
+        return Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
+    }
+
+    /**
+     * Registers an entity type with attributes and spawn egg.
+     */
+    public <T extends Entity> EntityType<T> of(String path, EntityType.Builder<T> builder, AttributeSupplier.Builder attributes) {
+        return of(path, builder, attributes, new Item.Properties());
+    }
+
+    /**
+     * Registers an entity type with attributes and spawn egg.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends Entity> EntityType<T> of(String path, EntityType.Builder<T> builder, AttributeSupplier.Builder attributes, Item.Properties properties) {
+        var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
+        var entity = Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
+        if (LivingEntity.class.isAssignableFrom(entity.getBaseClass())) FabricDefaultAttributeRegistry.register((EntityType<? extends LivingEntity>) entity, attributes);
+        of("%s_%s".formatted(key.identifier().getPath(), "spawn_egg"), SpawnEggItem::new, properties.spawnEgg(entity));
+        return entity;
     }
 
     /**
@@ -227,7 +255,7 @@ public class Scribbler {
             provider.tag(patternTag).addOptional(patternKey);
             provider.tag(ItemTags.LOOM_PATTERNS).add(key);
         });
-        return new BannerHelper(this, of(key, new Item(properties.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(patternTag)).stacksTo(1).setId(key))), patternTag, patternKey);
+        return new BannerHelper(of(path, properties.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(patternTag)).stacksTo(1)), patternTag, patternKey);
     }
 
     /**
@@ -235,10 +263,10 @@ public class Scribbler {
      */
     public DiscHelper musicDisc(String path, int lengthInSeconds, int comparatorOutput, Item.Properties settings) {
         var songKey = key(Registries.JUKEBOX_SONG, path);
-        var song = (Holder.Reference<SoundEvent>) of(path).amy$holder();
+        var song = of(path);
         var key = ResourceKey.create(Registries.ITEM, id("music_disc_%s".formatted(path)));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.JUKEBOX_SONG, registerable -> registerable.register(songKey, new JukeboxSong(song, Component.translatable(Util.makeDescriptionId("jukebox_song", songKey.identifier())), lengthInSeconds, comparatorOutput))));
-        return new DiscHelper(this, of(key, new Item(settings.stacksTo(1).jukeboxPlayable(songKey).setId(key))), songKey, song, lengthInSeconds, comparatorOutput);
+        return new DiscHelper(of(path, settings.stacksTo(1).jukeboxPlayable(songKey)), songKey, song, lengthInSeconds, comparatorOutput);
     }
 
     /**
@@ -252,43 +280,79 @@ public class Scribbler {
      * Creates a simple block set.
      */
     public BlockBatch batch(String path, BlockBehaviour.Properties properties) {
-        return new BlockBatch(this, of(path, properties).amy$withItem());
+        return new BlockBatch(this, of(path, properties));
     }
 
     /**
      * Creates a block set.
      */
     public BlockBatch batch(String path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties properties) {
-        return new BlockBatch(this, of(path, function, properties).amy$withItem());
+        return new BlockBatch(this, of(path, function, properties));
     }
 
     /**
      * Registers an object to the relevant registry if found within {@link AUTO_REGISTRIES}.<br>
      * If no fitting registry is found, it will throw an exception.
      */
+    @SuppressWarnings("unchecked")
     public <T> T of(String path, T thing) {
         for (var entry : AUTO_REGISTRIES.entrySet()) {
             if (!entry.getKey().isInstance(thing)) continue;
             var registry = (Registry<T>) entry.getValue();
-            return of(ResourceKey.create(registry.key(), id(path)), thing);
+            return Registry.register(registry, ResourceKey.create(registry.key(), id(path)), thing);
         }
         throw new IllegalStateException("Failed to register %s with the %s scribbler - no AUTO_REGISTRIES matched %s.".formatted(path, this.modName, thing.getClass().getName()));
     }
 
     /**
-     * Registers an object with a given registry key.
+     * Prepares a translation to en_us.json and returns the key.
      */
-    public <T> T of(ResourceKey<T> key, T thing) {
-        if (thing instanceof ScrawledRegisterable<?> r) r.amymialib$onScribble(this);
-        return Registry.register((Registry<T>) BuiltInRegistries.REGISTRY.getValue(key.registry()), key, thing);
+    public String translate(String key, String translation) {
+        this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(key, translation));
+        return key;
     }
 
     /**
-     * Prepares a translation to en_us.json and returns the key.
+     * Prepares translations to en_us.json for a given object.
      */
-    public String translation(String key, String translation) {
-        this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(key, translation));
-        return key;
+    public void translate(Field f, Decipher cipher) throws IllegalAccessException {
+        var field = f.get(null);
+        var translation = cipher.value();
+        if (field instanceof TagKey<?> tag) {
+            this.translate(tag.getTranslationKey(), translation);
+        } else if (field instanceof ResourceKey<?> key) {
+            this.translate(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translation);
+        } else if (field instanceof Holder.Reference<?> holder) {
+            this.translate(Util.makeDescriptionId(holder.key().registry().toShortLanguageKey(), holder.key().identifier()), translation);
+            if (holder.value() instanceof EntityType<?> entityType) {
+                Optional.ofNullable(entityType.amy$asItem()).ifPresent(e -> this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(e, "%s %s".formatted(translation, "Spawn Egg"))));
+            }
+        } else if (field instanceof EntityType<?> entityType) {
+            this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(entityType, translation));
+            Optional.ofNullable(entityType.amy$asItem()).ifPresent(e -> this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(e, "%s %s".formatted(translation, "Spawn Egg"))));
+        } else if (field instanceof DiscHelper(var item, var key, var song, var lengthInSeconds, var comparatorOutput)) {
+            this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translation));
+            var itemKey = item.builtInRegistryHolder().key();
+            this.translate(Util.makeDescriptionId(itemKey.registry().toShortLanguageKey(), itemKey.identifier()), "%s Banner Pattern".formatted(translation));
+        } else if (field instanceof BannerHelper(var item, var tag, var key)) {
+            this.translate(Util.makeDescriptionId("tag.%s".formatted(tag.registry().identifier().getPath()), tag.location()), "%s Banner Patterns".formatted(translation));
+            for (var dye : DyeColor.values()) this.translate("block.%s.banner.%s.%s".formatted(key.identifier().getNamespace(), key.identifier().getPath(), dye.getName()), "%s %s".formatted(WordUtils.capitalize(dye.getName().replace('_', ' ')), translation));
+            var itemKey = item.builtInRegistryHolder().key();
+            this.translate(Util.makeDescriptionId(itemKey.registry().toShortLanguageKey(), itemKey.identifier()), "%s Banner Pattern".formatted(translation));
+        } else if (field instanceof BlockBatch batch) {
+            for (var variant : BlockBatch.Variant.values()) {
+                var key = batch.get(variant).builtInRegistryHolder().key();
+                this.translate(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), variant == BlockBatch.Variant.BLOCK ? translation :
+                        "%s %s".formatted(translation, WordUtils.capitalizeFully(variant.name.replace('_', ' '))));
+            }
+        }
+        Optional.ofNullable(cipher.dyeTranslation()).ifPresent(d -> {
+            if (d.length != 2) {
+                this.logger.error("Unable to translate field {}.{}, as the dye translation array is not of length 2.", f.getDeclaringClass().getName(), f.getName());
+                throw new RuntimeException("Unable to translate field %s.%s, as the dye translation array is not of length 2.", null, true, false) {};
+            }
+            for (var dye : DyeColor.values()) this.translate(d[0].formatted(dye.getName()), d[1].formatted(WordUtils.capitalize(dye.getName().replace('_', ' '))));
+        });
     }
 
     public AspectLink.AspectLinkBuilder link(String path, String link) {

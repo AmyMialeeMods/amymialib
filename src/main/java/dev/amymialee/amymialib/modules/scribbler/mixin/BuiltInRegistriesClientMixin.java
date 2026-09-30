@@ -17,7 +17,7 @@ import java.lang.reflect.AccessFlag;
 @Mixin(BuiltInRegistries.class)
 public class BuiltInRegistriesClientMixin {
     @Inject(method = "bootStrap", at = @At(value = "HEAD"))
-    private static void amy$fullAuto(CallbackInfo ci) {
+    private static void amymialib$fullAuto(CallbackInfo ci) {
         AutoQueue.forEach(BuiltInRegistriesClientMixin::runAutoClient);
     }
 
@@ -32,11 +32,11 @@ public class BuiltInRegistriesClientMixin {
             } catch (Throwable t) {
                 var reason = "";
                 if (method.getParameterCount() > 0) {
-                    reason = "Unable to invoke method %s.%s(), as it needs to have no parameters.".formatted(method.getDeclaringClass().getName(), method.getName());
+                    reason = "Unable to invoke method %s.%s() on client, as it needs to have no parameters.".formatted(method.getDeclaringClass().getName(), method.getName());
                 } else if (!method.accessFlags().contains(AccessFlag.STATIC)) {
-                    reason = "Unable to invoke method %s.%s(), as it needs to be static.".formatted(method.getDeclaringClass().getName(), method.getName());
+                    reason = "Unable to invoke method %s.%s() on client, as it needs to be static.".formatted(method.getDeclaringClass().getName(), method.getName());
                 } else {
-                    scribbler.logger.error("Unable to invoke method {}.{}(), due to an unknown reason.", method.getDeclaringClass().getName(), method.getName());
+                    scribbler.logger.error("Unable to invoke method {}.{}() on client, due to an unknown reason.", method.getDeclaringClass().getName(), method.getName());
                     throw new RuntimeException(t);
                 }
                 scribbler.logger.error(reason);

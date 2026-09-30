@@ -2,8 +2,8 @@ package dev.amymialee.amymialib.modules.interfaces;
 
 import javax.annotation.Nullable;
 
-public interface ScrawledTranslationKeyHolder {
-    default @Nullable String amy$translationKey() {
+public interface AmyMialibTranslationKeyHolder {
+    default @Nullable String amymialib$translationKey() {
         throw new UnsupportedOperationException("Implemented via mixin.");
     }
 }

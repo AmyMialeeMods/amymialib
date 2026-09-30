@@ -2,6 +2,8 @@ package dev.amymialee.amymialib.modules.dossier.data;
 
 import dev.amymialee.amymialib.modules.dossier.Dossier;
 import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
+import dev.amymialee.amymialib.modules.iinterfaces.AmyMialibTaggable;
+import dev.amymialee.amymialib.modules.iinterfaces.AmyMialibTaglike;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
@@ -9,13 +11,13 @@ import net.minecraft.core.Registry;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.tags.TagAppender;
-import net.minecraft.references.BlockItemId;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.tags.BlockItemTagId;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.level.block.Block;
+import org.jspecify.annotations.NonNull;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
@@ -25,55 +27,44 @@ public interface DossierTags extends DossierLanyard {
 
     @Override default String name() { return "Tags"; }
 
+    @SuppressWarnings("unchecked")
     final class Provider implements DataProvider {
         private final Dossier dossier;
         public final FabricPackOutput output;
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;
         private final Map<ResourceKey, DossierTagProvider> tagProviders = new HashMap<>();
 
-        public <T> TagAppender<T> tag(TagKey<T> tag) {
+        public void tag(AmyMialibTaggable object, AmyMialibTaglike... tags) {
+            var success = this.tag(Arrays.asList(tags), List.of(object));
+            if (!success) dossier.scribbler.logger.error("Failed to tag object {} with tags {}", object, Arrays.toString(tags));
+        }
+
+        public void tag(AmyMialibTaglike tag, AmyMialibTaggable... objects) {
+            var success = this.tag(List.of(tag), Arrays.asList(objects));
+            if (!success) dossier.scribbler.logger.error("Failed to tag objects {} with tag {}", Arrays.toString(objects), tag);
+        }
+
+        public boolean tag(List<AmyMialibTaglike> taglikes, List<AmyMialibTaggable> objects) {
+            var targetTags = taglikes.stream().map(AmyMialibTaggable::amymialib$tags).flatMap(List::stream).toList();
+            var keys = objects.stream().map(AmyMialibTaggable::amymialib$keys).flatMap(List::stream).toList();
+            var tags = objects.stream().map(AmyMialibTaggable::amymialib$tags).flatMap(List::stream).toList();
+            var anyAdded = false;
+            for (var targetTag : targetTags) {
+                var targetRegistry = targetTag.registry();
+                for (var key : keys) if (targetRegistry == key.registryKey()) {
+                    tag(targetTag).add(key);
+                    anyAdded = true;
+                }
+                for (var tag : tags) if (targetRegistry == tag.registry()) {
+                    tag(targetTag).addTag(tag);
+                    anyAdded = true;
+                }
+            }
+            return anyAdded;
+        }
+
+        public TagAppender tag(TagKey tag) {
             return this.tagProviders.computeIfAbsent(tag.registry(), DossierTagProvider::new).builder(tag);
-        }
-
-        public DoubleAppender tag(BlockItemTagId tag) {
-            var item = this.tagProviders.computeIfAbsent(tag.block().registry(), DossierTagProvider::new).builder(tag.item());
-            var block = this.tagProviders.computeIfAbsent(tag.item().registry(), DossierTagProvider::new).builder(tag.block());
-            return new DoubleAppender() {
-                @Override
-                public DoubleAppender add(BlockItemId id) {
-                    item.add(id.item());
-                    block.add(id.block());
-                    return this;
-                }
-
-                @Override
-                public DoubleAppender addTag(BlockItemTagId id) {
-                    item.addTag(id.item());
-                    block.addTag(id.block());
-                    return this;
-                }
-            };
-        }
-
-        public interface DoubleAppender {
-            DoubleAppender add(BlockItemId id);
-
-            DoubleAppender addTag(BlockItemTagId id);
-
-            default DoubleAppender add(BlockItemId... ids) {
-                for (var id : ids) this.add(id);
-                return this;
-            }
-
-            default DoubleAppender addTag(BlockItemTagId... ids) {
-                for (var id : ids) this.addTag(id);
-                return this;
-            }
-
-            default DoubleAppender add(Block... ids) {
-                for (var id : ids) this.add(id.amy$blockItemId());
-                return this;
-            }
         }
 
         public Provider(Dossier dossier, FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
@@ -83,7 +74,7 @@ public interface DossierTags extends DossierLanyard {
         }
 
         @Override
-        public CompletableFuture<?> run(CachedOutput cache) {
+        public @NonNull CompletableFuture<?> run(@NonNull CachedOutput cache) {
             return this.registriesFuture.thenApply(registries -> {
                 this.dossier.registryEach(p -> p.commitTags(this), DossierTags.class);
                 for (var entry : this.tagProviders.entrySet()) entry.getValue().run(cache).join();
@@ -93,7 +84,7 @@ public interface DossierTags extends DossierLanyard {
         }
 
         @Override
-        public String getName() {
+        public @NonNull String getName() {
             return this.dossier.name() + " Tags";
         }
 
@@ -103,15 +94,15 @@ public interface DossierTags extends DossierLanyard {
             }
 
             @Override
-            protected void addTags(HolderLookup.Provider registries) {}
+            protected void addTags(HolderLookup.@NonNull Provider registries) {}
 
             @Override
-            protected CompletableFuture<HolderLookup.Provider> createContentsProvider() {
+            protected @NonNull CompletableFuture<HolderLookup.Provider> createContentsProvider() {
                 return Provider.this.registriesFuture.thenApply(registries -> registries);
             }
 
             @Override
-            public TagAppender<T> builder(TagKey<T> tag) {
+            public @NonNull TagAppender<T> builder(@NonNull TagKey<T> tag) {
                 return super.builder(tag);
             }
         }

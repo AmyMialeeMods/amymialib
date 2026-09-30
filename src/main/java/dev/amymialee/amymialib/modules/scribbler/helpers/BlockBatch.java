@@ -1,15 +1,12 @@
-package dev.amymialee.amymialib.modules.scribbler;
+package dev.amymialee.amymialib.modules.scribbler.helpers;
 
-import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.tags.TagKey;
+import dev.amymialee.amymialib.modules.scribbler.Scribbler;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.material.PushReaction;
-import org.apache.commons.text.WordUtils;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
@@ -17,6 +14,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -32,20 +30,8 @@ public class BlockBatch {
         this.blocks.put(Variant.BLOCK, block);
     }
 
-    public BlockBatch translate(String translation) {
-        for (var entry : this.blocks.entrySet()) {
-            entry.getValue().amy$translate(entry.getKey() == Variant.BLOCK ? translation : "%s %s".formatted(translation, WordUtils.capitalizeFully(entry.getKey().name.replace('_', ' '))));
-        }
-        return this;
-    }
-
-    public BlockBatch addTo(TagKey<Block> target) {
-        for (var entry : this.blocks.entrySet()) this.scribbler.dossierData.add((DossierTags) (provider) -> provider.tag(target).add(entry.getValue().amy$key()));
-        return this;
-    }
-
-    public BlockBatch noItem() {
-        this.itemProperties = null;
+    public BlockBatch forEach(Consumer<Block> consumer) {
+        for (var block : this.blocks.values()) consumer.accept(block);
         return this;
     }
 
@@ -133,10 +119,6 @@ public class BlockBatch {
 
     public @Nullable Item buttonItem() {
         return this.getItem(Variant.BUTTON);
-    }
-
-    public ResourceKey<Block> key() {
-        return this.blocks.get(Variant.BLOCK).amy$key();
     }
 
     public BlockBatch setStairs(Block existing) {
@@ -265,7 +247,7 @@ public class BlockBatch {
 
     @ApiStatus.Internal
     public BlockBatch add(Variant var, Function<BlockBehaviour.Properties, Block> function, Function<BlockBehaviour.Properties, BlockBehaviour.Properties> settings) {
-        if (!this.blocks.containsKey(var)) this.blocks.put(var, scribbler.of("%s_%s".formatted(this.blocks.get(Variant.BLOCK).amy$key().identifier().getPath(), var.name().toLowerCase(Locale.ROOT)), function, settings.apply(BlockBehaviour.Properties.ofFullCopy(this.get()))).amy$withItem());
+        if (!this.blocks.containsKey(var)) this.blocks.put(var, scribbler.of("%s_%s".formatted(this.blocks.get(Variant.BLOCK).builtInRegistryHolder().key().identifier().getPath(), var.name().toLowerCase(Locale.ROOT)), function, settings.apply(BlockBehaviour.Properties.ofFullCopy(this.get()))));
         return this;
     }
 

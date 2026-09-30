@@ -20,11 +20,10 @@ public class AmyMialib implements ModInitializer {
     //, "AmyMialee", "AmyMialee Website"
     public static final AspectLink p = SCRIBBLER.link("website", "https://amymialee.dev").icon(Items.DIAMOND).build();
     //, "AmyMialib", "AmyMialib Aspects"
-    public static final AspectCategory AMYMIALIB = SCRIBBLER.category("amymialib").link(p).link(p).link(p).link(p).icon(Items.DIAMOND).backgroundSprite(id("aspects/background_2")).build();
+    public static final AspectCategory AMYMIALIB = SCRIBBLER.category("amymialib").link(p).icon(Items.DIAMOND).backgroundSprite(id("aspects/background_2")).build();
     //, "Disable End Portals", "Should end portals be disabled?"
     public static final Aspect<Boolean> DISABLE_END_PORTALS = SCRIBBLER.config("disable_end_portals", AspectType.BOOLEAN_TRUE).icon(Items.END_PORTAL_FRAME).category(AMYMIALIB).build();
     //TODO: Disable MovedTooQuickly
-
     @Override public void onInitialize() {}
 
     public static Identifier id(String path) { return Identifier.fromNamespaceAndPath(MOD_ID, path); }

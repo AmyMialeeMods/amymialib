@@ -1,24 +1,24 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "dev.amymialee.amymialib.modules.interfaces.mixin",
+  "package": "dev.amymialee.amymialib.modules.iinterfaces.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
+    "BlockBehaviour$BlockStateBaseMixin",
+    "BlockEntityTypeMixin",
+    "BlockItemIdMixin",
+    "BlockItemTagIdMixin",
+    "BlockMixin",
     "ComponentMixin",
-    "ConfigurationBuilderMixin",
+    "EntityTypeMixin",
+    "FluidMixin",
+    "ItemLikeMixin",
+    "ItemMixin",
     "ItemPropertiesMixin",
-    "ReflectionsMixin",
     "ResourceKeyMixin",
-    "TagKeyMixin",
-    "WritableRegistryMixin",
-    "registerable.BlockMixin",
-    "registerable.CreativeModeTabMixin",
-    "registerable.EntityTypeMixin",
-    "registerable.ItemMixin",
-    "registerable.SoundEventMixin"
+    "TagKeyMixin"
   ],
   "client": [
-    "WeighedSoundEventsMixin"
   ],
   "injectors": {
     "defaultRequire": 1
