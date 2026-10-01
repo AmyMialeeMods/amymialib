@@ -11,6 +11,7 @@ import dev.amymialee.amymialib.modules.dossier.data.DossierRecipes;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
 import dev.amymialee.amymialib.modules.iinterfaces.AmyMialibTaggable;
+import dev.amymialee.amymialib.modules.interfaces.AmyMialibTranslationKeyHolder;
 import dev.amymialee.amymialib.modules.scribbler.auto.Decipher;
 import dev.amymialee.amymialib.modules.scribbler.helpers.BannerHelper;
 import dev.amymialee.amymialib.modules.scribbler.helpers.BlockBatch;
@@ -21,6 +22,7 @@ import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.triggers.CriterionTrigger;
+import net.minecraft.client.Minecraft;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -392,6 +394,9 @@ public class Scribbler {
         } else if (field instanceof Holder.Reference<?> holder) {
             this.translate(Util.makeDescriptionId(holder.key().registry().toShortLanguageKey(), holder.key().identifier()), translation);
             if (holder.value() instanceof EntityType<?> entityType) Optional.ofNullable(entityType.amy$asItem()).ifPresent(e -> this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(e, "%s %s".formatted(translation, "Spawn Egg"))));
+            if (holder.value() instanceof SoundEvent sound) Optional.ofNullable(Minecraft.getInstance().getSoundManager().getSoundEvent(sound.location()))
+                    .map(AmyMialibTranslationKeyHolder.class::cast).map(AmyMialibTranslationKeyHolder::amymialib$translationKey)
+                    .ifPresent(k -> this.translate(k, translation));
         } else if (field instanceof DiscHelper(var item, var key, var song, var lengthInSeconds, var comparatorOutput)) {
             this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translation));
             var itemKey = item.builtInRegistryHolder().key();
@@ -415,6 +420,10 @@ public class Scribbler {
         } else if (field instanceof AmyMialibTaggable taggable) {
             for (var tag : taggable.amymialib$tags()) this.translate(tag, translation);
             for (var key : taggable.amymialib$keys()) this.translate(key, translation);
+        } else if (field instanceof SoundEvent sound) {
+            Optional.ofNullable(Minecraft.getInstance().getSoundManager().getSoundEvent(sound.location()))
+                    .map(AmyMialibTranslationKeyHolder.class::cast).map(AmyMialibTranslationKeyHolder::amymialib$translationKey)
+                    .ifPresent(k -> this.translate(k, translation));
         }
     }
 
