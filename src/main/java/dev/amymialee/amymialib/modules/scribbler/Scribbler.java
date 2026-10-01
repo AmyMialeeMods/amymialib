@@ -321,7 +321,7 @@ public class Scribbler {
      * Registers a tool/armour material.
      */
     public MaterialHelper material(String path, TagKey<Block> incorrectBlocksForDrops, int toolDurability, float speed, float damageBonus, int enchantValue,
-            int armorDurabilityMultiplier, int bootDefence, int legDefence, int chestDefence, int helmDefence, int bodyDefence, float toughness, float knockbackResistance, Holder<SoundEvent> equipSound) {
+            int armorDurabilityMultiplier, int bootDefence, int legDefence, int chestDefence, int helmDefence, int bodyDefence, Holder<SoundEvent> equipSound, float toughness, float knockbackResistance) {
         var materials = tag(Registries.ITEM, "%s_materials".formatted(path));
         var tool = new ToolMaterial(incorrectBlocksForDrops, toolDurability, speed, damageBonus, enchantValue, materials);
         var armor = new ArmorMaterial(armorDurabilityMultiplier, ArmorMaterials.makeDefense(bootDefence, legDefence, chestDefence, helmDefence, bodyDefence), enchantValue, equipSound, toughness, knockbackResistance, materials, key(EquipmentAssets.ROOT_ID, path));

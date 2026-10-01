@@ -26,6 +26,10 @@ transitive-inject-interface net/minecraft/tags/TagKey dev/amymialee/amymialib/mo
 
 # Transitive Accessible
 transitive-accessible field net/minecraft/data/recipes/RecipeProvider output Lnet/minecraft/data/recipes/RecipeOutput;
+transitive-accessible method net/minecraft/world/item/SmithingTemplateItem createTrimmableArmorIconList ()Ljava/util/List;
+transitive-accessible method net/minecraft/world/item/SmithingTemplateItem createTrimmableMaterialIconList ()Ljava/util/List;
+transitive-accessible method net/minecraft/world/item/SmithingTemplateItem createNetheriteUpgradeIconList ()Ljava/util/List;
+transitive-accessible method net/minecraft/world/item/SmithingTemplateItem createNetheriteUpgradeMaterialList ()Ljava/util/List;
 
 # Accessible
 accessible field net/minecraft/client/gui/components/AbstractButton SPRITES Lnet/minecraft/client/gui/components/WidgetSprites;
