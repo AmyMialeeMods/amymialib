@@ -19,6 +19,7 @@ import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.storage.loot.LootTable;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.NonNull;
 
 import java.util.HashSet;
 import java.util.function.BiConsumer;
@@ -55,12 +56,13 @@ public class Dossier implements DataGeneratorEntrypoint, DossierExtras, DossierR
         if (this.should(set, "commitAdvancements", DossierAdvancements.class, DossierCtxAdvancements.class)) pack.addProvider((dataOutput, future) -> new DossierAdvancements.Provider(this, dataOutput, future));
         if (this.should(set, "commitBlockLoot", DossierBlockLoot.class)) pack.addProvider((dataOutput, future) -> new DossierBlockLoot.Provider(this, dataOutput, future));
         if (this.should(set, "commitEntityLoot", DossierEntityLoot.class)) pack.addProvider((dataOutput, future) -> new DossierEntityLoot.Provider(this, dataOutput, future));
-        if (this.should(set, "commitTranslations", DossierTranslations.class, DossierCtxTranslations.class, DossierBuilderTranslations.class)) pack.addProvider((dataOutput, future) -> new DossierTranslations.Provider(this, dataOutput, future));
         if (this.should(set, "commitLoot", DossierLoot.class, DossierCtxLoot.class)) pack.addProvider((dataOutput, future) -> new DossierLoot.Provider(this, dataOutput, future));
-        if (this.should(set, "commitRecipes", DossierRecipes.class)) pack.addProvider((dataOutput, future) -> new DossierRecipes.Provider(this, dataOutput, future));
+        if (this.should(set, "commitRecipes", DossierRecipes.class, DossierRecipes.Inverse.class)) pack.addProvider((dataOutput, future) -> new DossierRecipes.Provider(this, dataOutput, future));
         if (this.should(set, "commitBlockModels", DossierBlockModels.class) || this.should(set, "commitItemModels", DossierItemModels.class)) pack.addProvider((dataOutput, _) -> new DossierModels.Provider(this, dataOutput));
         if (this.should(set, "commitSounds", DossierSounds.class, DossierCtxSounds.class)) pack.addProvider((dataOutput, future) -> new DossierSounds.Provider(this, dataOutput, future));
         if (this.should(set, "commitTags", DossierTags.class)) pack.addProvider((dataOutput, future) -> new DossierTags.Provider(this, dataOutput, future));
+        /* Basically every mod needs translations */
+        pack.addProvider((dataOutput, future) -> new DossierTranslations.Provider(this, dataOutput, future));
     }
 
     /**
@@ -87,7 +89,7 @@ public class Dossier implements DataGeneratorEntrypoint, DossierExtras, DossierR
     }
 
     /* Registries */
-    @Override public final void buildRegistry(RegistrySetBuilder registryBuilder) {
+    @Override public final void buildRegistry(@NonNull RegistrySetBuilder registryBuilder) {
         this.registryEach(p -> p.commitRegistries(registryBuilder), DossierRegistries.class);
     }
     @Override public void commitRegistries(RegistrySetBuilder registryBuilder) {}

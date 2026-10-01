@@ -66,16 +66,16 @@ public interface DossierModels {
 
         public void generateBatch(BlockBatch batch) {
             var base = batch.get();
-            Optional.ofNullable(batch.get(BlockBatch.Variant.BLOCK)).ifPresent(blocks::createTrivialCube);
-            Optional.ofNullable(batch.get(BlockBatch.Variant.STAIRS)).ifPresent(b -> stairs(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.SLAB)).ifPresent(b -> slab(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.CARPET)).ifPresent(b -> carpet(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.WALL)).ifPresent(b -> wall(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.PANE)).ifPresent(b -> pane(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE)).ifPresent(b -> fence(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE_GATE)).ifPresent(b -> fenceGate(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.PRESSURE_PLATE)).ifPresent(b -> pressurePlate(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.BUTTON)).ifPresent(b -> button(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.BLOCK)).filter(this::isOurs).ifPresent(blocks::createTrivialCube);
+            Optional.ofNullable(batch.get(BlockBatch.Variant.STAIRS)).filter(this::isOurs).ifPresent(b -> stairs(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.SLAB)).filter(this::isOurs).ifPresent(b -> slab(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.CARPET)).filter(this::isOurs).ifPresent(b -> carpet(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.WALL)).filter(this::isOurs).ifPresent(b -> wall(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.PANE)).filter(this::isOurs).ifPresent(b -> pane(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE)).filter(this::isOurs).ifPresent(b -> fence(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE_GATE)).filter(this::isOurs).ifPresent(b -> fenceGate(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.PRESSURE_PLATE)).filter(this::isOurs).ifPresent(b -> pressurePlate(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.BUTTON)).filter(this::isOurs).ifPresent(b -> button(b, base));
         }
 
         public void grass(Block grassy, Block base) {
@@ -176,6 +176,10 @@ public interface DossierModels {
             this.blocks.blockStateOutput.accept(BlockModelGenerators.createButton(button, normal, pressed));
             var inventory = ModelTemplates.BUTTON_INVENTORY.create(button, mapping, this.blocks.modelOutput);
             this.blocks.registerSimpleItemModel(button, inventory);
+        }
+
+        private boolean isOurs(Block block) {
+            return block.builtInRegistryHolder().key().identifier().getNamespace().equals(this.dossier.scribbler.namespace);
         }
 
         @Override

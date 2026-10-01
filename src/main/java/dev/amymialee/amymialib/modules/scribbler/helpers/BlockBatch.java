@@ -1,6 +1,8 @@
 package dev.amymialee.amymialib.modules.scribbler.helpers;
 
+import dev.amymialee.amymialib.modules.iinterfaces.AmyMialibTaggable;
 import dev.amymialee.amymialib.modules.scribbler.Scribbler;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -10,16 +12,14 @@ import net.minecraft.world.level.material.PushReaction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public class BlockBatch {
+public class BlockBatch implements AmyMialibTaggable {
     public final Scribbler scribbler;
     private final HashMap<Variant, Block> blocks = new HashMap<>();
     private @Nullable Supplier<Item.Properties> itemProperties = () -> new Item.Properties().useBlockDescriptionPrefix();
@@ -32,6 +32,11 @@ public class BlockBatch {
 
     public BlockBatch forEach(Consumer<Block> consumer) {
         for (var block : this.blocks.values()) consumer.accept(block);
+        return this;
+    }
+
+    public BlockBatch forEach(BiConsumer<Variant, Block> consumer) {
+        for (var entry : this.blocks.entrySet()) consumer.accept(entry.getKey(), entry.getValue());
         return this;
     }
 
@@ -249,6 +254,13 @@ public class BlockBatch {
     public BlockBatch add(Variant var, Function<BlockBehaviour.Properties, Block> function, Function<BlockBehaviour.Properties, BlockBehaviour.Properties> settings) {
         if (!this.blocks.containsKey(var)) this.blocks.put(var, scribbler.of("%s_%s".formatted(this.blocks.get(Variant.BLOCK).builtInRegistryHolder().key().identifier().getPath(), var.name().toLowerCase(Locale.ROOT)), function, settings.apply(BlockBehaviour.Properties.ofFullCopy(this.get()))));
         return this;
+    }
+
+    @Override
+    public List<ResourceKey> amymialib$keys() {
+        var list = new ArrayList<ResourceKey>();
+        this.forEach(b -> list.addAll(b.amymialib$keys()));
+        return list;
     }
 
     /// All standard block variants that use the same base texture

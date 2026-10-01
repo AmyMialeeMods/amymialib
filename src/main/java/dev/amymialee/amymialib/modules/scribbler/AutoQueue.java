@@ -23,6 +23,12 @@ public final class AutoQueue {
         SCRIBBLERS.forEach(scribbler -> scribbler.dossierData.clear());
     }
 
+    public static void forEach(Scribbler scribbler, Consumer<String> consumer) {
+        locked = true;
+        AUTO_QUEUE.forEach(pair -> { if (scribbler == pair.getFirst()) consumer.accept(pair.getSecond()); });
+        ran = true;
+    }
+
     public static void forEach(BiConsumer<Scribbler, String> consumer) {
         locked = true;
         AUTO_QUEUE.forEach(pair -> consumer.accept(pair.getFirst(), pair.getSecond()));

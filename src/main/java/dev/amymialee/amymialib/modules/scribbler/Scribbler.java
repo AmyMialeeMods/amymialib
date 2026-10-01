@@ -6,6 +6,8 @@ import dev.amymialee.amymialib.modules.aspects.AspectCategory;
 import dev.amymialee.amymialib.modules.aspects.AspectLink;
 import dev.amymialee.amymialib.modules.aspects.AspectType;
 import dev.amymialee.amymialib.modules.dossier.DossierRegistries;
+import dev.amymialee.amymialib.modules.dossier.data.DossierDynamic;
+import dev.amymialee.amymialib.modules.dossier.data.DossierRecipes;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
 import dev.amymialee.amymialib.modules.scribbler.auto.Decipher;
@@ -19,6 +21,7 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
@@ -27,6 +30,7 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.numbers.NumberFormatType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -63,7 +67,10 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
+import net.minecraft.world.item.equipment.trim.TrimMaterial;
+import net.minecraft.world.item.equipment.trim.TrimPattern;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -183,6 +190,13 @@ public class Scribbler {
     }
 
     /**
+     * Registers a simple block.
+     */
+    public Block of(String path, BlockBehaviour.Properties properties, Item.Properties itemProperties) {
+        return this.of(path, Block::new, properties, itemProperties);
+    }
+
+    /**
      * Registers a block.
      */
     public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties) {
@@ -249,13 +263,14 @@ public class Scribbler {
     public BannerHelper bannerPattern(String path, Item.Properties properties) {
         var patternTag = tag(Registries.BANNER_PATTERN, "pattern_item/%s".formatted(path));
         var patternKey = key(Registries.BANNER_PATTERN, path);
-        var key = ResourceKey.create(Registries.ITEM, id("%s_banner_pattern".formatted(path)));
+        var itemPath = "%s_banner_pattern".formatted(path);
+        this.dossierData.add((DossierDynamic) (provider, lookup, entries) -> entries.add((HolderLookup.RegistryLookup<BannerPattern>) entries.getLookup(patternKey.registryKey()), patternKey));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.BANNER_PATTERN, registerable -> registerable.register(patternKey, new BannerPattern(patternKey.identifier(), "block.%s.banner.%s".formatted(patternKey.identifier().getNamespace(), patternKey.identifier().getPath())))));
         this.dossierData.add((DossierTags) (provider) -> {
-            provider.tag(patternTag).addOptional(patternKey);
-            provider.tag(ItemTags.LOOM_PATTERNS).add(key);
+            provider.tag(patternTag, patternKey);
+            provider.tag(ItemTags.LOOM_PATTERNS, ResourceKey.create(Registries.ITEM, id(itemPath)));
         });
-        return new BannerHelper(of(path, properties.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(patternTag)).stacksTo(1)), patternTag, patternKey);
+        return new BannerHelper(of(itemPath, properties.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(patternTag)).stacksTo(1)), patternTag, patternKey);
     }
 
     /**
@@ -265,8 +280,36 @@ public class Scribbler {
         var songKey = key(Registries.JUKEBOX_SONG, path);
         var song = of(path);
         var key = ResourceKey.create(Registries.ITEM, id("music_disc_%s".formatted(path)));
+        this.dossierData.add((DossierDynamic) (provider, lookup, entries) -> entries.add((HolderLookup.RegistryLookup<JukeboxSong>) entries.getLookup(songKey.registryKey()), songKey));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.JUKEBOX_SONG, registerable -> registerable.register(songKey, new JukeboxSong(song, Component.translatable(Util.makeDescriptionId("jukebox_song", songKey.identifier())), lengthInSeconds, comparatorOutput))));
         return new DiscHelper(of(path, settings.stacksTo(1).jukeboxPlayable(songKey)), songKey, song, lengthInSeconds, comparatorOutput);
+    }
+
+    /**
+     * Registers a trim material.
+     */
+    public ResourceKey<TrimMaterial> trimMaterial(String path, Consumer<MutableComponent> description) {
+        var key = key(Registries.TRIM_MATERIAL, path);
+        var translation = Component.translatable(Util.makeDescriptionId(key.registry().getPath(), key.identifier()));
+        description.accept(translation);
+        this.dossierData.add((DossierDynamic) (provider, lookup, entries) -> entries.add((HolderLookup.RegistryLookup<TrimMaterial>) entries.getLookup(key.registryKey()), key));
+        this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.TRIM_MATERIAL, registerable -> registerable.register(key, new TrimMaterial(id("trim/" + path), translation))));
+        return key;
+    }
+
+    /**
+     * Registers a trim pattern.
+     */
+    public Item trimPattern(String path, Item.Properties properties, Consumer<MutableComponent> description, boolean decal) {
+        var itemKey = ResourceKey.create(Registries.ITEM, id(path));
+        var item = of(path, SmithingTemplateItem::createArmorTrimTemplate, properties);
+        var key = key(Registries.TRIM_PATTERN, path);
+        var translation = Component.translatable(Util.makeDescriptionId(key.registry().getPath(), key.identifier()));
+        description.accept(translation);
+        this.dossierData.add((DossierDynamic) (provider, lookup, entries) -> entries.add((HolderLookup.RegistryLookup<TrimPattern>) entries.getLookup(key.registryKey()), key));
+        this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.TRIM_PATTERN, registerable -> registerable.register(key, new TrimPattern(key.identifier(), translation, decal))));
+        this.dossierData.add((DossierRecipes.Inverse) (provider, data) -> provider.trimSmithing(item, key, ResourceKey.create(Registries.RECIPE, BuiltInRegistries.ITEM.getKey(item).withSuffix("_smithing_trim"))));
+        return item;
     }
 
     /**
@@ -340,13 +383,20 @@ public class Scribbler {
             var itemKey = item.builtInRegistryHolder().key();
             this.translate(Util.makeDescriptionId(itemKey.registry().toShortLanguageKey(), itemKey.identifier()), "%s Banner Pattern".formatted(translation));
         } else if (field instanceof BlockBatch batch) {
-            for (var variant : BlockBatch.Variant.values()) {
-                var key = batch.get(variant).builtInRegistryHolder().key();
-                this.translate(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), variant == BlockBatch.Variant.BLOCK ? translation :
-                        "%s %s".formatted(translation, WordUtils.capitalizeFully(variant.name.replace('_', ' '))));
-            }
+            batch.forEach((v, b) -> {
+                var key = batch.get(v).builtInRegistryHolder().key();
+                this.translate(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), v == BlockBatch.Variant.BLOCK ? translation :
+                        "%s %s".formatted(translation, WordUtils.capitalizeFully(v.name.replace('_', ' '))));
+            });
+        } else if (field instanceof SoundType type) {
+            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getBreakSound().location()), "Block broken");
+            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getStepSound().location()), "Footsteps");
+            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getPlaceSound().location()), "Block placed");
+            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getHitSound().location()), "Block breaking");
+            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getFallSound().location()), "Something falls on a block");
         }
         Optional.ofNullable(cipher.dyeTranslation()).ifPresent(d -> {
+            if (d.length == 0) return;
             if (d.length != 2) {
                 this.logger.error("Unable to translate field {}.{}, as the dye translation array is not of length 2.", f.getDeclaringClass().getName(), f.getName());
                 throw new RuntimeException("Unable to translate field %s.%s, as the dye translation array is not of length 2.", null, true, false) {};

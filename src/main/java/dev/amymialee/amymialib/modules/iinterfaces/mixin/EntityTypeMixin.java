@@ -7,7 +7,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SpawnEggItem;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -20,7 +19,7 @@ public abstract class EntityTypeMixin implements AmyMialibItemConvertible, AmyMi
 
     @Override
     public Item amy$asItem() {
-        return SpawnEggItem.byId((EntityType<?>) (Object) this).map(Holder::value).orElse(Items.AIR);
+        return AmyMialibItemConvertible.BY_ENTITY.getOrDefault((EntityType<?>) (Object) this, Items.AIR);
     }
 
     @Override
