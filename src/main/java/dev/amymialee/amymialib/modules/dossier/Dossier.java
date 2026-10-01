@@ -69,8 +69,8 @@ public class Dossier implements DataGeneratorEntrypoint, DossierExtras, DossierR
      * Run by each of the Dossier providers, allowing them to iterate on all the sources of data.
      */
     @ApiStatus.Internal @SafeVarargs
-    public final @SuppressWarnings("unchecked") <T> void registryEach(Consumer<T> consumer, Class<T> ... clazz) {
-        for (var c : clazz) {
+    public final @SuppressWarnings("unchecked") <T> void registryEach(Consumer<T> consumer, Class<? extends T> ... variants) {
+        for (var c : variants) {
             this.scribbler.dossierData.forEach(t -> { if (c.isInstance(t)) consumer.accept((T) t); });
             AutoQueue.forAny(this.scribbler, p -> AutoScanner.findFunctionalInterfaces(scribbler.logger, DossierData.class, p, c).forEach(consumer));
         }
@@ -107,7 +107,6 @@ public class Dossier implements DataGeneratorEntrypoint, DossierExtras, DossierR
     @Override public void commitRecipes(DossierRecipes.Provider data, RecipeProvider provider) {}
     @Override public void commitSounds(DossierSounds.Provider provider, HolderLookup.Provider lookup, FabricSoundsProvider.SoundExporter exporter) {}
     @Override public void commitTags(DossierTags.Provider provider) {}
-
 
     /* Name */
     @Override public String name() { return this.name; }

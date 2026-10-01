@@ -5,6 +5,7 @@ import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
 import net.minecraft.core.HolderLookup;
+import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -28,7 +29,7 @@ public interface DossierBlockLoot extends DossierLanyard {
         }
 
         @Override
-        public String getName() {
+        public @NonNull String getName() {
             return this.dossier.name() + " " + super.getName();
         }
     }

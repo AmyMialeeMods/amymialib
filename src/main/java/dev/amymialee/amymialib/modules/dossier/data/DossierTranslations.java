@@ -55,8 +55,6 @@ public interface DossierTranslations extends DossierLanyard {
             this.lookup = lookup;
             this.builder = builder;
             this.dossier.registryEach(p -> p.commitTranslations(this, lookup, builder), DossierTranslations.class);
-            this.dossier.registryEach(p -> p.commitTranslations(this), DossierCtxTranslations.class);
-            this.dossier.registryEach(p -> p.commitTranslations(builder), DossierBuilderTranslations.class);
         }
 
         private void runTranslate(String packageName) {

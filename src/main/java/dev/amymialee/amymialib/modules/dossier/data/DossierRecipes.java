@@ -28,10 +28,10 @@ public interface DossierRecipes extends DossierLanyard {
     interface Inverse extends DossierRecipes {
         @Override
         default void commitRecipes(Provider data, RecipeProvider provider) {
-            commitTranslations(provider, data);
+            commitRecipes(provider, data);
         }
 
-        void commitTranslations(RecipeProvider provider, Provider data);
+        void commitRecipes(RecipeProvider provider, Provider data);
     }
 
     @Override default String name() { return "Recipes"; }

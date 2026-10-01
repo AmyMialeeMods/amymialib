@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.SimpleFabricLootTableSubProvi
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.storage.loot.LootTable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -37,10 +38,9 @@ public interface DossierLoot extends DossierLanyard {
         }
 
         @Override
-        public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer) {
+        public void generate(@NonNull BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer) {
             this.consumer = consumer;
             this.dossier.registryEach(p -> p.commitLoot(this, consumer), DossierLoot.class);
-            this.dossier.registryEach(p -> p.commitLoot(this), DossierCtxLoot.class);
         }
 
         public BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer() {
@@ -48,7 +48,7 @@ public interface DossierLoot extends DossierLanyard {
         }
 
         @Override
-        public String getName() {
+        public @NonNull String getName() {
             return this.dossier.name() + " " + super.getName();
         }
 

@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.HolderLookup;
+import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -37,11 +38,10 @@ public interface DossierAdvancements extends DossierLanyard {
         }
 
         @Override
-        public void generateAdvancement(HolderLookup.Provider lookup, Consumer<AdvancementHolder> consumer) {
+        public void generateAdvancement(HolderLookup.@NonNull Provider lookup, @NonNull Consumer<AdvancementHolder> consumer) {
             this.lookup = lookup;
             this.consumer = consumer;
             this.dossier.registryEach(d -> d.commitAdvancements(this, lookup, consumer), DossierAdvancements.class);
-            this.dossier.registryEach(d -> d.commitAdvancements(this), DossierCtxAdvancements.class);
         }
 
         public AdvancementHolder create(AdvancementHolder holder) {

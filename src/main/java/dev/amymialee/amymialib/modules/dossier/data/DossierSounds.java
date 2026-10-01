@@ -5,6 +5,7 @@ import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricSoundsProvider;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.minecraft.core.HolderLookup;
+import org.jspecify.annotations.NonNull;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -35,11 +36,10 @@ public interface DossierSounds extends DossierLanyard {
         }
 
         @Override
-        protected void configure(HolderLookup.Provider lookup, SoundExporter exporter) {
+        protected void configure(HolderLookup.@NonNull Provider lookup, @NonNull SoundExporter exporter) {
             this.lookup = lookup;
             this.exporter = exporter;
             this.dossier.registryEach(p -> p.commitSounds(this, lookup, exporter), DossierSounds.class);
-            this.dossier.registryEach(p -> p.commitSounds(this), DossierCtxSounds.class);
         }
 
         public HolderLookup.Provider lookup() {
@@ -51,7 +51,7 @@ public interface DossierSounds extends DossierLanyard {
         }
 
         @Override
-        public String getName() {
+        public @NonNull String getName() {
             return this.dossier.name() + " Sounds";
         }
     }

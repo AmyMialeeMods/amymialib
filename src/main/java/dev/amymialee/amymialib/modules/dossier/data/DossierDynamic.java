@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
+import org.jspecify.annotations.NonNull;
 
 import java.util.HashSet;
 import java.util.concurrent.CompletableFuture;
@@ -41,11 +42,10 @@ public interface DossierDynamic extends DossierLanyard {
         }
 
         @Override
-        protected void configure(HolderLookup.Provider lookup, Entries entries) {
+        protected void configure(HolderLookup.@NonNull Provider lookup, @NonNull Entries entries) {
             this.lookup = lookup;
             this.entries = entries;
             this.dossier.registryEach(p -> p.commitDynamic(this, lookup, entries), DossierDynamic.class);
-            this.dossier.registryEach(p -> p.commitDynamic(this, lookup, entries), DossierCtxDynamic.class);
         }
 
         public <T> void add(Entries entries, ResourceKey<Registry<T>> key) {
@@ -69,7 +69,7 @@ public interface DossierDynamic extends DossierLanyard {
         }
 
         @Override
-        public String getName() {
+        public @NonNull String getName() {
             return this.dossier.name() + " Dynamic";
         }
     }
