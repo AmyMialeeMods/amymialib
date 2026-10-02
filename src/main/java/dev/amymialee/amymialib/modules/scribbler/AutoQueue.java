@@ -21,6 +21,7 @@ public final class AutoQueue {
 
     public static void clearDatagen() {
         SCRIBBLERS.forEach(scribbler -> scribbler.dossierData.clear());
+        Scribbler.COMPLETED_KEYS.clear();
     }
 
     public static void forEach(Scribbler scribbler, Consumer<String> consumer) {

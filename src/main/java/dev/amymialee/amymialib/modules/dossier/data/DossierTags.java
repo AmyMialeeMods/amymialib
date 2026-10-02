@@ -34,6 +34,11 @@ public interface DossierTags extends DossierLanyard {
         public final CompletableFuture<HolderLookup.Provider> registriesFuture;
         private final Map<ResourceKey, DossierTagProvider> tagProviders = new HashMap<>();
 
+        public void tags(AmyMialibTaglike object, AmyMialibTaglike... tags) {
+            var success = this.tag(Arrays.asList(tags), List.of(object));
+            if (!success) dossier.scribbler.logger.error("Failed to tag tag {} with tags {}", object, Arrays.toString(tags));
+        }
+
         public void tag(AmyMialibTaggable object, AmyMialibTaglike... tags) {
             var success = this.tag(Arrays.asList(tags), List.of(object));
             if (!success) dossier.scribbler.logger.error("Failed to tag object {} with tags {}", object, Arrays.toString(tags));

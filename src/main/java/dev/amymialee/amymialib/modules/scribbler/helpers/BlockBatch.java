@@ -1,8 +1,10 @@
 package dev.amymialee.amymialib.modules.scribbler.helpers;
 
+import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
 import dev.amymialee.amymialib.modules.iinterfaces.AmyMialibTaggable;
 import dev.amymialee.amymialib.modules.scribbler.Scribbler;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -172,11 +174,15 @@ public class BlockBatch implements AmyMialibTaggable {
     }
 
     public BlockBatch addStairs() {
-        return this.add(Variant.STAIRS, p -> new StairBlock(this.get().defaultBlockState(), p));
+        this.add(Variant.STAIRS, p -> new StairBlock(this.get().defaultBlockState(), p));
+        scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.STAIRS, this.get(Variant.STAIRS)));
+        return this;
     }
 
     public BlockBatch addSlab() {
-        return this.add(Variant.SLAB, SlabBlock::new);
+        this.add(Variant.SLAB, SlabBlock::new);
+        scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.SLABS, this.get(Variant.SLAB)));
+        return this;
     }
 
     public BlockBatch addCarpet() {
@@ -184,7 +190,9 @@ public class BlockBatch implements AmyMialibTaggable {
     }
 
     public BlockBatch addWall() {
-        return this.add(Variant.WALL, WallBlock::new, BlockBehaviour.Properties::forceSolidOn);
+        this.add(Variant.WALL, WallBlock::new, BlockBehaviour.Properties::forceSolidOn);
+        scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.WALLS, this.get(Variant.WALL)));
+        return this;
     }
 
     public BlockBatch addPane() {
@@ -204,7 +212,9 @@ public class BlockBatch implements AmyMialibTaggable {
     }
 
     public BlockBatch addButton(BlockSetType type, int ticksToStayPressed) {
-        return this.add(Variant.BUTTON, p -> new ButtonBlock(type, ticksToStayPressed, p), p -> p.noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
+        this.add(Variant.BUTTON, p -> new ButtonBlock(type, ticksToStayPressed, p), p -> p.noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
+        scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.BUTTONS, this.get(Variant.BUTTON)));
+        return this;
     }
 
     public BlockBatch stonelike() {

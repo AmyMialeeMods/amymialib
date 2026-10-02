@@ -11,7 +11,6 @@ import dev.amymialee.amymialib.modules.dossier.data.DossierRecipes;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
 import dev.amymialee.amymialib.modules.iinterfaces.AmyMialibTaggable;
-import dev.amymialee.amymialib.modules.interfaces.AmyMialibTranslationKeyHolder;
 import dev.amymialee.amymialib.modules.scribbler.auto.Decipher;
 import dev.amymialee.amymialib.modules.scribbler.helpers.BannerHelper;
 import dev.amymialee.amymialib.modules.scribbler.helpers.BlockBatch;
@@ -22,7 +21,6 @@ import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.advancements.triggers.CriterionTrigger;
-import net.minecraft.client.Minecraft;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -113,6 +111,7 @@ import java.util.function.Supplier;
 
 public class Scribbler {
     private static final Map<Class<?>, Registry<?>> AUTO_REGISTRIES = new HashMap<>();
+    public static Set<String> COMPLETED_KEYS = new HashSet<>();
     public final String namespace;
     public final String modName;
     public final Logger logger;
@@ -216,7 +215,7 @@ public class Scribbler {
     public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties, Item.Properties itemProperties) {
         var key = key(Registries.BLOCK, path);
         var block = Registry.register(BuiltInRegistries.BLOCK, key, func.apply(properties.setId(key)));
-        this.of(path, p -> new BlockItem(block, p), itemProperties.useBlockDescriptionPrefix());
+        if (itemProperties != null) this.of(path, p -> new BlockItem(block, p), itemProperties.useBlockDescriptionPrefix());
         return block;
     }
 
@@ -258,7 +257,11 @@ public class Scribbler {
     public @SuppressWarnings("unchecked") <T extends Entity> EntityType<T> of(String path, EntityType.Builder<T> builder, AttributeSupplier.Builder attributes, Item.Properties properties) {
         var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
         var entity = Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
-        if (LivingEntity.class.isAssignableFrom(entity.getBaseClass())) FabricDefaultAttributeRegistry.register((EntityType<? extends LivingEntity>) entity, attributes);
+        try {
+            FabricDefaultAttributeRegistry.register((EntityType<? extends LivingEntity>) entity, attributes);
+        } catch (ClassCastException _) {
+            logger.error("Tried to register entity attributes to a non-living entity {}", key);
+        }
         of("%s_%s".formatted(key.identifier().getPath(), "spawn_egg"), SpawnEggItem::new, properties.spawnEgg(entity));
         return entity;
     }
@@ -308,14 +311,15 @@ public class Scribbler {
      * Registers a trim pattern.
      */
     public Item trimPattern(String path, Item.Properties properties, Consumer<MutableComponent> description, boolean decal) {
-        var itemKey = ResourceKey.create(Registries.ITEM, id(path));
-        var item = of(path, SmithingTemplateItem::createArmorTrimTemplate, properties);
+        var itemKey = ResourceKey.create(Registries.ITEM, id(path + "_armor_trim"));
+        var item = of(path + "_armor_trim", SmithingTemplateItem::createArmorTrimTemplate, properties);
         var key = key(Registries.TRIM_PATTERN, path);
         var translation = Component.translatable(Util.makeDescriptionId(key.registry().getPath(), key.identifier()));
         description.accept(translation);
         this.dossierData.add((DossierDynamic) (provider, lookup, entries) -> entries.add((HolderLookup.RegistryLookup<TrimPattern>) entries.getLookup(key.registryKey()), key));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.TRIM_PATTERN, registerable -> registerable.register(key, new TrimPattern(key.identifier(), translation, decal))));
         this.dossierData.add((DossierRecipes.Inverse) (provider, data) -> provider.trimSmithing(item, key, ResourceKey.create(Registries.RECIPE, itemKey.identifier().withSuffix("_smithing_trimming"))));
+        this.translate(key, WordUtils.capitalize(path.replace('_', ' ')));
         return item;
     }
 
@@ -368,6 +372,11 @@ public class Scribbler {
      * Prepares a translation to en_us.json and returns the key.
      */
     public String translate(String key, String translation) {
+        if (COMPLETED_KEYS.contains(key)) {
+            this.logger.warn("Key {} has already been translated.", key);
+            return key;
+        }
+        COMPLETED_KEYS.add(key);
         this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(key, translation));
         return key;
     }
@@ -392,11 +401,12 @@ public class Scribbler {
             this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(entityType, translation));
             Optional.ofNullable(entityType.amy$asItem()).ifPresent(e -> this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(e, "%s %s".formatted(translation, "Spawn Egg"))));
         } else if (field instanceof Holder.Reference<?> holder) {
+            if (holder.value() instanceof SoundEvent sound) {
+                this.translate("subtitles." + sound.location().toShortLanguageKey().replace('/', '.'), translation);
+                return;
+            }
             this.translate(Util.makeDescriptionId(holder.key().registry().toShortLanguageKey(), holder.key().identifier()), translation);
             if (holder.value() instanceof EntityType<?> entityType) Optional.ofNullable(entityType.amy$asItem()).ifPresent(e -> this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(e, "%s %s".formatted(translation, "Spawn Egg"))));
-            if (holder.value() instanceof SoundEvent sound) Optional.ofNullable(Minecraft.getInstance().getSoundManager().getSoundEvent(sound.location()))
-                    .map(AmyMialibTranslationKeyHolder.class::cast).map(AmyMialibTranslationKeyHolder::amymialib$translationKey)
-                    .ifPresent(k -> this.translate(k, translation));
         } else if (field instanceof DiscHelper(var item, var key, var song, var lengthInSeconds, var comparatorOutput)) {
             this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translation));
             var itemKey = item.builtInRegistryHolder().key();
@@ -411,19 +421,17 @@ public class Scribbler {
                 var key = batch.get(v).builtInRegistryHolder().key();
                 this.translate(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), v == BlockBatch.Variant.BLOCK ? translation : "%s %s".formatted(translation, WordUtils.capitalizeFully(v.name.replace('_', ' '))));
             });
-        } else if (field instanceof SoundType type) {
-            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getBreakSound().location()), "Block broken");
-            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getStepSound().location()), "Footsteps");
-            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getPlaceSound().location()), "Block placed");
-            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getHitSound().location()), "Block breaking");
-            this.translate(Util.makeDescriptionId(Registries.SOUND_EVENT.identifier().toShortLanguageKey(), type.getFallSound().location()), "Something falls on a block");
-        } else if (field instanceof AmyMialibTaggable taggable) {
-            for (var tag : taggable.amymialib$tags()) this.translate(tag, translation);
-            for (var key : taggable.amymialib$keys()) this.translate(key, translation);
         } else if (field instanceof SoundEvent sound) {
-            Optional.ofNullable(Minecraft.getInstance().getSoundManager().getSoundEvent(sound.location()))
-                    .map(AmyMialibTranslationKeyHolder.class::cast).map(AmyMialibTranslationKeyHolder::amymialib$translationKey)
-                    .ifPresent(k -> this.translate(k, translation));
+            this.translate("subtitles." + sound.location().toShortLanguageKey().replace('/', '.'), translation);
+        } else if (field instanceof SoundType type) {
+            this.translate("subtitles." + type.getBreakSound().location().toShortLanguageKey().replace('/', '.'), "Block broken");
+            this.translate("subtitles." + type.getStepSound().location().toShortLanguageKey().replace('/', '.'), "Footsteps");
+            this.translate("subtitles." + type.getPlaceSound().location().toShortLanguageKey().replace('/', '.'), "Block placed");
+            this.translate("subtitles." + type.getHitSound().location().toShortLanguageKey().replace('/', '.'), "Block breaking");
+            this.translate("subtitles." + type.getFallSound().location().toShortLanguageKey().replace('/', '.'), "Something falls on a block");
+        } else if (field instanceof AmyMialibTaggable taggable) {
+            for (var tag : taggable.amymialib$tags()) this.translate(tag.getTranslationKey(), translation);
+            for (var key : taggable.amymialib$keys()) this.translate(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translation);
         }
     }
 

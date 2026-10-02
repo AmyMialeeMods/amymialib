@@ -8,7 +8,6 @@
     "ReflectionsMixin"
   ],
   "client": [
-    "WeighedSoundEventsMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -18,7 +18,7 @@ public interface DossierTranslations extends DossierLanyard {
     void commitTranslations(Provider provider, HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder);
 
     @FunctionalInterface
-    interface DossierCtxTranslations extends DossierTranslations {
+    interface Ctx extends DossierTranslations {
         @Override
         default void commitTranslations(DossierTranslations.Provider provider, HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder) {
             commitTranslations(provider);
@@ -28,7 +28,7 @@ public interface DossierTranslations extends DossierLanyard {
     }
 
     @FunctionalInterface
-    interface DossierBuilderTranslations extends DossierTranslations {
+    interface Builder extends DossierTranslations {
         @Override
         default void commitTranslations(DossierTranslations.Provider provider, HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder) {
             commitTranslations(builder);
