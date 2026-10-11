@@ -369,6 +369,13 @@ public class Scribbler {
     }
 
     /**
+     * Plain registration.
+     */
+    public <T> T of(String path, Registry<T> registry, T thing) {
+        return Registry.register(registry, ResourceKey.create(registry.key(), id(path)), thing);
+    }
+
+    /**
      * Prepares a translation to en_us.json and returns the key.
      */
     public String translate(String key, String translation) {
