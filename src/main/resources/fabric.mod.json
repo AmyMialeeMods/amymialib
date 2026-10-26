@@ -33,8 +33,7 @@
   },
   "mixins": [
     "amymialib.mixins.json",
-    "amymialib.module.aspects.client.mixins.json",
-    "amymialib.module.aspects.server.mixins.json",
+    "amymialib.module.aspects.mixins.json",
     "amymialib.module.iinterfaces.mixins.json",
     "amymialib.module.interfaces.mixins.json",
     "amymialib.module.scribbler.mixins.json"
