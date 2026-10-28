@@ -40,7 +40,7 @@ public interface DossierLoot extends DossierLanyard {
         @Override
         public void generate(@NonNull BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer) {
             this.consumer = consumer;
-            this.dossier.registryEach(p -> p.commitLoot(this, consumer), DossierLoot.class);
+            this.dossier.registryEach(p -> p.commitLoot(this, consumer), DossierLoot.class, DossierCtxLoot.class);
         }
 
         public BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer() {

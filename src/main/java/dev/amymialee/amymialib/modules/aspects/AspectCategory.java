@@ -41,6 +41,7 @@ public final class AspectCategory {
         var container = FabricLoader.getInstance().getModContainer(this.id.getNamespace());
         if (container.isPresent()) name = container.get().getMetadata().getName();
         this.description = Component.translatable(this.descriptionKey).withColor(TextColor.GRAY).append("\n").append(Component.literal(name).withStyle(ChatFormatting.BLUE));
+        AspectManager.CATEGORIES.put(this.id, this);
     }
 
     public static AspectCategoryBuilder of(Identifier id) {
@@ -118,7 +119,7 @@ public final class AspectCategory {
         public AspectCategory build() {
             AspectIcon<AspectCategory> icon = this.icons.isEmpty() ? new AspectIcon.AspectIconEmpty<>()
                                                                    : (this.icons.size() == 1 ? this.icons.getFirst() : new AspectIcon.AspectMultiIcon<>(this.icons));
-            return AspectManager.registerCategory(new AspectCategory(this.id, this.nameKey, this.descriptionKey, icon, this.background, this.links));
+            return new AspectCategory(this.id, this.nameKey, this.descriptionKey, icon, this.background, this.links);
         }
     }
 }

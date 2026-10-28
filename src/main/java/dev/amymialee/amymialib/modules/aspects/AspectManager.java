@@ -15,11 +15,11 @@ import java.util.Map;
 /**
  * Manages aspects, namely their syncing and storing them for future use.
  */
-public @SuppressWarnings("rawtypes") class AspectManager {
+public @SuppressWarnings({"rawtypes", "unchecked"}) class AspectManager {
     public static final Map<Identifier, Aspect> ASPECTS = new HashMap<>();
-    private static final Map<Identifier, AspectCategory> CATEGORIES = new HashMap<>();
-    private static final Map<Identifier, List<Aspect<?>>> CATEGORY_ENTRIES = new HashMap<>();
-    private static final Map<Identifier, AspectLink> LINKS = new HashMap<>();
+    static final Map<Identifier, AspectCategory> CATEGORIES = new HashMap<>();
+    static final Map<Identifier, List<Aspect<?>>> CATEGORY_ENTRIES = new HashMap<>();
+    static final Map<Identifier, AspectLink> LINKS = new HashMap<>();
 
     /**
      * This is received from a server after an Aspect has been changed.<br>
@@ -32,10 +32,12 @@ public @SuppressWarnings("rawtypes") class AspectManager {
         var data = payload.data();
         try {
             var aspect = AspectManager.ASPECTS.get(id);
-            if (aspect.saveLocation == AspectSaveLocation.CLIENT) return;
-            aspect.value = data;
-            aspect.saveToFile();
-            if (changed && aspect.onChangeClient != null) aspect.onChangeClient.run();
+            if (aspect.saveLocation == AspectSaveLocation.CLIENT || aspect.value == data) return;
+            if (changed) {
+                aspect.set(context.client(), data);
+            } else {
+                aspect.loadFromFile(data);
+            }
         } catch (Exception e) {
             AmyMialib.LOGGER.error("Failed to receive aspect {} from server", id, e);
         }
@@ -51,16 +53,12 @@ public @SuppressWarnings("rawtypes") class AspectManager {
         var data = payload.data();
         try {
             var aspect = AspectManager.ASPECTS.get(id);
-            if (!aspect.hasPermission(context.player())) {
+            if (aspect.saveLocation == AspectSaveLocation.CLIENT) return;
+            if (!context.player().permissions().hasPermission(aspect.permission)) {
                 syncUnChangedS2C(aspect, context.player());
                 return;
             }
-            if (aspect.value != data) {
-                aspect.value = data;
-                aspect.saveToFile();
-                AspectManager.syncChangedS2C(context.server(), aspect);
-                if (aspect.onChangeServer != null) aspect.onChangeServer.accept(context.server());
-            }
+            if (aspect.value != data) aspect.set(context.server(), data);
         } catch (Exception e) {
             AmyMialib.LOGGER.error("Failed to receive aspect {} from {}", id, context.player().getGameProfile().name(), e);
         }
@@ -100,25 +98,6 @@ public @SuppressWarnings("rawtypes") class AspectManager {
     }
 
     /**
-     * Registers the aspect for future use.<br>
-     * Called automatically in the builder.
-     */
-    public static <T> Aspect<T> registerAspect(Aspect<T> aspect) {
-        ASPECTS.put(aspect.id, aspect);
-        if (aspect.category != null) CATEGORY_ENTRIES.computeIfAbsent(aspect.category, _ -> new ArrayList<>()).add(aspect);
-        return aspect;
-    }
-
-    /**
-     * Registers an aspect category.<br>
-     * If this is not called, the category data will never be reflected in the menu.
-     */
-    public static AspectCategory registerCategory(AspectCategory category) {
-        CATEGORIES.put(category.id, category);
-        return category;
-    }
-
-    /**
      * Creates a map of all categories and all of their contained aspects.<br>
      * Mostly used for the aspect editor.<br>
      * Uses a copy of the aspect list to avoid unauthorised edits.
@@ -136,14 +115,5 @@ public @SuppressWarnings("rawtypes") class AspectManager {
      */
     public static List<Aspect<?>> getCategoryEntries(AspectCategory category) {
         return new ArrayList<>(CATEGORY_ENTRIES.getOrDefault(category.id, new ArrayList<>()));
-    }
-
-    /**
-     * Registers an aspect link.<br>
-     * If this is not called, the link will not show up in any category menu.
-     */
-    public static AspectLink registerLink(AspectLink aspectLink) {
-        LINKS.put(aspectLink.id, aspectLink);
-        return aspectLink;
     }
 }

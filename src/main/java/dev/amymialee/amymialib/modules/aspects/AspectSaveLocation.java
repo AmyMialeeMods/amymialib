@@ -7,8 +7,8 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 public enum AspectSaveLocation {
-    CONFIG(() -> AMEnvironmentType.getEnv().isServer, () -> FabricLoader.getInstance().getConfigDir().resolve("amymialib").resolve("config")),
-    CLIENT(() -> AMEnvironmentType.getEnv().isClient, () -> FabricLoader.getInstance().getConfigDir().resolve("amymialib").resolve("client"));
+    CONFIG(() -> AMEnvironmentType.getEnv().isServer, () -> FabricLoader.getInstance().getConfigDir().resolve("amymialib-config-" + AMEnvironmentType.getEnv().name().toLowerCase())),
+    CLIENT(() -> AMEnvironmentType.getEnv().isClient, () -> FabricLoader.getInstance().getConfigDir().resolve("amymialib-client"));
 
     private final Supplier<Boolean> shouldSave;
     private final Supplier<Path> path;

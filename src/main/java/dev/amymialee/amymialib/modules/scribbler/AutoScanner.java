@@ -2,7 +2,6 @@ package dev.amymialee.amymialib.modules.scribbler;
 
 import dev.amymialee.amymialib.modules.interfaces.AmyMialibSilencer;
 import org.jetbrains.annotations.ApiStatus;
-import org.jspecify.annotations.NonNull;
 import org.reflections.Reflections;
 import org.reflections.scanners.Scanners;
 import org.reflections.util.ConfigurationBuilder;
@@ -25,16 +24,29 @@ public class AutoScanner {
     private static final HashMap<String, Reflections> reflected = new HashMap<>();
 
     public static Reflections findAnnotations(String packageName) {
-        return reflected.computeIfAbsent(packageName, p -> new Reflections(((AmyMialibSilencer<ConfigurationBuilder>) new ConfigurationBuilder()).amymialib$silence().forPackage(p).filterInputsBy(new FilterBuilder().includePackage(p)).setScanners(Scanners.TypesAnnotated, Scanners.MethodsAnnotated, Scanners.FieldsAnnotated)));
+        return findAnnotations(packageName, Thread.currentThread().getContextClassLoader());
     }
 
+    @SuppressWarnings("unchecked")
+    public static Reflections findAnnotations(String packageName, ClassLoader classLoader) {
+        return reflected.computeIfAbsent(packageName + "@" + System.identityHashCode(classLoader), p -> new Reflections(
+                ((AmyMialibSilencer<ConfigurationBuilder>) new ConfigurationBuilder())
+                        .amymialib$silence()
+                        .forPackage(packageName, classLoader)
+                        .addClassLoaders(classLoader)
+                        .filterInputsBy(new FilterBuilder().includePackage(packageName))
+                        .setScanners(Scanners.TypesAnnotated, Scanners.MethodsAnnotated, Scanners.FieldsAnnotated)
+        ));
+    }
+
+    @SuppressWarnings("unchecked")
     public static <FI> List<FI> findFunctionalInterfaces(Logger errorLogger, Class<? extends Annotation> annotation, String packageName, Class<FI> functionalInterface) {
         var result = getFunctionalData(annotation, packageName, functionalInterface);
         var found = new ArrayList<FI>();
         result.set.forEach(m -> {
             var methodParams = m.getParameterTypes();
-            if (result.functionalParams().length != methodParams.length) return;
-            for (var i = 0; i < methodParams.length; i++) if (!methodParams[i].isAssignableFrom(result.functionalParams()[i])) return;
+            if (result.functionalParams.length != methodParams.length) return;
+            for (var i = 0; i < methodParams.length; i++) if (result.functionalParams[i] != methodParams[i]) return;
             var error = "";
             if (!Modifier.isStatic(m.getModifiers())) error += "it is not static";
             var flags = m.accessFlags();
@@ -56,7 +68,8 @@ public class AutoScanner {
                         result.lookup(), result.functionalMethod().getName(), result.factory(), result.functionalMethodType(),
                         MethodHandles.privateLookupIn(m.getDeclaringClass(), result.lookup()).unreflect(m), result.functionalMethodType()
                 ).getTarget().invoke());
-            } catch (LambdaConversionException | IllegalAccessException _) {
+            } catch (LambdaConversionException | IllegalAccessException t) {
+                errorLogger.warn("{}", error, t);
             } catch (Throwable t) { throw new RuntimeException(t); }
         });
         return found;
@@ -67,22 +80,13 @@ public class AutoScanner {
         return result.set.stream().anyMatch(m -> {
             var methodParams = m.getParameterTypes();
             if (result.functionalParams.length != methodParams.length) return false;
-            for (var i = 0; i < methodParams.length; i++) if (!methodParams[i].isAssignableFrom(result.functionalParams[i])) return false;
+            for (var i = 0; i < methodParams.length; i++) if (result.functionalParams[i] != methodParams[i]) return false;
             var flags = m.accessFlags();
-            if (!Modifier.isStatic(m.getModifiers()) || flags.contains(AccessFlag.PROTECTED) || flags.contains(AccessFlag.PRIVATE)) return false;
-            try {
-                m.setAccessible(true);
-                functionalInterface.cast(LambdaMetafactory.metafactory(
-                        result.lookup, result.functionalMethod.getName(), result.factory, result.functionalMethodType,
-                        MethodHandles.privateLookupIn(m.getDeclaringClass(), result.lookup).unreflect(m), result.functionalMethodType
-                ).getTarget().invoke());
-                return true;
-            } catch (Throwable _) {}
-            return false;
+            return Modifier.isStatic(m.getModifiers()) && !flags.contains(AccessFlag.PROTECTED) && !flags.contains(AccessFlag.PRIVATE);
         });
     }
 
-    private static <FI> @NonNull FunctionalData getFunctionalData(Class<? extends Annotation> annotation, String packageName, Class<FI> functionalInterface) {
+    private static <FI> FunctionalData getFunctionalData(Class<? extends Annotation> annotation, String packageName, Class<FI> functionalInterface) {
         var functionalMethod = Arrays.stream(functionalInterface.getMethods())
                 .filter(m -> Modifier.isAbstract(m.getModifiers()) && m.getDeclaringClass() != Object.class)
                 .collect(Collectors.collectingAndThen(Collectors.toList(), list -> Optional.ofNullable(list.size() == 1 ? list.getFirst() : null)))
@@ -91,7 +95,7 @@ public class AutoScanner {
         var factory = MethodType.methodType(functionalInterface);
         var functionalMethodType = MethodType.methodType(functionalMethod.getReturnType(), functionalMethod.getParameterTypes());
         var functionalParams = functionalMethod.getParameterTypes();
-        return new FunctionalData(AutoScanner.findAnnotations(packageName).getMethodsAnnotatedWith(annotation), functionalMethod, lookup, factory, functionalMethodType, functionalParams);
+        return new FunctionalData(AutoScanner.findAnnotations(packageName, functionalInterface.getClassLoader()).getMethodsAnnotatedWith(annotation), functionalMethod, lookup, factory, functionalMethodType, functionalParams);
     }
 
     private record FunctionalData(Set<Method> set, Method functionalMethod, MethodHandles.Lookup lookup, MethodType factory, MethodType functionalMethodType, Class<?>[] functionalParams) {}

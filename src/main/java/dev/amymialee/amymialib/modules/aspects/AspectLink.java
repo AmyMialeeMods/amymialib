@@ -27,6 +27,7 @@ public class AspectLink {
         this.name = Component.translatable(this.nameKey);
         this.description = Component.translatable(this.descriptionKey).withColor(TextColor.GRAY).append("\n").append(Component.literal(link.toString()).withStyle(ChatFormatting.BLUE));
         this.link = link;
+        AspectManager.LINKS.put(this.id, this);
     }
 
     public static AspectLinkBuilder of(Identifier id, String link) {
@@ -72,7 +73,7 @@ public class AspectLink {
         }
 
         public AspectLink build() {
-            return AspectManager.registerLink(new AspectLink(this.id, this.nameKey, this.descriptionKey, this.icon, this.link));
+            return new AspectLink(this.id, this.nameKey, this.descriptionKey, this.icon, this.link);
         }
     }
 }

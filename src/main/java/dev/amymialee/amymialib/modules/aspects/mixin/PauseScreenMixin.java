@@ -1,4 +1,4 @@
-package dev.amymialee.amymialib.modules.aspects.client.mixin;
+package dev.amymialee.amymialib.modules.aspects.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;

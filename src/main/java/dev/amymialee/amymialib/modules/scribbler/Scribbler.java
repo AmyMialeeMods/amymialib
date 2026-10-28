@@ -10,8 +10,6 @@ import dev.amymialee.amymialib.modules.dossier.data.DossierDynamic;
 import dev.amymialee.amymialib.modules.dossier.data.DossierRecipes;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTags;
 import dev.amymialee.amymialib.modules.dossier.data.DossierTranslations;
-import dev.amymialee.amymialib.modules.iinterfaces.AmyMialibTaggable;
-import dev.amymialee.amymialib.modules.scribbler.auto.Decipher;
 import dev.amymialee.amymialib.modules.scribbler.helpers.BannerHelper;
 import dev.amymialee.amymialib.modules.scribbler.helpers.BlockBatch;
 import dev.amymialee.amymialib.modules.scribbler.helpers.DiscHelper;
@@ -75,7 +73,6 @@ import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.trim.TrimMaterial;
 import net.minecraft.world.item.equipment.trim.TrimPattern;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -103,7 +100,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -273,7 +269,7 @@ public class Scribbler {
         var patternTag = tag(Registries.BANNER_PATTERN, "pattern_item/%s".formatted(path));
         var patternKey = key(Registries.BANNER_PATTERN, path);
         var itemPath = "%s_banner_pattern".formatted(path);
-        this.dossierData.add((DossierDynamic) (provider, lookup, entries) -> entries.add((HolderLookup.RegistryLookup<BannerPattern>) entries.getLookup(patternKey.registryKey()), patternKey));
+        this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<BannerPattern>) entries.getLookup(patternKey.registryKey()), patternKey));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.BANNER_PATTERN, registerable -> registerable.register(patternKey, new BannerPattern(patternKey.identifier(), "block.%s.banner.%s".formatted(patternKey.identifier().getNamespace(), patternKey.identifier().getPath())))));
         this.dossierData.add((DossierTags) (provider) -> {
             provider.tag(patternTag, patternKey);
@@ -290,7 +286,7 @@ public class Scribbler {
         var song = of(path);
         var itemPath = "music_disc_%s".formatted(path);
         var key = ResourceKey.create(Registries.ITEM, id(itemPath));
-        this.dossierData.add((DossierDynamic) (provider, lookup, entries) -> entries.add((HolderLookup.RegistryLookup<JukeboxSong>) entries.getLookup(songKey.registryKey()), songKey));
+        this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<JukeboxSong>) entries.getLookup(songKey.registryKey()), songKey));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.JUKEBOX_SONG, registerable -> registerable.register(songKey, new JukeboxSong(song, Component.translatable(Util.makeDescriptionId("jukebox_song", songKey.identifier())), lengthInSeconds, comparatorOutput))));
         return new DiscHelper(of(itemPath, settings.stacksTo(1).jukeboxPlayable(songKey)), songKey, song, lengthInSeconds, comparatorOutput);
     }
@@ -302,7 +298,7 @@ public class Scribbler {
         var key = key(Registries.TRIM_MATERIAL, path);
         var translation = Component.translatable(Util.makeDescriptionId(key.registry().getPath(), key.identifier()));
         description.accept(translation);
-        this.dossierData.add((DossierDynamic) (provider, lookup, entries) -> entries.add((HolderLookup.RegistryLookup<TrimMaterial>) entries.getLookup(key.registryKey()), key));
+        this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<TrimMaterial>) entries.getLookup(key.registryKey()), key));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.TRIM_MATERIAL, registerable -> registerable.register(key, new TrimMaterial(id("trim/" + path), translation))));
         return key;
     }
@@ -316,7 +312,7 @@ public class Scribbler {
         var key = key(Registries.TRIM_PATTERN, path);
         var translation = Component.translatable(Util.makeDescriptionId(key.registry().getPath(), key.identifier()));
         description.accept(translation);
-        this.dossierData.add((DossierDynamic) (provider, lookup, entries) -> entries.add((HolderLookup.RegistryLookup<TrimPattern>) entries.getLookup(key.registryKey()), key));
+        this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<TrimPattern>) entries.getLookup(key.registryKey()), key));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.TRIM_PATTERN, registerable -> registerable.register(key, new TrimPattern(key.identifier(), translation, decal))));
         this.dossierData.add((DossierRecipes.Inverse) (provider, data) -> provider.trimSmithing(item, key, ResourceKey.create(Registries.RECIPE, itemKey.identifier().withSuffix("_smithing_trimming"))));
         this.translate(key, WordUtils.capitalize(path.replace('_', ' ')));
@@ -389,60 +385,6 @@ public class Scribbler {
     }
 
     /**
-     * Prepares translations to en_us.json for a given object.
-     */
-    public void translate(Field f, Decipher cipher) throws IllegalAccessException {
-        Optional.ofNullable(cipher.dyeTranslation()).ifPresent(d -> {
-            if (d.length == 0) return;
-            if (d.length != 2) {
-                this.logger.error("Unable to translate field {}.{}, as the dye translation array is not of length 2.", f.getDeclaringClass().getName(), f.getName());
-                throw new RuntimeException("Unable to translate field %s.%s, as the dye translation array is not of length 2.", null, true, false) {};
-            }
-            for (var dye : DyeColor.values()) this.translate(d[0].formatted(dye.getName()), d[1].formatted(WordUtils.capitalize(dye.getName().replace('_', ' '))));
-        });
-        var field = f.get(null);
-        var translation = cipher.value();
-        if (field instanceof Scribbler scribbler) {
-            this.translate(id(this.namespace).toLanguageKey(), translation);
-        } else if (field instanceof EntityType<?> entityType) {
-            this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(entityType, translation));
-            Optional.ofNullable(entityType.amy$asItem()).ifPresent(e -> this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(e, "%s %s".formatted(translation, "Spawn Egg"))));
-        } else if (field instanceof Holder.Reference<?> holder) {
-            if (holder.value() instanceof SoundEvent sound) {
-                this.translate("subtitles." + sound.location().toShortLanguageKey().replace('/', '.'), translation);
-                return;
-            }
-            this.translate(Util.makeDescriptionId(holder.key().registry().toShortLanguageKey(), holder.key().identifier()), translation);
-            if (holder.value() instanceof EntityType<?> entityType) Optional.ofNullable(entityType.amy$asItem()).ifPresent(e -> this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(e, "%s %s".formatted(translation, "Spawn Egg"))));
-        } else if (field instanceof DiscHelper(var item, var key, var song, var lengthInSeconds, var comparatorOutput)) {
-            this.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translation));
-            var itemKey = item.builtInRegistryHolder().key();
-            this.translate(Util.makeDescriptionId(itemKey.registry().toShortLanguageKey(), itemKey.identifier()), "Music Disc");
-        } else if (field instanceof BannerHelper(var item, var tag, var key)) {
-            this.translate(Util.makeDescriptionId("tag.%s".formatted(tag.registry().identifier().getPath()), tag.location()), "%s Banner Patterns".formatted(translation));
-            for (var dye : DyeColor.values()) this.translate("block.%s.banner.%s.%s".formatted(key.identifier().getNamespace(), key.identifier().getPath(), dye.getName()), "%s %s".formatted(WordUtils.capitalize(dye.getName().replace('_', ' ')), translation));
-            var itemKey = item.builtInRegistryHolder().key();
-            this.translate(Util.makeDescriptionId(itemKey.registry().toShortLanguageKey(), itemKey.identifier()), "%s Banner Pattern".formatted(translation));
-        } else if (field instanceof BlockBatch batch) {
-            batch.forEach((v, b) -> {
-                var key = batch.get(v).builtInRegistryHolder().key();
-                this.translate(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), v == BlockBatch.Variant.BLOCK ? translation : "%s %s".formatted(translation, WordUtils.capitalizeFully(v.name.replace('_', ' '))));
-            });
-        } else if (field instanceof SoundEvent sound) {
-            this.translate("subtitles." + sound.location().toShortLanguageKey().replace('/', '.'), translation);
-        } else if (field instanceof SoundType type) {
-            this.translate("subtitles." + type.getBreakSound().location().toShortLanguageKey().replace('/', '.'), "Block broken");
-            this.translate("subtitles." + type.getStepSound().location().toShortLanguageKey().replace('/', '.'), "Footsteps");
-            this.translate("subtitles." + type.getPlaceSound().location().toShortLanguageKey().replace('/', '.'), "Block placed");
-            this.translate("subtitles." + type.getHitSound().location().toShortLanguageKey().replace('/', '.'), "Block breaking");
-            this.translate("subtitles." + type.getFallSound().location().toShortLanguageKey().replace('/', '.'), "Something falls on a block");
-        } else if (field instanceof AmyMialibTaggable taggable) {
-            for (var tag : taggable.amymialib$tags()) this.translate(tag.getTranslationKey(), translation);
-            for (var key : taggable.amymialib$keys()) this.translate(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), translation);
-        }
-    }
-
-    /**
      * Prepares translations to en_us.json for a given key.
      */
     public void translate(ResourceKey key, String translation) {
@@ -464,12 +406,12 @@ public class Scribbler {
         return AspectCategory.of(id(path));
     }
 
-    public <T> Aspect.AspectBuilder<T> config(String path, AspectType<T> type) {
-        return Aspect.config(id(path), type);
+    public <T> Aspect.AspectBuilder<T> config(String path, T defaultValue, AspectType<T> type) {
+        return Aspect.config(defaultValue, id(path), type);
     }
 
-    public <T> Aspect.AspectBuilder<T> client(String path, AspectType<T> type) {
-        return Aspect.client(id(path), type);
+    public <T> Aspect.AspectBuilder<T> client(String path, T defaultValue, AspectType<T> type) {
+        return Aspect.client(defaultValue, id(path), type);
     }
 
     /**

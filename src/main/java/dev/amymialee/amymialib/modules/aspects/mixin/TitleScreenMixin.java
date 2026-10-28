@@ -1,4 +1,4 @@
-package dev.amymialee.amymialib.modules.aspects.client.mixin;
+package dev.amymialee.amymialib.modules.aspects.mixin;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;

@@ -41,7 +41,7 @@ public interface DossierAdvancements extends DossierLanyard {
         public void generateAdvancement(HolderLookup.@NonNull Provider lookup, @NonNull Consumer<AdvancementHolder> consumer) {
             this.lookup = lookup;
             this.consumer = consumer;
-            this.dossier.registryEach(d -> d.commitAdvancements(this, lookup, consumer), DossierAdvancements.class);
+            this.dossier.registryEach(d -> d.commitAdvancements(this, lookup, consumer), DossierAdvancements.class, DossierCtxAdvancements.class);
         }
 
         public AdvancementHolder create(AdvancementHolder holder) {

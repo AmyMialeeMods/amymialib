@@ -39,7 +39,7 @@ public interface DossierSounds extends DossierLanyard {
         protected void configure(HolderLookup.@NonNull Provider lookup, @NonNull SoundExporter exporter) {
             this.lookup = lookup;
             this.exporter = exporter;
-            this.dossier.registryEach(p -> p.commitSounds(this, lookup, exporter), DossierSounds.class);
+            this.dossier.registryEach(p -> p.commitSounds(this, lookup, exporter), DossierSounds.class, DossierCtxSounds.class);
         }
 
         public HolderLookup.Provider lookup() {

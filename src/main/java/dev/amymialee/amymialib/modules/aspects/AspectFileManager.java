@@ -20,12 +20,13 @@ public interface AspectFileManager {
         if (!aspect.saveLocation.shouldSave()) return;
         var config = new JsonObject();
         config.add("value", aspect.type.codec.encodeStart(JsonOps.INSTANCE, aspect.get()).getOrThrow());
+        var path = aspect.filePath.get();
         try {
-            Files.createDirectories(aspect.filePath.getParent());
+            Files.createDirectories(path.getParent());
         } catch (IOException e) {
             AmyMialib.LOGGER.error("Couldn't write Aspect file for {}", aspect.id, e);
         }
-        try (var fileWriter = Files.newBufferedWriter(aspect.filePath)) {
+        try (var fileWriter = Files.newBufferedWriter(path)) {
             fileWriter.write(GSON.toJson(config));
         } catch (IOException e) {
             AmyMialib.LOGGER.error("Couldn't write Aspect file for {}", aspect.id, e);
@@ -39,9 +40,12 @@ public interface AspectFileManager {
     static <T> void load(Aspect<T> aspect) {
         JsonObject data = null;
         try {
-            data = GSON.fromJson(Files.readString(aspect.filePath), JsonObject.class);
+            data = GSON.fromJson(Files.readString(aspect.filePath.get()), JsonObject.class);
         } catch (Exception _) {}
-        if (data == null) return;
+        if (data == null) {
+            aspect.loadFromFile(aspect.defaultValue);
+            return;
+        }
         var value = data.get("value");
         if (value != null) aspect.type.codec.decode(JsonOps.INSTANCE, value).result().ifPresent(v -> aspect.loadFromFile(v.getFirst()));
     }

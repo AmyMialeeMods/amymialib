@@ -14,17 +14,7 @@ import java.util.concurrent.CompletableFuture;
 
 @FunctionalInterface
 public interface DossierDynamic extends DossierLanyard {
-    void commitDynamic(Provider provider, HolderLookup.Provider lookup, FabricDynamicRegistryProvider.Entries entries);
-
-    @FunctionalInterface
-    interface DossierCtxDynamic extends DossierDynamic {
-        @Override
-        default void commitDynamic(DossierDynamic.Provider provider, HolderLookup.Provider lookup, FabricDynamicRegistryProvider.Entries entries) {
-            commitDynamic(provider);
-        }
-
-        void commitDynamic(Provider ctx);
-    }
+    void commitDynamic(Provider provider, FabricDynamicRegistryProvider.Entries entries);
 
     @Override default String name() { return "Dynamic"; }
 
@@ -45,10 +35,10 @@ public interface DossierDynamic extends DossierLanyard {
         protected void configure(HolderLookup.@NonNull Provider lookup, @NonNull Entries entries) {
             this.lookup = lookup;
             this.entries = entries;
-            this.dossier.registryEach(p -> p.commitDynamic(this, lookup, entries), DossierDynamic.class);
+            this.dossier.registryEach(p -> p.commitDynamic(this, entries), DossierDynamic.class);
         }
 
-        public <T> void add(Entries entries, ResourceKey<Registry<T>> key) {
+        public <T> void add(ResourceKey<Registry<T>> key) {
             var registry = (HolderLookup.RegistryLookup<T>) entries.getLookup(key);
             registry.listElementIds()
                     .filter(resourceKey -> resourceKey.identifier().getNamespace().equals(output.getModId()))

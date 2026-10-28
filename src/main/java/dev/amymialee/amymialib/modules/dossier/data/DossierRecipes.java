@@ -50,7 +50,7 @@ public interface DossierRecipes extends DossierLanyard {
             recipeProvider = new RecipeProvider(recipes, advancements) {
                 @Override
                 public void buildRecipes() {
-                    Provider.this.dossier.registryEach(p -> p.commitRecipes(Provider.this, this), DossierRecipes.class);
+                    Provider.this.dossier.registryEach(p -> p.commitRecipes(Provider.this, this), DossierRecipes.class, Inverse.class);
                 }
             };
             return recipeProvider;

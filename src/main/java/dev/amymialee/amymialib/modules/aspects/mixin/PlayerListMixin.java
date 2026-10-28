@@ -1,4 +1,4 @@
-package dev.amymialee.amymialib.modules.aspects.server.mixin;
+package dev.amymialee.amymialib.modules.aspects.mixin;
 
 import dev.amymialee.amymialib.modules.aspects.AspectManager;
 import net.minecraft.network.Connection;

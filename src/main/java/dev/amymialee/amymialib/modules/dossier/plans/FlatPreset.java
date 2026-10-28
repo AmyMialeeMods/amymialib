@@ -68,7 +68,7 @@ public class FlatPreset implements DossierDynamic, DossierRegistries, DossierTra
     }
 
     @Override
-    public void commitDynamic(DossierDynamic.Provider provider, HolderLookup.Provider lookup, FabricDynamicRegistryProvider.Entries entries) {
+    public void commitDynamic(DossierDynamic.Provider provider, FabricDynamicRegistryProvider.Entries entries) {
         entries.add((HolderLookup.RegistryLookup<FlatLevelGeneratorPreset>) entries.getLookup(this.key.registryKey()), this.key);
     }
 
