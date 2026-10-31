@@ -185,7 +185,7 @@ public interface DossierTranslations extends DossierLanyard {
         });
         TRY_TRANSLATE.register((lookup, builder, object, args) -> {
             if (object instanceof SoundEvent sound) {
-                builder.add("subtitles." + sound.location().toShortLanguageKey().replace('/', '.'), args[0]);
+                builder.add(Util.makeDescriptionId("subtitles", sound.location()), args[0]);
                 return true;
             }
             return false;

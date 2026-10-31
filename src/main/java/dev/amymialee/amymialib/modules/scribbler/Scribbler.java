@@ -101,6 +101,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -209,9 +210,16 @@ public class Scribbler {
      * Registers a block.
      */
     public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties, Item.Properties itemProperties) {
+        return of(path, func, properties, BlockItem::new, new Item.Properties());
+    }
+
+    /**
+     * Registers a block.
+     */
+    public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties, BiFunction<Block, Item.Properties, BlockItem> itemFactory, Item.Properties itemProperties) {
         var key = key(Registries.BLOCK, path);
         var block = Registry.register(BuiltInRegistries.BLOCK, key, func.apply(properties.setId(key)));
-        if (itemProperties != null) this.of(path, p -> new BlockItem(block, p), itemProperties.useBlockDescriptionPrefix());
+        if (itemProperties != null) this.of(path, p -> itemFactory.apply(block, p), itemProperties.useBlockDescriptionPrefix());
         return block;
     }
 

@@ -1,6 +1,10 @@
 {
+  "amymialib.amymialib": "AmyMialib",
   "amymialib.aspects.client_only": "[Client Only]",
   "amymialib.aspects.screen": "Aspect Editor",
+  "commands.amymialib.aspect.fail": "Failed to set aspect %s",
+  "commands.amymialib.aspect.query": "Aspect %s is currently set to %s",
+  "commands.amymialib.aspect.set": "Set aspect %s to %s",
   "flat_world_preset.amymialib.blast_proof": "Blast Proof",
   "flat_world_preset.amymialib.dev_ready": "Dev Ready"
 }

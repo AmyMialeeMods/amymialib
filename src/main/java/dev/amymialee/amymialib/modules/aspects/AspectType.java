@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
+import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.modules.AMEnvironmentType;
 import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -52,51 +53,49 @@ public class AspectType<T> {
         }
     }
 
+    public static final String COMMAND_FAIL = AmyMialib.SCRIBBLER.translate("commands.amymialib.aspect.fail", "Failed to set aspect %s");
+    public static final String COMMAND_SET = AmyMialib.SCRIBBLER.translate("commands.amymialib.aspect.set", "Set aspect %s to %s");
+    public static final String COMMAND_QUERY = AmyMialib.SCRIBBLER.translate("commands.amymialib.aspect.query", "Aspect %s is currently set to %s");
+
     private void registerServerCommand(Aspect<T> aspect) {
-        CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> {
-            var node = dispatcher.register(Commands.literal("Aspect").requires(s -> s.permissions().hasPermission(aspect.permission))
-                    .then(Commands.literal(aspect.id.toString())
-                            .then(Commands.argument("value", argumentType)
-                                    .executes(ctx -> {
-                                        var value = validator.apply(argumentExtractor.apply(ctx, "value"));
-                                        if (value == null) {
-                                            ctx.getSource().sendFailure(Component.translatable("commands.Aspect.fail", aspect.name));
-                                            return 0;
-                                        }
-                                        aspect.set(ctx.getSource().getServer(), value);
-                                        ctx.getSource().sendSuccess(() -> Component.translatable("commands.Aspect.set", aspect.name, this.toString.apply(aspect.get())), true);
-                                        return 1;
-                                    })
-                            ).executes(ctx -> {
-                                ctx.getSource().sendSuccess(() -> Component.translatable("commands.Aspect.query", aspect.name, this.toString.apply(aspect.get())), false);
-                                ctx.getSource().sendSuccess(() -> aspect.description, false);
-                                return 1;
-                            })));
-            dispatcher.register(Commands.literal("rfts:Aspect").redirect(node));
-        });
+        CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> dispatcher.register(Commands.literal("aspect").requires(s -> s.permissions().hasPermission(aspect.permission))
+                .then(Commands.literal(aspect.id.toString())
+                        .then(Commands.argument("value", argumentType)
+                                .executes(ctx -> {
+                                    var value = validator.apply(argumentExtractor.apply(ctx, "value"));
+                                    if (value == null) {
+                                        ctx.getSource().sendFailure(Component.translatable(COMMAND_FAIL, aspect.name));
+                                        return 0;
+                                    }
+                                    aspect.set(ctx.getSource().getServer(), value);
+                                    ctx.getSource().sendSuccess(() -> Component.translatable(COMMAND_SET, aspect.name, this.toString.apply(aspect.get())), true);
+                                    return 1;
+                                })
+                        ).executes(ctx -> {
+                            ctx.getSource().sendSuccess(() -> Component.translatable(COMMAND_QUERY, aspect.name, this.toString.apply(aspect.get())), false);
+                            ctx.getSource().sendSuccess(() -> aspect.description, false);
+                            return 1;
+                        }))));
     }
 
     private void registerClientCommand(Aspect<T> aspect) {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, access) -> {
-            var node = dispatcher.register(ClientCommands.literal("Aspect").requires(s -> s.permissions().hasPermission(aspect.permission))
-                    .then(ClientCommands.literal(aspect.id.toString())
-                            .then(ClientCommands.argument("value", argumentType)
-                                    .executes(ctx -> {
-                                        var value = validator.apply(argumentExtractor.apply(ctx, "value"));
-                                        if (value == null) {
-                                            ctx.getSource().sendError(Component.translatable("commands.Aspect.fail", aspect.name));
-                                            return 0;
-                                        }
-                                        aspect.set(ctx.getSource().getClient(), value);
-                                        ctx.getSource().sendFeedback(Component.translatable("commands.Aspect.set", aspect.name, this.toString.apply(aspect.get())));
-                                        return 1;
-                                    })
-                            ).executes(ctx -> {
-                                ctx.getSource().sendFeedback(Component.translatable("commands.Aspect.query", aspect.name, this.toString.apply(aspect.get())));
-                                ctx.getSource().sendFeedback(aspect.description);
-                                return 1;
-                            })));
-            dispatcher.register(ClientCommands.literal("rfts:Aspect").redirect(node));
-        });
+        ClientCommandRegistrationCallback.EVENT.register((dispatcher, access) -> dispatcher.register(ClientCommands.literal("aspect").requires(s -> s.permissions().hasPermission(aspect.permission))
+                .then(ClientCommands.literal(aspect.id.toString())
+                        .then(ClientCommands.argument("value", argumentType)
+                                .executes(ctx -> {
+                                    var value = validator.apply(argumentExtractor.apply(ctx, "value"));
+                                    if (value == null) {
+                                        ctx.getSource().sendError(Component.translatable(COMMAND_FAIL, aspect.name));
+                                        return 0;
+                                    }
+                                    aspect.set(ctx.getSource().getClient(), value);
+                                    ctx.getSource().sendFeedback(Component.translatable(COMMAND_SET, aspect.name, this.toString.apply(aspect.get())));
+                                    return 1;
+                                })
+                        ).executes(ctx -> {
+                            ctx.getSource().sendFeedback(Component.translatable(COMMAND_QUERY, aspect.name, this.toString.apply(aspect.get())));
+                            ctx.getSource().sendFeedback(aspect.description);
+                            return 1;
+                        }))));
     }
 }
