@@ -1,5 +1,6 @@
 # Amy's Mialib
 
 Features:
-- Datagen Helper (AMDatagen)
-- Registry Helper (AMRegistry)
+- Datagen Helper (Dossier)
+- Registry Helper (Scribbler)
+- Config System (Aspects)
