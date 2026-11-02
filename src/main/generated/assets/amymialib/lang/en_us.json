@@ -1,5 +1,11 @@
 {
   "amymialib.amymialib": "AmyMialib",
+  "amymialib.aspect.amymialib.disable_end_portals": "Disable End Portals",
+  "amymialib.aspect.amymialib.disable_end_portals.description": "Should end portals be disabled?",
+  "amymialib.aspect.category.amymialib.amymialib": "AmyMialib",
+  "amymialib.aspect.category.amymialib.amymialib.description": "AmyMialib Aspects",
+  "amymialib.aspect.link.amymialib.website": "AmyMialee",
+  "amymialib.aspect.link.amymialib.website.description": "AmyMialee Website",
   "amymialib.aspects.client_only": "[Client Only]",
   "amymialib.aspects.screen": "Aspect Editor",
   "commands.amymialib.aspect.fail": "Failed to set aspect %s",

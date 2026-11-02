@@ -1,5 +1,8 @@
 package dev.amymialee.amymialib.modules.dossier.data;
 
+import dev.amymialee.amymialib.modules.aspects.Aspect;
+import dev.amymialee.amymialib.modules.aspects.AspectCategory;
+import dev.amymialee.amymialib.modules.aspects.AspectLink;
 import dev.amymialee.amymialib.modules.dossier.Dossier;
 import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
 import dev.amymialee.amymialib.modules.iinterfaces.AmyMialibTaggable;
@@ -88,17 +91,20 @@ public interface DossierTranslations extends DossierLanyard {
                 try {
                     var field = f.get(null);
                     for (var decipher : f.getAnnotationsByType(Decipher.class)) {
-                        if (field instanceof Holder.Reference<?> holder) {
-                            dossier.scribbler.dossierData.add((DossierTranslations) (_, lookup, builder) -> TRY_TRANSLATE.invoker().translate(lookup, builder, holder.value(), decipher.value()));
-                        } else if (field instanceof AmyMialibTaggable taggable) {
-                            for (var tag : taggable.amymialib$tags()) dossier.scribbler.dossierData.add((DossierTranslations) (_, _, builder) -> builder.add(tag.getTranslationKey(), decipher.value()[0]));
-                            for (var key : taggable.amymialib$keys()) dossier.scribbler.dossierData.add((DossierTranslations) (_, lookup, builder) -> {
-                                builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), decipher.value()[0]);
-                                TRY_TRANSLATE_KEY.invoker().translate(lookup, builder, key, decipher.value());
-                            });
-                        } else {
-                            dossier.scribbler.dossierData.add((DossierTranslations) (_, lookup, builder) -> TRY_TRANSLATE.invoker().translate(lookup, builder, field, decipher.value()));
-                        }
+                        dossier.scribbler.dossierData.add((DossierTranslations) (provider, lookup, builder) -> {
+                            var translateTarget = field;
+                            if (translateTarget instanceof Holder.Reference<?> holder) translateTarget = holder.value();
+                            if (TRY_TRANSLATE.invoker().translate(lookup, builder, translateTarget, decipher.value())) return;
+                            if (translateTarget instanceof AmyMialibTaggable taggable) {
+                                for (var tag : taggable.amymialib$tags()) {
+                                    builder.add(tag.getTranslationKey(), decipher.value()[0]);
+                                }
+                                for (var key : taggable.amymialib$keys()) {
+                                    TRY_TRANSLATE_KEY.invoker().translate(lookup, builder, key, decipher.value());
+                                    builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), decipher.value()[0]);
+                                }
+                            }
+                        });
                     }
                 } catch (Throwable t) {
                     var reason = "";
@@ -197,6 +203,30 @@ public interface DossierTranslations extends DossierLanyard {
                 TRY_TRANSLATE.invoker().translate(lookup, builder, type.getPlaceSound(), new String[]{args[2]});
                 TRY_TRANSLATE.invoker().translate(lookup, builder, type.getHitSound(), new String[]{args[3]});
                 TRY_TRANSLATE.invoker().translate(lookup, builder, type.getFallSound(), new String[]{args[4]});
+                return true;
+            }
+            return false;
+        });
+        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+            if (object instanceof Aspect<?> aspect) {
+                builder.add(aspect.nameKey, args[0]);
+                builder.add(aspect.descriptionKey, args[1]);
+                return true;
+            }
+            return false;
+        });
+        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+            if (object instanceof AspectCategory aspect) {
+                builder.add(aspect.nameKey, args[0]);
+                builder.add(aspect.descriptionKey, args[1]);
+                return true;
+            }
+            return false;
+        });
+        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+            if (object instanceof AspectLink aspect) {
+                builder.add(aspect.nameKey, args[0]);
+                builder.add(aspect.descriptionKey, args[1]);
                 return true;
             }
             return false;

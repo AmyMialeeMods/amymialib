@@ -8,7 +8,6 @@
   "authors": [
     "AmyMialee"
   ],
-  "contributors": [],
   "contact": {
     "email": "amymialib@amymialee.dev",
     "homepage": "https://www.amymialee.dev/",
@@ -48,8 +47,8 @@
       "badges":["library"],
       "links": {
         "modmenu.website": "https://amymialee.dev",
-        "modmenu.patreon": "https://www.patreon.com/cw/AmyMialee",
-        "modmenu.discord": "https://discord.amymialee.dev"
+        "modmenu.patreon": "https://amymialee.dev/patreon",
+        "modmenu.discord": "https://amymialee.dev/discord"
       }
     }
   }

@@ -19,11 +19,11 @@ public class AmyMialib implements ModInitializer {
     @Decipher("AmyMialib")
     public static final Scribbler SCRIBBLER = new Scribbler(MOD_ID).auto("dev.amymialee.amymialib");
 
-    //, "AmyMialee", "AmyMialee Website"
+    @Decipher({"AmyMialee", "AmyMialee Website"})
     public static final AspectLink p = SCRIBBLER.link("website", "https://amymialee.dev").icon(Items.DIAMOND).build();
-    //, "AmyMialib", "AmyMialib Aspects"
+    @Decipher({"AmyMialib", "AmyMialib Aspects"})
     public static final AspectCategory AMYMIALIB = SCRIBBLER.category("amymialib").link(p).icon(Items.DIAMOND).backgroundSprite(id("aspects/background_2")).build();
-    //, "Disable End Portals", "Should end portals be disabled?"
+    @Decipher({"Disable End Portals", "Should end portals be disabled?"})
     public static final Aspect<Boolean> DISABLE_END_PORTALS = SCRIBBLER.config("disable_end_portals", false, AspectType.BOOLEAN).icon(Items.END_PORTAL_FRAME).category(AMYMIALIB).build();
     //TODO: Disable MovedTooQuickly
 
