@@ -14,7 +14,7 @@ public abstract class FluidMixin implements AmyMialibTaggable {
     @Shadow @Deprecated public abstract Holder.Reference<Fluid> builtInRegistryHolder();
 
     @Override
-    public List<ResourceKey> amymialib$keys() {
+    public List<ResourceKey> amy$keys() {
         return List.of(this.builtInRegistryHolder().key());
     }
 }

@@ -14,7 +14,7 @@ public abstract class BlockEntityTypeMixin implements AmyMialibTaggable {
     @Shadow @Deprecated public abstract Holder.Reference<BlockEntityType<?>> builtInRegistryHolder();
 
     @Override
-    public List<ResourceKey> amymialib$keys() {
+    public List<ResourceKey> amy$keys() {
         return List.of(this.builtInRegistryHolder().key());
     }
 }

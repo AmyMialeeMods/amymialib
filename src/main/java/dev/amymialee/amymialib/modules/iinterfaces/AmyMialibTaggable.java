@@ -22,11 +22,11 @@ import java.util.List;
  *     </pre>
  */
 public interface AmyMialibTaggable {
-    default List<ResourceKey> amymialib$keys() {
+    default List<ResourceKey> amy$keys() {
         return List.of();
     }
 
-    default List<TagKey> amymialib$tags() {
+    default List<TagKey> amy$tags() {
         return List.of();
     }
 }

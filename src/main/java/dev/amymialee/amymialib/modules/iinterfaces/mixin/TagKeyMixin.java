@@ -9,7 +9,7 @@ import java.util.List;
 @Mixin(TagKey.class)
 public class TagKeyMixin implements AmyMialibTaglike {
     @Override
-    public List<TagKey> amymialib$tags() {
+    public List<TagKey> amy$tags() {
         var self = (TagKey) (Object) this;
         return List.of(self);
     }

@@ -50,9 +50,9 @@ public interface DossierTags extends DossierLanyard {
         }
 
         public boolean tag(List<AmyMialibTaglike> taglikes, List<AmyMialibTaggable> objects) {
-            var targetTags = taglikes.stream().map(AmyMialibTaggable::amymialib$tags).flatMap(List::stream).toList();
-            var keys = objects.stream().map(AmyMialibTaggable::amymialib$keys).flatMap(List::stream).toList();
-            var tags = objects.stream().map(AmyMialibTaggable::amymialib$tags).flatMap(List::stream).toList();
+            var targetTags = taglikes.stream().map(AmyMialibTaggable::amy$tags).flatMap(List::stream).toList();
+            var keys = objects.stream().map(AmyMialibTaggable::amy$keys).flatMap(List::stream).toList();
+            var tags = objects.stream().map(AmyMialibTaggable::amy$tags).flatMap(List::stream).toList();
             var anyAdded = false;
             for (var targetTag : targetTags) {
                 var targetRegistry = targetTag.registry();

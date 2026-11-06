@@ -23,7 +23,7 @@ public abstract class EntityTypeMixin implements AmyMialibItemConvertible, AmyMi
     }
 
     @Override
-    public List<ResourceKey> amymialib$keys() {
+    public List<ResourceKey> amy$keys() {
         var list = new ArrayList<ResourceKey>(List.of(this.builtInRegistryHolder().key()));
         if (this.amy$asItem() != Items.AIR) list.add(this.amy$asItem().builtInRegistryHolder().key());
         return list;

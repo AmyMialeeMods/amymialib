@@ -4,6 +4,9 @@ classTweaker v1 official
 transitive-inject-interface	net/minecraft/world/level/block/Block dev/amymialee/amymialib/modules/iinterfaces/AmyMialibBlock
 # AmyMialibComponent
 transitive-inject-interface	net/minecraft/network/chat/Component dev/amymialee/amymialib/modules/iinterfaces/AmyMialibComponent
+# AmyMialibTrackable
+transitive-inject-interface	net/minecraft/world/entity/Entity dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTrackable
+transitive-inject-interface	net/minecraft/server/level/ServerLevel dev/amymialee/amymialib/modules/iinterfaces/AmyMialibTrackable
 # AmyMialibItemConvertible
 transitive-inject-interface	net/minecraft/world/level/block/state/BlockBehaviour$BlockStateBase dev/amymialee/amymialib/modules/iinterfaces/AmyMialibItemConvertible
 transitive-inject-interface	net/minecraft/world/entity/EntityType dev/amymialee/amymialib/modules/iinterfaces/AmyMialibItemConvertible

@@ -10,12 +10,14 @@
     "BlockItemTagIdMixin",
     "BlockMixin",
     "ComponentMixin",
+    "EntityMixin",
     "EntityTypeMixin",
     "FluidMixin",
     "ItemLikeMixin",
     "ItemMixin",
     "ItemPropertiesMixin",
     "ResourceKeyMixin",
+    "ServerLevelMixin",
     "TagKeyMixin"
   ],
   "client": [

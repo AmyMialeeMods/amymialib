@@ -17,7 +17,7 @@ public class BlockItemIdMixin implements AmyMialibTaggable {
     @Shadow @Final private ResourceKey<Item> item;
 
     @Override
-    public List<ResourceKey> amymialib$keys() {
+    public List<ResourceKey> amy$keys() {
         return List.of(this.block, this.item);
     }
 }

@@ -267,9 +267,9 @@ public class BlockBatch implements AmyMialibTaggable {
     }
 
     @Override
-    public List<ResourceKey> amymialib$keys() {
+    public List<ResourceKey> amy$keys() {
         var list = new ArrayList<ResourceKey>();
-        this.forEach(b -> list.addAll(b.amymialib$keys()));
+        this.forEach(b -> list.addAll(b.amy$keys()));
         return list;
     }
 

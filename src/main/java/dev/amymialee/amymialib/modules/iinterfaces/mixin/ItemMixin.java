@@ -14,7 +14,7 @@ public abstract class ItemMixin implements AmyMialibTaggable {
     @Shadow @Deprecated public abstract Holder.Reference<Item> builtInRegistryHolder();
 
     @Override
-    public List<ResourceKey> amymialib$keys() {
+    public List<ResourceKey> amy$keys() {
         return List.of(this.builtInRegistryHolder().key());
     }
 }

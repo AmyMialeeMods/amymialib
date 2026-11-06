@@ -25,7 +25,7 @@ public abstract class BlockMixin implements AmyMialibBlock, AmyMialibTaggable {
     }
 
     @Override
-    public List<ResourceKey> amymialib$keys() {
+    public List<ResourceKey> amy$keys() {
         var list = new ArrayList<ResourceKey>(List.of(this.builtInRegistryHolder().key()));
         if (this.asItem() != Items.AIR) list.add(this.asItem().builtInRegistryHolder().key());
         return list;

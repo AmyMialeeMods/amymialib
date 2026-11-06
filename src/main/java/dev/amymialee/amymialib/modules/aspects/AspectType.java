@@ -1,13 +1,11 @@
 package dev.amymialee.amymialib.modules.aspects;
 
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.FloatArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
 import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.modules.AMEnvironmentType;
+import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleInit;
 import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
@@ -21,6 +19,7 @@ import net.minecraft.util.Mth;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
+@ScribbleInit
 public class AspectType<T> {
     public static final AspectType<Boolean> BOOLEAN = new AspectType<>(ByteBufCodecs.BOOL, Codec.BOOL, BoolArgumentType.bool(), BoolArgumentType::getBool, v -> v ? "True ✔" : "False ✖", v -> v);
     public static final AspectType<Float> PERCENT = new AspectType<>(ByteBufCodecs.FLOAT, Codec.FLOAT, FloatArgumentType.floatArg(0, 100), (context, name) -> FloatArgumentType.getFloat(context, name) / 100f, v -> String.format("%.0f%%", v * 100f), v -> Mth.clamp(v, 0f, 1f));
@@ -41,6 +40,14 @@ public class AspectType<T> {
         this.validator = validator;
     }
 
+    public static AspectType<Integer> intType(int min, int max) {
+        return new AspectType<>(ByteBufCodecs.INT, Codec.INT, IntegerArgumentType.integer(min, max), IntegerArgumentType::getInteger, v -> String.format("%d", v), v -> Mth.clamp(v, min, max));
+    }
+
+    public static AspectType<Float> floatType(float min, float max) {
+        return new AspectType<>(ByteBufCodecs.FLOAT, Codec.FLOAT, FloatArgumentType.floatArg(min, max), FloatArgumentType::getFloat, v -> String.format("%.2f", v), v -> Mth.clamp(v, min, max));
+    }
+
     public String toString(T value) {
         return this.toString.apply(value);
     }
@@ -59,43 +66,45 @@ public class AspectType<T> {
 
     private void registerServerCommand(Aspect<T> aspect) {
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> dispatcher.register(Commands.literal("aspect").requires(s -> s.permissions().hasPermission(aspect.permission))
-                .then(Commands.literal(aspect.id.toString())
-                        .then(Commands.argument("value", argumentType)
-                                .executes(ctx -> {
-                                    var value = validator.apply(argumentExtractor.apply(ctx, "value"));
-                                    if (value == null) {
-                                        ctx.getSource().sendFailure(Component.translatable(COMMAND_FAIL, aspect.name));
-                                        return 0;
-                                    }
-                                    aspect.set(ctx.getSource().getServer(), value);
-                                    ctx.getSource().sendSuccess(() -> Component.translatable(COMMAND_SET, aspect.name, this.toString.apply(aspect.get())), true);
+                .then(Commands.literal(aspect.id.getNamespace())
+                        .then(Commands.literal(aspect.id.getPath())
+                                .then(Commands.argument("value", argumentType)
+                                        .executes(ctx -> {
+                                            var value = validator.apply(argumentExtractor.apply(ctx, "value"));
+                                            if (value == null) {
+                                                ctx.getSource().sendFailure(Component.translatable(COMMAND_FAIL, aspect.name));
+                                                return 0;
+                                            }
+                                            aspect.set(ctx.getSource().getServer(), value);
+                                            ctx.getSource().sendSuccess(() -> Component.translatable(COMMAND_SET, aspect.name, this.toString.apply(aspect.get())), true);
+                                            return 1;
+                                        })
+                                ).executes(ctx -> {
+                                    ctx.getSource().sendSuccess(() -> Component.translatable(COMMAND_QUERY, aspect.name, this.toString.apply(aspect.get())), false);
+                                    ctx.getSource().sendSuccess(() -> aspect.description, false);
                                     return 1;
-                                })
-                        ).executes(ctx -> {
-                            ctx.getSource().sendSuccess(() -> Component.translatable(COMMAND_QUERY, aspect.name, this.toString.apply(aspect.get())), false);
-                            ctx.getSource().sendSuccess(() -> aspect.description, false);
-                            return 1;
-                        }))));
+                                })))));
     }
 
     private void registerClientCommand(Aspect<T> aspect) {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, access) -> dispatcher.register(ClientCommands.literal("aspect").requires(s -> s.permissions().hasPermission(aspect.permission))
-                .then(ClientCommands.literal(aspect.id.toString())
-                        .then(ClientCommands.argument("value", argumentType)
-                                .executes(ctx -> {
-                                    var value = validator.apply(argumentExtractor.apply(ctx, "value"));
-                                    if (value == null) {
-                                        ctx.getSource().sendError(Component.translatable(COMMAND_FAIL, aspect.name));
-                                        return 0;
-                                    }
-                                    aspect.set(ctx.getSource().getClient(), value);
-                                    ctx.getSource().sendFeedback(Component.translatable(COMMAND_SET, aspect.name, this.toString.apply(aspect.get())));
+                .then(ClientCommands.literal(aspect.id.getNamespace())
+                        .then(ClientCommands.literal(aspect.id.getPath())
+                                .then(ClientCommands.argument("value", argumentType)
+                                        .executes(ctx -> {
+                                            var value = validator.apply(argumentExtractor.apply(ctx, "value"));
+                                            if (value == null) {
+                                                ctx.getSource().sendError(Component.translatable(COMMAND_FAIL, aspect.name));
+                                                return 0;
+                                            }
+                                            aspect.set(ctx.getSource().getClient(), value);
+                                            ctx.getSource().sendFeedback(Component.translatable(COMMAND_SET, aspect.name, this.toString.apply(aspect.get())));
+                                            return 1;
+                                        })
+                                ).executes(ctx -> {
+                                    ctx.getSource().sendFeedback(Component.translatable(COMMAND_QUERY, aspect.name, this.toString.apply(aspect.get())));
+                                    ctx.getSource().sendFeedback(aspect.description);
                                     return 1;
-                                })
-                        ).executes(ctx -> {
-                            ctx.getSource().sendFeedback(Component.translatable(COMMAND_QUERY, aspect.name, this.toString.apply(aspect.get())));
-                            ctx.getSource().sendFeedback(aspect.description);
-                            return 1;
-                        }))));
+                                })))));
     }
 }

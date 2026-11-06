@@ -17,7 +17,7 @@ public class BlockItemTagIdMixin implements AmyMialibTaglike {
     @Shadow @Final private TagKey<Item> item;
 
     @Override
-    public List<TagKey> amymialib$tags() {
+    public List<TagKey> amy$tags() {
         return List.of(this.block, this.item);
     }
 }

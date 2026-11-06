@@ -9,7 +9,7 @@ import java.util.List;
 @Mixin(ResourceKey.class)
 public class ResourceKeyMixin<T> implements AmyMialibTaggable {
     @Override
-    public List<ResourceKey> amymialib$keys() {
+    public List<ResourceKey> amy$keys() {
         var self = (ResourceKey) (Object) this;
         return List.of(self);
     }

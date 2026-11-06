@@ -96,10 +96,8 @@ public interface DossierTranslations extends DossierLanyard {
                             if (translateTarget instanceof Holder.Reference<?> holder) translateTarget = holder.value();
                             if (TRY_TRANSLATE.invoker().translate(lookup, builder, translateTarget, decipher.value())) return;
                             if (translateTarget instanceof AmyMialibTaggable taggable) {
-                                for (var tag : taggable.amymialib$tags()) {
-                                    builder.add(tag.getTranslationKey(), decipher.value()[0]);
-                                }
-                                for (var key : taggable.amymialib$keys()) {
+                                for (var tag : taggable.amy$tags()) builder.add(tag.getTranslationKey(), decipher.value()[0]);
+                                for (var key : taggable.amy$keys()) {
                                     TRY_TRANSLATE_KEY.invoker().translate(lookup, builder, key, decipher.value());
                                     builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), decipher.value()[0]);
                                 }

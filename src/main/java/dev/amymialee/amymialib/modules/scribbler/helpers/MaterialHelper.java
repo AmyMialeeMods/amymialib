@@ -10,7 +10,7 @@ import java.util.List;
 
 public record MaterialHelper(TagKey<Item> materials, ToolMaterial tool, ArmorMaterial armor) implements AmyMialibTaggable {
     @Override
-    public List<TagKey> amymialib$tags() {
+    public List<TagKey> amy$tags() {
         return List.of(materials);
     }
 }

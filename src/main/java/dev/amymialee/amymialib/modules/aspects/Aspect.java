@@ -56,6 +56,7 @@ public final class Aspect<T> {
             @Nullable BiConsumer<Aspect<T>, MinecraftServer> onChangeServer,
             @Nullable Consumer<Aspect<T>> onChangeClient,
             @Nullable Identifier category) {
+        this.value = defaultValue;
         this.defaultValue = defaultValue;
         this.id = id;
         this.type = type;
