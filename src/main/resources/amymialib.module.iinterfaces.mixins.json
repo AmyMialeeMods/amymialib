@@ -16,6 +16,7 @@
     "ItemLikeMixin",
     "ItemMixin",
     "ItemPropertiesMixin",
+    "LevelMixin",
     "ResourceKeyMixin",
     "ServerLevelMixin",
     "TagKeyMixin"

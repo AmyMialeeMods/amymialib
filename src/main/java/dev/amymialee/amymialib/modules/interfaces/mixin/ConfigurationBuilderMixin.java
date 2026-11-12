@@ -11,7 +11,7 @@ public class ConfigurationBuilderMixin implements AmyMialibSilencer<Configuratio
 
     @Override
     public boolean amymialib$isSilenced() {
-        return silenced;
+        return this.silenced;
     }
 
     @Override

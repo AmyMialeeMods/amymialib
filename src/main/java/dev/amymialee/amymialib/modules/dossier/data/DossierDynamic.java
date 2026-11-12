@@ -39,23 +39,23 @@ public interface DossierDynamic extends DossierLanyard {
         }
 
         public <T> void add(ResourceKey<Registry<T>> key) {
-            var registry = (HolderLookup.RegistryLookup<T>) entries.getLookup(key);
+            var registry = (HolderLookup.RegistryLookup<T>) this.entries.getLookup(key);
             registry.listElementIds()
-                    .filter(resourceKey -> resourceKey.identifier().getNamespace().equals(output.getModId()))
+                    .filter(resourceKey -> resourceKey.identifier().getNamespace().equals(this.output.getModId()))
                     .filter(resourceKey -> !registered.contains(resourceKey))
                     .forEach(k -> {
-                        entries.add(registry, k);
+                        this.entries.add(registry, k);
                         registered.add(k);
                     }
             );
         }
 
         public HolderLookup.Provider lookup() {
-            return lookup;
+            return this.lookup;
         }
 
         public Entries entries() {
-            return entries;
+            return this.entries;
         }
 
         @Override

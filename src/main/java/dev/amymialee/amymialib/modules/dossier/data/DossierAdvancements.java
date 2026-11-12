@@ -19,7 +19,7 @@ public interface DossierAdvancements extends DossierLanyard {
     interface DossierCtxAdvancements extends DossierAdvancements {
         @Override
         default void commitAdvancements(Provider provider, HolderLookup.Provider lookup, Consumer<AdvancementHolder> consumer) {
-            commitAdvancements(provider);
+            this.commitAdvancements(provider);
         }
 
         void commitAdvancements(Provider ctx);
@@ -50,11 +50,11 @@ public interface DossierAdvancements extends DossierLanyard {
         }
 
         public HolderLookup.Provider lookup() {
-            return lookup;
+            return this.lookup;
         }
 
         public Consumer<AdvancementHolder> consumer() {
-            return consumer;
+            return this.consumer;
         }
 
         @Override

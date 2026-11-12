@@ -59,12 +59,12 @@ public class FlatPreset implements DossierDynamic, DossierRegistries, DossierTra
 
     @Override
     public void commitTranslations(DossierTranslations.Provider provider, HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder) {
-        builder.add(key.identifier().toLanguageKey("flat_world_preset"), this.name);
+        builder.add(this.key.identifier().toLanguageKey("flat_world_preset"), this.name);
     }
 
     @Override
     public void commitTags(DossierTags.Provider provider) {
-        provider.tag(FlatLevelGeneratorPresetTags.VISIBLE).add(key);
+        provider.tag(FlatLevelGeneratorPresetTags.VISIBLE).add(this.key);
     }
 
     @Override
@@ -74,10 +74,10 @@ public class FlatPreset implements DossierDynamic, DossierRegistries, DossierTra
 
     @Override
     public void commitRegistries(RegistrySetBuilder registryBuilder) {
-        registryBuilder.add(Registries.FLAT_LEVEL_GENERATOR_PRESET, registry -> this.createFlatPreset(registry, this.key, this.icon, this.biome, this.structures, this.decoration, this.addLakes, this.layers));
+        registryBuilder.add(Registries.FLAT_LEVEL_GENERATOR_PRESET, registry -> FlatPreset.createFlatPreset(registry, this.key, this.icon, this.biome, this.structures, this.decoration, this.addLakes, this.layers));
     }
 
-    public final void createFlatPreset(BootstrapContext<FlatLevelGeneratorPreset> registry, ResourceKey<FlatLevelGeneratorPreset> key, ResourceKey<Item> icon, ResourceKey<Biome> biome, Set<ResourceKey<StructureSet>> structures, boolean decoration, boolean addLakes, FlatLayerInfo... layers) {
+    public static void createFlatPreset(BootstrapContext<FlatLevelGeneratorPreset> registry, ResourceKey<FlatLevelGeneratorPreset> key, ResourceKey<Item> icon, ResourceKey<Biome> biome, Set<ResourceKey<StructureSet>> structures, boolean decoration, boolean addLakes, FlatLayerInfo... layers) {
         var structureSets = registry.lookup(Registries.STRUCTURE_SET);
         var generator = new FlatLevelGeneratorSettings(Optional.of(HolderSet.direct(structures.stream().map(structureSets::getOrThrow).collect(Collectors.toList()))), registry.lookup(Registries.BIOME).getOrThrow(biome), FlatLevelGeneratorSettings.createLakesList(registry.lookup(Registries.PLACED_FEATURE)));
         if (decoration) generator.setDecoration();

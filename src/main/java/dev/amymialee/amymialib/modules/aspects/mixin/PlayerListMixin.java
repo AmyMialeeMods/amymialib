@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PlayerList.class)
 public abstract class PlayerListMixin {
     @Inject(method = "placeNewPlayer", at = @At("TAIL"))
-    private void amymialib$aspects$syncing(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
+    private static void amymialib$aspects$syncing(Connection connection, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
         AspectManager.syncUnChangedS2C(player);
     }
 }

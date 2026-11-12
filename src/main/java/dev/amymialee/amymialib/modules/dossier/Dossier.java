@@ -60,7 +60,7 @@ public class Dossier implements DataGeneratorEntrypoint, DossierLanyard {
     public final @SuppressWarnings("unchecked") <T> void registryEach(Consumer<T> consumer, Class<? extends T> ... variants) {
         for (var c : variants) {
             this.scribbler.dossierData.forEach(t -> { if (c.isInstance(t)) consumer.accept((T) t); });
-            AutoQueue.forAny(this.scribbler, p -> AutoScanner.findFunctionalInterfaces(scribbler.logger, DossierData.class, p, c).forEach(consumer));
+            AutoQueue.forAny(this.scribbler, p -> AutoScanner.findFunctionalInterfaces(this.scribbler.logger, DossierData.class, p, c).forEach(consumer));
         }
     }
 

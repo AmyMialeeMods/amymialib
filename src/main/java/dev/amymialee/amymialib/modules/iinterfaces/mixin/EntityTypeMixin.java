@@ -19,13 +19,13 @@ public abstract class EntityTypeMixin implements AmyMialibItemConvertible, AmyMi
 
     @Override
     public Item amy$asItem() {
-        return AmyMialibItemConvertible.BY_ENTITY.getOrDefault((EntityType<?>) (Object) this, Items.AIR);
+        return AmyMialibItemConvertible.BY_ENTITY.get((EntityType<?>) (Object) this);
     }
 
     @Override
     public List<ResourceKey> amy$keys() {
         var list = new ArrayList<ResourceKey>(List.of(this.builtInRegistryHolder().key()));
-        if (this.amy$asItem() != Items.AIR) list.add(this.amy$asItem().builtInRegistryHolder().key());
+        if (this.amy$asItem() != Items.AIR && this.amy$asItem() != null) list.add(this.amy$asItem().builtInRegistryHolder().key());
         return list;
     }
 }

@@ -85,7 +85,7 @@ public class AspectsTab {
         }
     }
 
-    public void extractAspects(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, float delta) {
+    public void extractAspects(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         graphics.enableScissor(this.screen.aspectOuter.x, this.screen.aspectOuter.y, this.screen.aspectOuter.x + this.screen.aspectOuter.width, this.screen.aspectOuter.y + this.screen.aspectOuter.height);
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, this.screen.aspectOuter.x, this.screen.aspectOuter.y, this.screen.aspectOuter.width, this.screen.aspectOuter.height);
         graphics.pose().pushMatrix();
@@ -113,9 +113,7 @@ public class AspectsTab {
         var width = lines.stream().mapToInt(line -> this.screen.getFont().width(line)).max().orElse(0);
         x -= width / 2;
         y = y - (lines.size() * this.screen.getFont().lineHeight) / 2;
-        for (var i = 0; i < lines.size(); i++) {
-            graphics.text(this.screen.getFont(), lines.get(i), x, y + i * 10, color);
-        }
+        for (var i = 0; i < lines.size(); i++) graphics.text(this.screen.getFont(), lines.get(i), x, y + i * 10, color);
     }
 
     public boolean isActive(AspectCategory category) {

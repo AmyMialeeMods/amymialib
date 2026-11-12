@@ -28,7 +28,7 @@ public interface DossierRecipes extends DossierLanyard {
     interface Inverse extends DossierRecipes {
         @Override
         default void commitRecipes(Provider data, RecipeProvider provider) {
-            commitRecipes(provider, data);
+            this.commitRecipes(provider, data);
         }
 
         void commitRecipes(RecipeProvider provider, Provider data);
@@ -47,30 +47,30 @@ public interface DossierRecipes extends DossierLanyard {
 
         @Override
         protected @NonNull RecipeProvider createRecipeProvider(HolderLookup.@NonNull Provider registries, @NonNull BootstrapContext<Recipe<?>> recipes, @NonNull BootstrapContext<Advancement> advancements) {
-            recipeProvider = new RecipeProvider(recipes, advancements) {
+            this.recipeProvider = new RecipeProvider(recipes, advancements) {
                 @Override
                 public void buildRecipes() {
                     Provider.this.dossier.registryEach(p -> p.commitRecipes(Provider.this, this), DossierRecipes.class, Inverse.class);
                 }
             };
-            return recipeProvider;
+            return this.recipeProvider;
         }
 
         public void generateBatch(BlockBatch batch, boolean stonecutting) {
             var base = Objects.requireNonNull(batch.getItem());
-            Optional.ofNullable(batch.get(BlockBatch.Variant.STAIRS)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.stairBuilder(i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), recipeProvider.has(base)).save(recipeProvider.output));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.SLAB)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.slabBuilder(RecipeCategory.BUILDING_BLOCKS, i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), recipeProvider.has(base)).save(recipeProvider.output));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.CARPET)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.carpetBuilder(RecipeCategory.DECORATIONS, i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), recipeProvider.has(base)).save(recipeProvider.output));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.WALL)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.wallBuilder(RecipeCategory.DECORATIONS, i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), recipeProvider.has(base)).save(recipeProvider.output));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.PANE)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.shaped(RecipeCategory.DECORATIONS, i, 16).define('#', base).pattern("###").pattern("###").unlockedBy(RecipeProvider.getHasName(base), recipeProvider.has(base)).save(recipeProvider.output));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.fenceBuilder(i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), recipeProvider.has(base)).save(recipeProvider.output));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE_GATE)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.fenceGateBuilder(i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), recipeProvider.has(base)).save(recipeProvider.output));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.PRESSURE_PLATE)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.pressurePlateBuilder(RecipeCategory.REDSTONE, i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), recipeProvider.has(base)).save(recipeProvider.output));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.BUTTON)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.buttonBuilder(i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), recipeProvider.has(base)).save(recipeProvider.output));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.STAIRS)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.stairBuilder(i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), this.recipeProvider.has(base)).save(this.recipeProvider.output));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.SLAB)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.slabBuilder(RecipeCategory.BUILDING_BLOCKS, i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), this.recipeProvider.has(base)).save(this.recipeProvider.output));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.CARPET)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.carpetBuilder(RecipeCategory.DECORATIONS, i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), this.recipeProvider.has(base)).save(this.recipeProvider.output));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.WALL)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.wallBuilder(RecipeCategory.DECORATIONS, i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), this.recipeProvider.has(base)).save(this.recipeProvider.output));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.PANE)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.shaped(RecipeCategory.DECORATIONS, i, 16).define('#', base).pattern("###").pattern("###").unlockedBy(RecipeProvider.getHasName(base), this.recipeProvider.has(base)).save(this.recipeProvider.output));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.fenceBuilder(i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), this.recipeProvider.has(base)).save(this.recipeProvider.output));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE_GATE)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.fenceGateBuilder(i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), this.recipeProvider.has(base)).save(this.recipeProvider.output));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.PRESSURE_PLATE)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.pressurePlateBuilder(RecipeCategory.REDSTONE, i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), this.recipeProvider.has(base)).save(this.recipeProvider.output));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.BUTTON)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.buttonBuilder(i, Ingredient.of(base)).unlockedBy(RecipeProvider.getHasName(base), this.recipeProvider.has(base)).save(this.recipeProvider.output));
             if (stonecutting) {
-                Optional.ofNullable(batch.get(BlockBatch.Variant.STAIRS)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, i, base, 1));
-                Optional.ofNullable(batch.get(BlockBatch.Variant.SLAB)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, i, base, 2));
-                Optional.ofNullable(batch.get(BlockBatch.Variant.WALL)).filter(i -> eitherIsOurs(i, base)).ifPresent(i -> recipeProvider.stonecutterResultFromBase(RecipeCategory.DECORATIONS, i, base, 1));
+                Optional.ofNullable(batch.get(BlockBatch.Variant.STAIRS)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, i, base, 1));
+                Optional.ofNullable(batch.get(BlockBatch.Variant.SLAB)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.stonecutterResultFromBase(RecipeCategory.BUILDING_BLOCKS, i, base, 2));
+                Optional.ofNullable(batch.get(BlockBatch.Variant.WALL)).filter(i -> this.eitherIsOurs(i, base)).ifPresent(i -> this.recipeProvider.stonecutterResultFromBase(RecipeCategory.DECORATIONS, i, base, 1));
             }
         }
 

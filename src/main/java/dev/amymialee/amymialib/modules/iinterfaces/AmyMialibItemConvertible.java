@@ -6,6 +6,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,6 +16,12 @@ public interface AmyMialibItemConvertible {
     Map<EntityType<?>, Item> BY_ENTITY = new HashMap<>();
 
     default Item amy$asItem() { throw new UnsupportedOperationException("Implemented via mixin."); }
+
+    default Item amy$asItemDefaulted() {
+        var result = this.amy$asItem();
+        if (result == null) return Items.AIR;
+        return result;
+    }
 
     @ScribbleInit
     static void register() {

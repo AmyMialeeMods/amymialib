@@ -107,7 +107,7 @@ public final class Aspect<T> {
         this.value = value;
         AspectFileManager.save(this);
         AspectManager.syncChangedS2C(server, this);
-        if (onChangeServer != null) onChangeServer.accept(server);
+        if (this.onChangeServer != null) this.onChangeServer.accept(server);
     }
 
     /**
@@ -116,7 +116,7 @@ public final class Aspect<T> {
     void set(Minecraft ignoredClient, T value) {
         this.value = value;
         AspectFileManager.save(this);
-        if (onChangeClient != null) onChangeClient.run();
+        if (this.onChangeClient != null) this.onChangeClient.run();
     }
 
     public void saveToFile() {
@@ -135,6 +135,7 @@ public final class Aspect<T> {
 
     }
 
+    @Override
     public String toString() {
         return "Tuning:[" + this.id.toString() + "=" + this.type.toString.apply(this.get()) + "]";
     }

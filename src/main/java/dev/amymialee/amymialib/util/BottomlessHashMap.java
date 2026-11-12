@@ -76,7 +76,7 @@ public class BottomlessHashMap<K, V> extends ConcurrentHashMap<K, V> {
 
     @Override
     public V get(Object key) {
-        return super.computeIfAbsent((K) key, compute);
+        return super.computeIfAbsent((K) key, this.compute);
     }
 
     @Override @ApiStatus.Internal

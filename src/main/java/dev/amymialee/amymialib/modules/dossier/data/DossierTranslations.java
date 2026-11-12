@@ -1,5 +1,6 @@
 package dev.amymialee.amymialib.modules.dossier.data;
 
+import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.modules.aspects.Aspect;
 import dev.amymialee.amymialib.modules.aspects.AspectCategory;
 import dev.amymialee.amymialib.modules.aspects.AspectLink;
@@ -20,7 +21,11 @@ import net.fabricmc.fabric.api.event.Event;
 import net.fabricmc.fabric.api.event.EventFactory;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentType;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Util;
@@ -37,11 +42,21 @@ import java.util.concurrent.CompletableFuture;
 @FunctionalInterface
 public interface DossierTranslations extends DossierLanyard {
     Event<TryTranslate> TRY_TRANSLATE = EventFactory.createArrayBacked(TryTranslate.class, (listeners) -> (lookup, builder, object, args) -> {
-        for (var event : listeners) if (event.translate(lookup, builder, object, args)) return true;
+        for (var event : listeners)
+            try {
+                if (event.translate(lookup, builder, object, args)) return true;
+            } catch (Exception e) {
+                AmyMialib.LOGGER.error("Error while translating {}", object, e);
+            }
         return false;
     });
     Event<TryTranslateKey> TRY_TRANSLATE_KEY = EventFactory.createArrayBacked(TryTranslateKey.class, (listeners) -> (lookup, builder, object, args) -> {
-        for (var event : listeners) event.translate(lookup, builder, object, args);
+        for (var event : listeners)
+            try {
+                event.translate(lookup, builder, object, args);
+            } catch (Exception e) {
+                AmyMialib.LOGGER.error("Error while translating {}", object, e);
+            }
     });
 
     void commitTranslations(Provider provider, HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder);
@@ -50,7 +65,7 @@ public interface DossierTranslations extends DossierLanyard {
     interface Ctx extends DossierTranslations {
         @Override
         default void commitTranslations(DossierTranslations.Provider provider, HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder) {
-            commitTranslations(provider);
+            this.commitTranslations(provider);
         }
 
         void commitTranslations(Provider ctx);
@@ -60,7 +75,7 @@ public interface DossierTranslations extends DossierLanyard {
     interface Builder extends DossierTranslations {
         @Override
         default void commitTranslations(DossierTranslations.Provider provider, HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder) {
-            commitTranslations(builder);
+            this.commitTranslations(builder);
         }
 
         void commitTranslations(FabricLanguageProvider.TranslationBuilder builder);
@@ -80,7 +95,7 @@ public interface DossierTranslations extends DossierLanyard {
 
         @Override
         public void generateTranslations(HolderLookup.@NonNull Provider lookup, @NonNull TranslationBuilder builder) {
-            AutoQueue.forEach(dossier.scribbler, this::runTranslate);
+            AutoQueue.forEach(this.dossier.scribbler, this::runTranslate);
             this.lookup = lookup;
             this.builder = builder;
             this.dossier.registryEach(p -> p.commitTranslations(this, lookup, builder), DossierTranslations.class);
@@ -90,20 +105,27 @@ public interface DossierTranslations extends DossierLanyard {
             AutoScanner.findAnnotations(packageName).getFieldsAnnotatedWith(Decipher.class).forEach(f -> {
                 try {
                     var field = f.get(null);
-                    for (var decipher : f.getAnnotationsByType(Decipher.class)) {
-                        dossier.scribbler.dossierData.add((DossierTranslations) (provider, lookup, builder) -> {
-                            var translateTarget = field;
-                            if (translateTarget instanceof Holder.Reference<?> holder) translateTarget = holder.value();
-                            if (TRY_TRANSLATE.invoker().translate(lookup, builder, translateTarget, decipher.value())) return;
-                            if (translateTarget instanceof AmyMialibTaggable taggable) {
-                                for (var tag : taggable.amy$tags()) builder.add(tag.getTranslationKey(), decipher.value()[0]);
-                                for (var key : taggable.amy$keys()) {
-                                    TRY_TRANSLATE_KEY.invoker().translate(lookup, builder, key, decipher.value());
+                    for (var decipher : f.getAnnotationsByType(Decipher.class)) this.dossier.scribbler.dossierData.add((DossierTranslations) (provider, lookup, builder) -> {
+                        var translateTarget = field;
+                        if (translateTarget instanceof Holder.Reference<?> holder) translateTarget = holder.value();
+                        if (DossierTranslations.TRY_TRANSLATE.invoker().translate(lookup, builder, translateTarget, decipher.value())) return;
+                        if (translateTarget instanceof AmyMialibTaggable taggable) {
+                            for (var tag : taggable.amy$tags())
+                                try {
+                                    builder.add(tag.getTranslationKey(), decipher.value()[0]);
+                                } catch (Exception e) {
+                                    AmyMialib.LOGGER.error("Error while translating tag {}", tag, e);
+                                }
+                            for (var key : taggable.amy$keys()) {
+                                DossierTranslations.TRY_TRANSLATE_KEY.invoker().translate(lookup, builder, key, decipher.value());
+                                try {
                                     builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), decipher.value()[0]);
+                                } catch (Exception e) {
+                                    AmyMialib.LOGGER.error("Error while translating resource key {}", key, e);
                                 }
                             }
-                        });
-                    }
+                        }
+                    });
                 } catch (Throwable t) {
                     var reason = "";
                     if (!f.accessFlags().contains(AccessFlag.STATIC)) {
@@ -111,21 +133,21 @@ public interface DossierTranslations extends DossierLanyard {
                     } else if (t instanceof RuntimeException runtimeException) {
                         throw runtimeException;
                     } else {
-                        dossier.scribbler.logger.error("Unable to translate field {}.{}, due to an unknown reason.", f.getDeclaringClass().getName(), f.getName());
+                        this.dossier.scribbler.logger.error("Unable to translate field {}.{}, due to an unknown reason.", f.getDeclaringClass().getName(), f.getName());
                         throw new RuntimeException(t);
                     }
-                    dossier.scribbler.logger.error(reason);
+                    this.dossier.scribbler.logger.error(reason);
                     throw new RuntimeException(reason, null, true, false) {};
                 }
             });
         }
 
         public HolderLookup.Provider lookup() {
-            return lookup;
+            return this.lookup;
         }
 
         public TranslationBuilder builder() {
-            return builder;
+            return this.builder;
         }
 
         @Override
@@ -225,6 +247,24 @@ public interface DossierTranslations extends DossierLanyard {
             if (object instanceof AspectLink aspect) {
                 builder.add(aspect.nameKey, args[0]);
                 builder.add(aspect.descriptionKey, args[1]);
+                return true;
+            }
+            return false;
+        });
+        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+            if (object instanceof DataComponentType type) {
+                var id = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type);
+                var key = BuiltInRegistries.DATA_COMPONENT_TYPE.get(id);
+                if (key.isPresent()) {
+                    TRY_TRANSLATE_KEY.invoker().translate(lookup, builder, key.get().key(), args);
+                    return true;
+                }
+            }
+            return false;
+        });
+        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+            if (object instanceof Component component && component.getContents() instanceof TranslatableContents translatable) {
+                builder.add(translatable.getKey(), args[0]);
                 return true;
             }
             return false;

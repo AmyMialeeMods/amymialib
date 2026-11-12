@@ -48,7 +48,7 @@ public class AspectLinkWidget implements Renderable {
         ConfirmLinkScreen.confirmLinkNow(this.screen, this.link.link);
     }
 
-    public void extractHover(final GuiGraphicsExtractor graphics, float delta) {
+    public void extractHover(GuiGraphicsExtractor graphics, float delta) {
         if (!this.description.isEmpty() && Language.getInstance().has(this.link.descriptionKey)) {
             AspectEditorScreen.border(graphics,
                     this.shape.x - 4 - this.totalWidth + 2,
@@ -74,7 +74,7 @@ public class AspectLinkWidget implements Renderable {
         this.extractRenderState(graphics, mouseX, mouseY, delta);
     }
 
-    private void extractMultilineText(final GuiGraphicsExtractor graphics, final List<FormattedCharSequence> lines, final int x, final int y, final int color) {
+    private void extractMultilineText(GuiGraphicsExtractor graphics, List<FormattedCharSequence> lines, int x, int y, int color) {
         for (var i = 0; i < lines.size(); i++) graphics.text(this.screen.getFont(), lines.get(i), x, y + i * 11, color);
     }
 
@@ -84,7 +84,7 @@ public class AspectLinkWidget implements Renderable {
         this.link.icon.renderIcon(graphics, this.link, this.shape.x + 2, this.shape.y + 2, mouseX, mouseY, this.screen.aspects.hoveredLink == this, delta);
     }
 
-    private List<FormattedText> findOptimalLines(final Component input, final int preferredWidth) {
+    private static List<FormattedText> findOptimalLines(Component input, int preferredWidth) {
         var splitter = Minecraft.getInstance().font.getSplitter();
         List<FormattedText> bestSplit = List.of(input);
         var bestDistance = Float.MAX_VALUE;
@@ -100,7 +100,7 @@ public class AspectLinkWidget implements Renderable {
         return bestSplit;
     }
 
-    private static float getMaxWidth(final StringSplitter splitter, final List<FormattedText> input) {
+    private static float getMaxWidth(StringSplitter splitter, List<FormattedText> input) {
         return (float) input.stream().mapToDouble(splitter::stringWidth).max().orElse(0.0);
     }
 

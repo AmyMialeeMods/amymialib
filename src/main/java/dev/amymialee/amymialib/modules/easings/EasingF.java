@@ -42,11 +42,11 @@ public enum EasingF {
     }
 
     public float ease(float x) {
-        return func.apply(x);
+        return this.func.apply(x);
     }
 
     public float interpolate(float delta, float start, float end) {
-        return start + func.apply(delta) * (end - start);
+        return start + this.func.apply(delta) * (end - start);
     }
 
     public static float easeLinear(float x) {

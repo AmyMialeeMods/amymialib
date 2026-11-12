@@ -20,7 +20,7 @@ public interface DossierLoot extends DossierLanyard {
     interface DossierCtxLoot extends DossierLoot {
         @Override
         default void commitLoot(Provider provider, BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer) {
-            commitLoot(provider);
+            this.commitLoot(provider);
         }
 
         void commitLoot(Provider ctx);
@@ -44,7 +44,7 @@ public interface DossierLoot extends DossierLanyard {
         }
 
         public BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer() {
-            return consumer;
+            return this.consumer;
         }
 
         @Override

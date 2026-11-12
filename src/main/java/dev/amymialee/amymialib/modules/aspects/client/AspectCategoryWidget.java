@@ -36,14 +36,14 @@ public class AspectCategoryWidget implements Renderable {
         var title = Language.getInstance().has(this.category.nameKey) ? category.name : Component.literal(category.id.getPath());
         this.titleLines = Minecraft.getInstance().font.split(title, 210);
         var titleWidth = Math.max(this.titleLines.stream().mapToInt(Minecraft.getInstance().font::width).max().orElse(0), 80);
-        this.description = new ArrayList<>(Language.getInstance().getVisualOrder(this.findOptimalLines(ComponentUtils.mergeStyles(category.description, Style.EMPTY), titleWidth)));
+        this.description = new ArrayList<>(Language.getInstance().getVisualOrder(AspectCategoryWidget.findOptimalLines(ComponentUtils.mergeStyles(category.description, Style.EMPTY), titleWidth)));
         if (!this.description.isEmpty()) this.description.removeLast();
         var longestDescLine = 29 + titleWidth;
         for (var line : this.description) longestDescLine = Math.max(longestDescLine, Minecraft.getInstance().font.width(line));
         this.descriptionWidth = longestDescLine + 8;
     }
 
-    public void extractHover(final GuiGraphicsExtractor graphics, float delta) {
+    public void extractHover(GuiGraphicsExtractor graphics, float delta) {
         graphics.pose().pushMatrix();
         graphics.pose().translate(0, this.screen.categoryScroll);
         var itemSize = 20;
@@ -63,7 +63,7 @@ public class AspectCategoryWidget implements Renderable {
         graphics.pose().popMatrix();
     }
 
-    private void extractMultilineText(final GuiGraphicsExtractor graphics, final List<FormattedCharSequence> lines, final int x, final int y, final int color) {
+    private void extractMultilineText(GuiGraphicsExtractor graphics, List<FormattedCharSequence> lines, int x, int y, int color) {
         for (var i = 0; i < lines.size(); i++) graphics.text(this.screen.getFont(), lines.get(i), x, y + i * 11, color);
     }
 
@@ -73,7 +73,7 @@ public class AspectCategoryWidget implements Renderable {
         this.category.icon.renderIcon(graphics, this.category, this.shape.x + 2, this.shape.y + 2, mouseX, mouseY, this.screen.aspects.isActive(this.category), delta);
     }
 
-    private List<FormattedText> findOptimalLines(final Component input, final int preferredWidth) {
+    private static List<FormattedText> findOptimalLines(Component input, int preferredWidth) {
         var splitter = Minecraft.getInstance().font.getSplitter();
         List<FormattedText> bestSplit = List.of(input);
         var bestDistance = Float.MAX_VALUE;
@@ -89,7 +89,7 @@ public class AspectCategoryWidget implements Renderable {
         return bestSplit;
     }
 
-    private static float getMaxWidth(final StringSplitter splitter, final List<FormattedText> input) {
+    private static float getMaxWidth(StringSplitter splitter, List<FormattedText> input) {
         return (float) input.stream().mapToDouble(splitter::stringWidth).max().orElse(0.0);
     }
 

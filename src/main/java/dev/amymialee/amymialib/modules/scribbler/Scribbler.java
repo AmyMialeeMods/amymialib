@@ -144,7 +144,7 @@ public class Scribbler {
      * @param icon Supplier for the icon of the tab
      */
     public Scribbler tab(Supplier<ItemStack> icon) {
-        return this.tab(Registry.registerForHolder(BuiltInRegistries.CREATIVE_MODE_TAB, id(this.namespace), FabricCreativeModeTab.builder().title(Component.translatable(id(this.namespace).toLanguageKey())).icon(icon).build()).key());
+        return this.tab(Registry.registerForHolder(BuiltInRegistries.CREATIVE_MODE_TAB, this.id(this.namespace), FabricCreativeModeTab.builder().title(Component.translatable(this.id(this.namespace).toLanguageKey())).icon(icon).build()).key());
     }
 
     /**
@@ -152,28 +152,28 @@ public class Scribbler {
      * @param access Access to the tab builder
      */
     public Scribbler tab(Function<CreativeModeTab.Builder, CreativeModeTab.Builder> access) {
-        return this.tab(Registry.registerForHolder(BuiltInRegistries.CREATIVE_MODE_TAB, id(this.namespace), access.apply(FabricCreativeModeTab.builder().title(Component.translatable(id(this.namespace).toLanguageKey("itemGroup")))).build()).key());
+        return this.tab(Registry.registerForHolder(BuiltInRegistries.CREATIVE_MODE_TAB, this.id(this.namespace), access.apply(FabricCreativeModeTab.builder().title(Component.translatable(this.id(this.namespace).toLanguageKey("itemGroup")))).build()).key());
     }
 
     /**
      * Registers a tag.
      */
     public <T> TagKey<T> tag(ResourceKey<Registry<T>> reg, String path) {
-        return TagKey.create(reg, id(path));
+        return TagKey.create(reg, this.id(path));
     }
 
     /**
      * Creates a resource key.
      */
     public <T> ResourceKey<T> key(ResourceKey<? extends Registry<T>> reg, String path) {
-        return ResourceKey.create(reg, id(path));
+        return ResourceKey.create(reg, this.id(path));
     }
 
     /**
      * Registers a variable range sound event.
      */
     public Holder.Reference<SoundEvent> of(String path) {
-        var id = id(path);
+        var id = this.id(path);
         return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, ResourceKey.create(Registries.SOUND_EVENT, id), SoundEvent.createVariableRangeEvent(id));
     }
 
@@ -181,7 +181,7 @@ public class Scribbler {
      * Registers a fixed range sound event.
      */
     public Holder.Reference<SoundEvent> of(String path, float range) {
-        var id = id(path);
+        var id = this.id(path);
         return Registry.registerForHolder(BuiltInRegistries.SOUND_EVENT, ResourceKey.create(Registries.SOUND_EVENT, id), SoundEvent.createFixedRangeEvent(id, range));
     }
 
@@ -203,21 +203,21 @@ public class Scribbler {
      * Registers a block.
      */
     public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties) {
-        return of(path, func, properties, new Item.Properties());
+        return this.of(path, func, properties, new Item.Properties());
     }
 
     /**
      * Registers a block.
      */
     public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties, Item.Properties itemProperties) {
-        return of(path, func, properties, BlockItem::new, new Item.Properties());
+        return this.of(path, func, properties, BlockItem::new, new Item.Properties());
     }
 
     /**
      * Registers a block.
      */
     public Block of(String path, Function<BlockBehaviour.Properties, Block> func, BlockBehaviour.Properties properties, BiFunction<Block, Item.Properties, BlockItem> itemFactory, Item.Properties itemProperties) {
-        var key = key(Registries.BLOCK, path);
+        var key = this.key(Registries.BLOCK, path);
         var block = Registry.register(BuiltInRegistries.BLOCK, key, func.apply(properties.setId(key)));
         if (itemProperties != null) this.of(path, p -> itemFactory.apply(block, p), itemProperties.useBlockDescriptionPrefix());
         return block;
@@ -234,9 +234,9 @@ public class Scribbler {
      * Registers an item.
      */
     public Item of(String path, Function<Item.Properties, Item> func, Item.Properties properties) {
-        var key = key(Registries.ITEM, path);
+        var key = this.key(Registries.ITEM, path);
         var item = Registry.register(BuiltInRegistries.ITEM, key, func.apply(properties.setId(key)));
-        if (creativeTab != null) CreativeModeTabEvents.modifyOutputEvent(creativeTab).register(output -> output.accept(item));
+        if (this.creativeTab != null) CreativeModeTabEvents.modifyOutputEvent(this.creativeTab).register(output -> output.accept(item));
         return item;
     }
 
@@ -244,7 +244,7 @@ public class Scribbler {
      * Registers an entity type.
      */
     public <T extends Entity> EntityType<T> of(String path, EntityType.Builder<T> builder) {
-        var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
+        var key = ResourceKey.create(Registries.ENTITY_TYPE, this.id(path));
         return Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
     }
 
@@ -252,21 +252,21 @@ public class Scribbler {
      * Registers an entity type with attributes and spawn egg.
      */
     public <T extends Entity> EntityType<T> of(String path, EntityType.Builder<T> builder, AttributeSupplier.Builder attributes) {
-        return of(path, builder, attributes, new Item.Properties());
+        return this.of(path, builder, attributes, new Item.Properties());
     }
 
     /**
      * Registers an entity type with attributes and spawn egg.
      */
     public @SuppressWarnings("unchecked") <T extends Entity> EntityType<T> of(String path, EntityType.Builder<T> builder, AttributeSupplier.Builder attributes, Item.Properties properties) {
-        var key = ResourceKey.create(Registries.ENTITY_TYPE, id(path));
+        var key = ResourceKey.create(Registries.ENTITY_TYPE, this.id(path));
         var entity = Registry.register(BuiltInRegistries.ENTITY_TYPE, key, builder.build(key));
         try {
             FabricDefaultAttributeRegistry.register((EntityType<? extends LivingEntity>) entity, attributes);
         } catch (ClassCastException _) {
-            logger.error("Tried to register entity attributes to a non-living entity {}", key);
+            this.logger.error("Tried to register entity attributes to a non-living entity {}", key);
         }
-        of("%s_%s".formatted(key.identifier().getPath(), "spawn_egg"), SpawnEggItem::new, properties.spawnEgg(entity));
+        this.of("%s_%s".formatted(key.identifier().getPath(), "spawn_egg"), SpawnEggItem::new, properties.spawnEgg(entity));
         return entity;
     }
 
@@ -274,40 +274,40 @@ public class Scribbler {
      * Registers a simple banner pattern.
      */
     public BannerHelper bannerPattern(String path, Item.Properties properties) {
-        var patternTag = tag(Registries.BANNER_PATTERN, "pattern_item/%s".formatted(path));
-        var patternKey = key(Registries.BANNER_PATTERN, path);
+        var patternTag = this.tag(Registries.BANNER_PATTERN, "pattern_item/%s".formatted(path));
+        var patternKey = this.key(Registries.BANNER_PATTERN, path);
         var itemPath = "%s_banner_pattern".formatted(path);
         this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<BannerPattern>) entries.getLookup(patternKey.registryKey()), patternKey));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.BANNER_PATTERN, registerable -> registerable.register(patternKey, new BannerPattern(patternKey.identifier(), "block.%s.banner.%s".formatted(patternKey.identifier().getNamespace(), patternKey.identifier().getPath())))));
         this.dossierData.add((DossierTags) (provider) -> {
             provider.tag(patternTag, patternKey);
-            provider.tag(ItemTags.LOOM_PATTERNS, ResourceKey.create(Registries.ITEM, id(itemPath)));
+            provider.tag(ItemTags.LOOM_PATTERNS, ResourceKey.create(Registries.ITEM, this.id(itemPath)));
         });
-        return new BannerHelper(of(itemPath, properties.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(patternTag)).stacksTo(1)), patternTag, patternKey);
+        return new BannerHelper(this.of(itemPath, properties.delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(patternTag)).stacksTo(1)), patternTag, patternKey);
     }
 
     /**
      * Registers a simple music disc.
      */
     public DiscHelper musicDisc(String path, int lengthInSeconds, int comparatorOutput, Item.Properties settings) {
-        var songKey = key(Registries.JUKEBOX_SONG, path);
-        var song = of(path);
+        var songKey = this.key(Registries.JUKEBOX_SONG, path);
+        var song = this.of(path);
         var itemPath = "music_disc_%s".formatted(path);
-        var key = ResourceKey.create(Registries.ITEM, id(itemPath));
+        var key = ResourceKey.create(Registries.ITEM, this.id(itemPath));
         this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<JukeboxSong>) entries.getLookup(songKey.registryKey()), songKey));
         this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.JUKEBOX_SONG, registerable -> registerable.register(songKey, new JukeboxSong(song, Component.translatable(Util.makeDescriptionId("jukebox_song", songKey.identifier())), lengthInSeconds, comparatorOutput))));
-        return new DiscHelper(of(itemPath, settings.stacksTo(1).jukeboxPlayable(songKey)), songKey, song, lengthInSeconds, comparatorOutput);
+        return new DiscHelper(this.of(itemPath, settings.stacksTo(1).jukeboxPlayable(songKey)), songKey, song, lengthInSeconds, comparatorOutput);
     }
 
     /**
      * Registers a trim material.
      */
     public ResourceKey<TrimMaterial> trimMaterial(String path, Consumer<MutableComponent> description) {
-        var key = key(Registries.TRIM_MATERIAL, path);
+        var key = this.key(Registries.TRIM_MATERIAL, path);
         var translation = Component.translatable(Util.makeDescriptionId(key.registry().getPath(), key.identifier()));
         description.accept(translation);
         this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<TrimMaterial>) entries.getLookup(key.registryKey()), key));
-        this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.TRIM_MATERIAL, registerable -> registerable.register(key, new TrimMaterial(id("trim/" + path), translation))));
+        this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.TRIM_MATERIAL, registerable -> registerable.register(key, new TrimMaterial(this.id("trim/" + path), translation))));
         return key;
     }
 
@@ -315,9 +315,9 @@ public class Scribbler {
      * Registers a trim pattern.
      */
     public Item trimPattern(String path, Item.Properties properties, Consumer<MutableComponent> description, boolean decal) {
-        var itemKey = ResourceKey.create(Registries.ITEM, id(path + "_armor_trim"));
-        var item = of(path + "_armor_trim", SmithingTemplateItem::createArmorTrimTemplate, properties);
-        var key = key(Registries.TRIM_PATTERN, path);
+        var itemKey = ResourceKey.create(Registries.ITEM, this.id(path + "_armor_trim"));
+        var item = this.of(path + "_armor_trim", SmithingTemplateItem::createArmorTrimTemplate, properties);
+        var key = this.key(Registries.TRIM_PATTERN, path);
         var translation = Component.translatable(Util.makeDescriptionId(key.registry().getPath(), key.identifier()));
         description.accept(translation);
         this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<TrimPattern>) entries.getLookup(key.registryKey()), key));
@@ -332,9 +332,9 @@ public class Scribbler {
      */
     public MaterialHelper material(String path, TagKey<Block> incorrectBlocksForDrops, int toolDurability, float speed, float damageBonus, int enchantValue,
             int armorDurabilityMultiplier, int bootDefence, int legDefence, int chestDefence, int helmDefence, int bodyDefence, Holder<SoundEvent> equipSound, float toughness, float knockbackResistance) {
-        var materials = tag(Registries.ITEM, "%s_materials".formatted(path));
+        var materials = this.tag(Registries.ITEM, "%s_materials".formatted(path));
         var tool = new ToolMaterial(incorrectBlocksForDrops, toolDurability, speed, damageBonus, enchantValue, materials);
-        var armor = new ArmorMaterial(armorDurabilityMultiplier, ArmorMaterials.makeDefense(bootDefence, legDefence, chestDefence, helmDefence, bodyDefence), enchantValue, equipSound, toughness, knockbackResistance, materials, key(EquipmentAssets.ROOT_ID, path));
+        var armor = new ArmorMaterial(armorDurabilityMultiplier, ArmorMaterials.makeDefense(bootDefence, legDefence, chestDefence, helmDefence, bodyDefence), enchantValue, equipSound, toughness, knockbackResistance, materials, this.key(EquipmentAssets.ROOT_ID, path));
         return new MaterialHelper(materials, tool, armor);
     }
 
@@ -349,14 +349,14 @@ public class Scribbler {
      * Creates a simple block set.
      */
     public BlockBatch batch(String path, BlockBehaviour.Properties properties) {
-        return new BlockBatch(this, of(path, properties));
+        return new BlockBatch(this, this.of(path, properties));
     }
 
     /**
      * Creates a block set.
      */
     public BlockBatch batch(String path, Function<BlockBehaviour.Properties, Block> function, BlockBehaviour.Properties properties) {
-        return new BlockBatch(this, of(path, function, properties));
+        return new BlockBatch(this, this.of(path, function, properties));
     }
 
     /**
@@ -367,7 +367,7 @@ public class Scribbler {
         for (var entry : AUTO_REGISTRIES.entrySet()) {
             if (!entry.getKey().isInstance(thing)) continue;
             var registry = (Registry<T>) entry.getValue();
-            return Registry.register(registry, ResourceKey.create(registry.key(), id(path)), thing);
+            return Registry.register(registry, ResourceKey.create(registry.key(), this.id(path)), thing);
         }
         throw new IllegalStateException("Failed to register %s with the %s scribbler - no AUTO_REGISTRIES matched %s.".formatted(path, this.modName, thing.getClass().getName()));
     }
@@ -376,7 +376,7 @@ public class Scribbler {
      * Plain registration.
      */
     public <T> T of(String path, Registry<T> registry, T thing) {
-        return Registry.register(registry, ResourceKey.create(registry.key(), id(path)), thing);
+        return Registry.register(registry, ResourceKey.create(registry.key(), this.id(path)), thing);
     }
 
     /**
@@ -407,19 +407,19 @@ public class Scribbler {
     }
 
     public AspectLink.AspectLinkBuilder link(String path, String link) {
-        return AspectLink.of(id(path), link);
+        return AspectLink.of(this.id(path), link);
     }
 
     public AspectCategory.AspectCategoryBuilder category(String path) {
-        return AspectCategory.of(id(path));
+        return AspectCategory.of(this.id(path));
     }
 
     public <T> Aspect.AspectBuilder<T> config(String path, T defaultValue, AspectType<T> type) {
-        return Aspect.config(defaultValue, id(path), type);
+        return Aspect.config(defaultValue, this.id(path), type);
     }
 
     public <T> Aspect.AspectBuilder<T> client(String path, T defaultValue, AspectType<T> type) {
-        return Aspect.client(defaultValue, id(path), type);
+        return Aspect.client(defaultValue, this.id(path), type);
     }
 
     /**

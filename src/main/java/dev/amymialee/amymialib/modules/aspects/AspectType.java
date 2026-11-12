@@ -68,9 +68,9 @@ public class AspectType<T> {
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> dispatcher.register(Commands.literal("aspect").requires(s -> s.permissions().hasPermission(aspect.permission))
                 .then(Commands.literal(aspect.id.getNamespace())
                         .then(Commands.literal(aspect.id.getPath())
-                                .then(Commands.argument("value", argumentType)
+                                .then(Commands.argument("value", this.argumentType)
                                         .executes(ctx -> {
-                                            var value = validator.apply(argumentExtractor.apply(ctx, "value"));
+                                            var value = this.validator.apply(this.argumentExtractor.apply(ctx, "value"));
                                             if (value == null) {
                                                 ctx.getSource().sendFailure(Component.translatable(COMMAND_FAIL, aspect.name));
                                                 return 0;
@@ -90,9 +90,9 @@ public class AspectType<T> {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, access) -> dispatcher.register(ClientCommands.literal("aspect").requires(s -> s.permissions().hasPermission(aspect.permission))
                 .then(ClientCommands.literal(aspect.id.getNamespace())
                         .then(ClientCommands.literal(aspect.id.getPath())
-                                .then(ClientCommands.argument("value", argumentType)
+                                .then(ClientCommands.argument("value", this.argumentType)
                                         .executes(ctx -> {
-                                            var value = validator.apply(argumentExtractor.apply(ctx, "value"));
+                                            var value = this.validator.apply(this.argumentExtractor.apply(ctx, "value"));
                                             if (value == null) {
                                                 ctx.getSource().sendError(Component.translatable(COMMAND_FAIL, aspect.name));
                                                 return 0;

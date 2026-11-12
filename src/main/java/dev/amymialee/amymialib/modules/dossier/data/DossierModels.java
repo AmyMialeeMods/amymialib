@@ -61,21 +61,21 @@ public interface DossierModels {
         }
 
         public TextureMapping getMapping(Block block) {
-            return TEXTURED_MODELS.getOrDefault(block, TexturedModel.CUBE.get(block)).getMapping();
+            return this.TEXTURED_MODELS.getOrDefault(block, TexturedModel.CUBE.get(block)).getMapping();
         }
 
         public void generateBatch(BlockBatch batch) {
             var base = batch.get();
-            Optional.ofNullable(batch.get(BlockBatch.Variant.BLOCK)).filter(this::isOurs).ifPresent(blocks::createTrivialCube);
-            Optional.ofNullable(batch.get(BlockBatch.Variant.STAIRS)).filter(this::isOurs).ifPresent(b -> stairs(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.SLAB)).filter(this::isOurs).ifPresent(b -> slab(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.CARPET)).filter(this::isOurs).ifPresent(b -> carpet(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.WALL)).filter(this::isOurs).ifPresent(b -> wall(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.PANE)).filter(this::isOurs).ifPresent(b -> pane(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE)).filter(this::isOurs).ifPresent(b -> fence(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE_GATE)).filter(this::isOurs).ifPresent(b -> fenceGate(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.PRESSURE_PLATE)).filter(this::isOurs).ifPresent(b -> pressurePlate(b, base));
-            Optional.ofNullable(batch.get(BlockBatch.Variant.BUTTON)).filter(this::isOurs).ifPresent(b -> button(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.BLOCK)).filter(this::isOurs).ifPresent(this.blocks::createTrivialCube);
+            Optional.ofNullable(batch.get(BlockBatch.Variant.STAIRS)).filter(this::isOurs).ifPresent(b -> this.stairs(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.SLAB)).filter(this::isOurs).ifPresent(b -> this.slab(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.CARPET)).filter(this::isOurs).ifPresent(b -> this.carpet(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.WALL)).filter(this::isOurs).ifPresent(b -> this.wall(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.PANE)).filter(this::isOurs).ifPresent(b -> this.pane(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE)).filter(this::isOurs).ifPresent(b -> this.fence(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.FENCE_GATE)).filter(this::isOurs).ifPresent(b -> this.fenceGate(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.PRESSURE_PLATE)).filter(this::isOurs).ifPresent(b -> this.pressurePlate(b, base));
+            Optional.ofNullable(batch.get(BlockBatch.Variant.BUTTON)).filter(this::isOurs).ifPresent(b -> this.button(b, base));
         }
 
         public void grass(Block grassy, Block base) {
@@ -104,23 +104,23 @@ public interface DossierModels {
         }
 
         public void stairs(Block stairs, Block base) {
-            var inner = BlockModelGenerators.plainVariant(ModelTemplates.STAIRS_INNER.create(stairs, getMapping(base), this.blocks.modelOutput));
-            var straight = ModelTemplates.STAIRS_STRAIGHT.create(stairs, getMapping(base), this.blocks.modelOutput);
-            var outer = BlockModelGenerators.plainVariant(ModelTemplates.STAIRS_OUTER.create(stairs, getMapping(base), this.blocks.modelOutput));
+            var inner = BlockModelGenerators.plainVariant(ModelTemplates.STAIRS_INNER.create(stairs, this.getMapping(base), this.blocks.modelOutput));
+            var straight = ModelTemplates.STAIRS_STRAIGHT.create(stairs, this.getMapping(base), this.blocks.modelOutput);
+            var outer = BlockModelGenerators.plainVariant(ModelTemplates.STAIRS_OUTER.create(stairs, this.getMapping(base), this.blocks.modelOutput));
             this.blocks.blockStateOutput.accept(BlockModelGenerators.createStairs(stairs, inner, BlockModelGenerators.plainVariant(straight), outer));
             this.blocks.registerSimpleItemModel(stairs, straight);
         }
 
         public void slab(Block slab, Block base) {
             var fullBlockModel = BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(base));
-            var bottom = ModelTemplates.SLAB_BOTTOM.create(slab, getMapping(base), this.blocks.modelOutput);
-            var top = BlockModelGenerators.plainVariant(ModelTemplates.SLAB_TOP.create(slab, getMapping(base), this.blocks.modelOutput));
+            var bottom = ModelTemplates.SLAB_BOTTOM.create(slab, this.getMapping(base), this.blocks.modelOutput);
+            var top = BlockModelGenerators.plainVariant(ModelTemplates.SLAB_TOP.create(slab, this.getMapping(base), this.blocks.modelOutput));
             this.blocks.blockStateOutput.accept(BlockModelGenerators.createSlab(slab, BlockModelGenerators.plainVariant(bottom), top, fullBlockModel));
             this.blocks.registerSimpleItemModel(slab, bottom);
         }
 
         public void carpet(Block carpet, Block base) {
-            var mapping = getMapping(base);
+            var mapping = this.getMapping(base);
             var carpetMapping = new TextureMapping().put(TextureSlot.WOOL, mapping.get(TextureSlot.ALL));
             var model = ModelTemplates.CARPET.create(carpet, carpetMapping, this.blocks.modelOutput);
             this.blocks.blockStateOutput.accept(BlockModelGenerators.createSimpleBlock(carpet, BlockModelGenerators.plainVariant(model)));
@@ -128,7 +128,7 @@ public interface DossierModels {
         }
 
         public void wall(Block wall, Block base) {
-            var mapping = getMapping(base);
+            var mapping = this.getMapping(base);
             var post = BlockModelGenerators.plainVariant(ModelTemplates.WALL_POST.create(wall, mapping, this.blocks.modelOutput));
             var low = BlockModelGenerators.plainVariant(ModelTemplates.WALL_LOW_SIDE.create(wall, mapping, this.blocks.modelOutput));
             var high = BlockModelGenerators.plainVariant(ModelTemplates.WALL_TALL_SIDE.create(wall, mapping, this.blocks.modelOutput));
@@ -138,14 +138,14 @@ public interface DossierModels {
         }
 
         public void pane(Block pane, Block base) {
-            var mapping = getMapping(base);
+            var mapping = this.getMapping(base);
             var textures = new TextureMapping().put(TextureSlot.BARS, mapping.get(TextureSlot.ALL)).put(TextureSlot.EDGE, mapping.get(TextureSlot.ALL));
             this.blocks.createBars(pane, ModelTemplates.BARS_POST_ENDS.create(pane, textures, this.blocks.modelOutput), ModelTemplates.BARS_POST.create(pane, textures, this.blocks.modelOutput), ModelTemplates.BARS_CAP.create(pane, textures, this.blocks.modelOutput), ModelTemplates.BARS_CAP_ALT.create(pane, textures, this.blocks.modelOutput), ModelTemplates.BARS_POST_SIDE.create(pane, textures, this.blocks.modelOutput), ModelTemplates.BARS_POST_SIDE_ALT.create(pane, textures, this.blocks.modelOutput));
             this.blocks.registerSimpleFlatItemModel(pane);
         }
 
         public void fence(Block fence, Block base) {
-            var mapping = getMapping(base);
+            var mapping = this.getMapping(base);
             var post = BlockModelGenerators.plainVariant(ModelTemplates.FENCE_POST.create(fence, mapping, this.blocks.modelOutput));
             var side = BlockModelGenerators.plainVariant(ModelTemplates.FENCE_SIDE.create(fence, mapping, this.blocks.modelOutput));
             this.blocks.blockStateOutput.accept(BlockModelGenerators.createFence(fence, post, side));
@@ -154,7 +154,7 @@ public interface DossierModels {
         }
 
         public void fenceGate(Block fenceGate, Block base) {
-            var mapping = getMapping(base);
+            var mapping = this.getMapping(base);
             var open = BlockModelGenerators.plainVariant(ModelTemplates.FENCE_GATE_OPEN.create(fenceGate, mapping, this.blocks.modelOutput));
             var closed = BlockModelGenerators.plainVariant(ModelTemplates.FENCE_GATE_CLOSED.create(fenceGate, mapping, this.blocks.modelOutput));
             var openWall = BlockModelGenerators.plainVariant(ModelTemplates.FENCE_GATE_WALL_OPEN.create(fenceGate, mapping, this.blocks.modelOutput));
@@ -163,14 +163,14 @@ public interface DossierModels {
         }
 
         public void pressurePlate(Block pressurePlate, Block base) {
-            var mapping = getMapping(base);
+            var mapping = this.getMapping(base);
             var off = BlockModelGenerators.plainVariant(ModelTemplates.PRESSURE_PLATE_UP.create(pressurePlate, mapping, this.blocks.modelOutput));
             var on = BlockModelGenerators.plainVariant(ModelTemplates.PRESSURE_PLATE_DOWN.create(pressurePlate, mapping, this.blocks.modelOutput));
             this.blocks.blockStateOutput.accept(BlockModelGenerators.createPressurePlate(pressurePlate, off, on));
         }
 
         public void button(Block button, Block base) {
-            var mapping = getMapping(base);
+            var mapping = this.getMapping(base);
             var normal = BlockModelGenerators.plainVariant(ModelTemplates.BUTTON.create(button, mapping, this.blocks.modelOutput));
             var pressed = BlockModelGenerators.plainVariant(ModelTemplates.BUTTON_PRESSED.create(button, mapping, this.blocks.modelOutput));
             this.blocks.blockStateOutput.accept(BlockModelGenerators.createButton(button, normal, pressed));

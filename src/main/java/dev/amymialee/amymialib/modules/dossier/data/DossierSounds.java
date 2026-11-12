@@ -17,7 +17,7 @@ public interface DossierSounds extends DossierLanyard {
     interface DossierCtxSounds extends DossierSounds {
         @Override
         default void commitSounds(Provider provider, HolderLookup.Provider lookup, FabricSoundsProvider.SoundExporter exporter) {
-            commitSounds(provider);
+            this.commitSounds(provider);
         }
 
         void commitSounds(Provider ctx);
@@ -43,11 +43,11 @@ public interface DossierSounds extends DossierLanyard {
         }
 
         public HolderLookup.Provider lookup() {
-            return lookup;
+            return this.lookup;
         }
 
         public SoundExporter exporter() {
-            return exporter;
+            return this.exporter;
         }
 
         @Override

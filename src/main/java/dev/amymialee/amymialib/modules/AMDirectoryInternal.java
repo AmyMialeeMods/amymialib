@@ -32,9 +32,9 @@ public interface AMDirectoryInternal {
         private final Path path;
 
         public MDirImpl() {
-            if (AMYMIALIB_DIRECTORY_OVERRIDE != null) {
-                AmyMialib.LOGGER.info("amymialib directory overridden, setting to {}", AMYMIALIB_DIRECTORY_OVERRIDE);
-                this.path = Paths.get(AMYMIALIB_DIRECTORY_OVERRIDE);
+            if (AMDirectoryInternal.AMYMIALIB_DIRECTORY_OVERRIDE != null) {
+                AmyMialib.LOGGER.info("amymialib directory overridden, setting to {}", AMDirectoryInternal.AMYMIALIB_DIRECTORY_OVERRIDE);
+                this.path = Paths.get(AMDirectoryInternal.AMYMIALIB_DIRECTORY_OVERRIDE);
                 return;
             }
             var userHome = System.getProperty("user.home");

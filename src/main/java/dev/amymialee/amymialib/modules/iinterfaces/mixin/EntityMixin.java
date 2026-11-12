@@ -20,9 +20,7 @@ public class EntityMixin implements AmyMialibTrackable {
         var self = (Entity) (Object) this;
         if (!this.level.isClientSide()) {
             var trackers = new ArrayDeque<>(PlayerLookup.tracking(self));
-            if (self instanceof ServerPlayer player && player.connection != null) {
-                trackers.addFirst(player);
-            }
+            if (self instanceof ServerPlayer player && player.connection != null) trackers.addFirst(player);
             var excluded = List.of(except);
             trackers.removeIf(excluded::contains);
             return trackers;

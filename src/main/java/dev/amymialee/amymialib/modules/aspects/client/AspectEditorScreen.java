@@ -53,7 +53,7 @@ public class AspectEditorScreen extends Screen {
     public Dragging dragging = Dragging.NONE;
     public @Nullable AspectWidget dragTarget = null;
 
-    public AspectEditorScreen(final @Nullable Screen lastScreen) {
+    public AspectEditorScreen(@Nullable Screen lastScreen) {
         super(ASPECTS_SCREEN);
         this.lastScreen = lastScreen;
         this.done = Button.builder(CommonComponents.GUI_DONE, _ -> this.rebuildWidgets()).size(80, 20).build();
@@ -117,40 +117,35 @@ public class AspectEditorScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(final MouseButtonEvent event, final boolean doubleClick) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         if (event.button() == 0 || event.button() == 1) {
             var x = event.x();
             var y = event.y();
-            if (this.categoryInner.contains(x, y)) {
-                for (var i = 0; i < this.categories.renderables.size(); i++) {
-                    if (this.categories.renderables.get(i) instanceof AspectCategoryWidget widget && widget.contains(x, y)) {
-                        this.aspects.category = widget.category;
-                        AbstractWidget.playButtonClickSound(Minecraft.getInstance().getSoundManager());
-                        this.init();
-                        break;
-                    }
+            if (this.categoryInner.contains(x, y)) for (var i = 0; i < this.categories.renderables.size(); i++)
+                if (this.categories.renderables.get(i) instanceof AspectCategoryWidget widget && widget.contains(x, y)) {
+                    this.aspects.category = widget.category;
+                    AbstractWidget.playButtonClickSound(Minecraft.getInstance().getSoundManager());
+                    this.init();
+                    break;
                 }
-            }
-            if (this.aspectInner.contains(x, y)) for (var renderable : this.aspects.renderables) {
+            if (this.aspectInner.contains(x, y)) for (var renderable : this.aspects.renderables)
                 if (renderable instanceof AspectWidget widget && widget.contains(x, y)) {
                     AbstractWidget.playButtonClickSound(Minecraft.getInstance().getSoundManager());
                     widget.mouseClicked(event, x, y);
                     break;
                 }
-            }
-            if (this.aspectOuter.contains(x, y)) for (var renderable : this.aspects.renderablesHeader) {
+            if (this.aspectOuter.contains(x, y)) for (var renderable : this.aspects.renderablesHeader)
                 if (renderable instanceof AspectLinkWidget widget && widget.contains(x, y)) {
                     AbstractWidget.playButtonClickSound(Minecraft.getInstance().getSoundManager());
                     widget.mouseClicked(event, x, y);
                     break;
                 }
-            }
         }
         return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public void extractRenderState(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, final float delta) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         this.categoryScroll = (float) Mth.clamp(this.categoryScroll + this.categoryVelocity, -this.getMaxCategoryScroll(), 0);
         this.categoryVelocity *= .96f;
         this.aspectScroll = (float) Mth.clamp(this.aspectScroll + this.aspectVelocity, -this.getMaxAspectScroll(), 0);
@@ -187,7 +182,7 @@ public class AspectEditorScreen extends Screen {
         this.aspects.tickHovered(mouseX, mouseY);
     }
 
-    private void drag(final Dragging dragging, final double scrollY) {
+    private void drag(Dragging dragging, double scrollY) {
         switch (dragging) {
             case CATEGORIES -> this.categoryScroll = (float) Mth.clamp(this.categoryScroll + scrollY, -this.getMaxCategoryScroll(), 0);
             case ASPECTS -> this.aspectScroll = (float) Mth.clamp(this.aspectScroll + scrollY, -this.getMaxAspectScroll(), 0);
@@ -195,7 +190,7 @@ public class AspectEditorScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(final double x, final double y, final double scrollX, final double scrollY) {
+    public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
         var dragging = Dragging.NONE;
         if (this.categoryOuter.contains(x, y)) {
             dragging = Dragging.CATEGORIES;
@@ -213,7 +208,7 @@ public class AspectEditorScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(final MouseButtonEvent event, final double dx, final double dy) {
+    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
         if (event.button() != 0) return false;
         var mouseX = this.minecraft.mouseHandler.getScaledXPos(this.minecraft.getWindow());
         var mouseY = this.minecraft.mouseHandler.getScaledYPos(this.minecraft.getWindow());
@@ -246,7 +241,7 @@ public class AspectEditorScreen extends Screen {
     }
 
     @Override
-    public boolean mouseReleased(final MouseButtonEvent event) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         this.dragging = Dragging.NONE;
         return super.mouseReleased(event);
     }

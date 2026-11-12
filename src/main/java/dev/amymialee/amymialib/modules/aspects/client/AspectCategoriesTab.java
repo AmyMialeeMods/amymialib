@@ -77,7 +77,7 @@ public class AspectCategoriesTab {
         }
     }
 
-    public void extractCategories(final GuiGraphicsExtractor graphics, final int mouseX, final int mouseY, float delta) {
+    public void extractCategories(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         graphics.blitSprite(RenderPipelines.GUI_TEXTURED, AspectEditorScreen.FILL, this.screen.categoryOuter.x, this.screen.categoryOuter.y, this.screen.categoryOuter.width + 8, this.screen.categoryOuter.height);
         graphics.enableScissor(this.screen.categoryOuter.x, this.screen.categoryOuter.y, this.screen.categoryOuter.x + this.screen.categoryOuter.width, this.screen.categoryOuter.y + this.screen.categoryOuter.height);
         graphics.pose().pushMatrix();

@@ -42,11 +42,11 @@ public enum EasingD {
     }
     
     public double ease(double x) {
-        return func.apply(x);
+        return this.func.apply(x);
     }
 
     public double interpolate(double delta, double start, double end) {
-        return start + func.apply(delta) * (end - start);
+        return start + this.func.apply(delta) * (end - start);
     }
 
     public static double easeLinear(double x) {

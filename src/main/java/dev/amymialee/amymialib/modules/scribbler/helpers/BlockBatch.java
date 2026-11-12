@@ -175,13 +175,13 @@ public class BlockBatch implements AmyMialibTaggable {
 
     public BlockBatch addStairs() {
         this.add(Variant.STAIRS, p -> new StairBlock(this.get().defaultBlockState(), p));
-        scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.STAIRS, this.get(Variant.STAIRS)));
+        this.scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.STAIRS, this.get(Variant.STAIRS)));
         return this;
     }
 
     public BlockBatch addSlab() {
         this.add(Variant.SLAB, SlabBlock::new);
-        scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.SLABS, this.get(Variant.SLAB)));
+        this.scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.SLABS, this.get(Variant.SLAB)));
         return this;
     }
 
@@ -191,7 +191,7 @@ public class BlockBatch implements AmyMialibTaggable {
 
     public BlockBatch addWall() {
         this.add(Variant.WALL, WallBlock::new, BlockBehaviour.Properties::forceSolidOn);
-        scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.WALLS, this.get(Variant.WALL)));
+        this.scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.WALLS, this.get(Variant.WALL)));
         return this;
     }
 
@@ -213,7 +213,7 @@ public class BlockBatch implements AmyMialibTaggable {
 
     public BlockBatch addButton(BlockSetType type, int ticksToStayPressed) {
         this.add(Variant.BUTTON, p -> new ButtonBlock(type, ticksToStayPressed, p), p -> p.noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
-        scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.BUTTONS, this.get(Variant.BUTTON)));
+        this.scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.BUTTONS, this.get(Variant.BUTTON)));
         return this;
     }
 
@@ -262,7 +262,7 @@ public class BlockBatch implements AmyMialibTaggable {
 
     @ApiStatus.Internal
     public BlockBatch add(Variant var, Function<BlockBehaviour.Properties, Block> function, Function<BlockBehaviour.Properties, BlockBehaviour.Properties> settings) {
-        if (!this.blocks.containsKey(var)) this.blocks.put(var, scribbler.of("%s_%s".formatted(this.blocks.get(Variant.BLOCK).builtInRegistryHolder().key().identifier().getPath(), var.name().toLowerCase(Locale.ROOT)), function, settings.apply(BlockBehaviour.Properties.ofFullCopy(this.get()))));
+        if (!this.blocks.containsKey(var)) this.blocks.put(var, this.scribbler.of("%s_%s".formatted(this.blocks.get(Variant.BLOCK).builtInRegistryHolder().key().identifier().getPath(), var.name().toLowerCase(Locale.ROOT)), function, settings.apply(BlockBehaviour.Properties.ofFullCopy(this.get()))));
         return this;
     }
 

@@ -36,17 +36,17 @@ public interface DossierTags extends DossierLanyard {
 
         public void tags(AmyMialibTaglike object, AmyMialibTaglike... tags) {
             var success = this.tag(Arrays.asList(tags), List.of(object));
-            if (!success) dossier.scribbler.logger.error("Failed to tag tag {} with tags {}", object, Arrays.toString(tags));
+            if (!success) this.dossier.scribbler.logger.error("Failed to tag tag {} with tags {}", object, Arrays.toString(tags));
         }
 
         public void tag(AmyMialibTaggable object, AmyMialibTaglike... tags) {
             var success = this.tag(Arrays.asList(tags), List.of(object));
-            if (!success) dossier.scribbler.logger.error("Failed to tag object {} with tags {}", object, Arrays.toString(tags));
+            if (!success) this.dossier.scribbler.logger.error("Failed to tag object {} with tags {}", object, Arrays.toString(tags));
         }
 
         public void tag(AmyMialibTaglike tag, AmyMialibTaggable... objects) {
             var success = this.tag(List.of(tag), Arrays.asList(objects));
-            if (!success) dossier.scribbler.logger.error("Failed to tag objects {} with tag {}", Arrays.toString(objects), tag);
+            if (!success) this.dossier.scribbler.logger.error("Failed to tag objects {} with tag {}", Arrays.toString(objects), tag);
         }
 
         public boolean tag(List<AmyMialibTaglike> taglikes, List<AmyMialibTaggable> objects) {
@@ -57,11 +57,11 @@ public interface DossierTags extends DossierLanyard {
             for (var targetTag : targetTags) {
                 var targetRegistry = targetTag.registry();
                 for (var key : keys) if (targetRegistry == key.registryKey()) {
-                    tag(targetTag).add(key);
+                    this.tag(targetTag).add(key);
                     anyAdded = true;
                 }
                 for (var tag : tags) if (targetRegistry == tag.registry()) {
-                    tag(targetTag).addTag(tag);
+                    this.tag(targetTag).addTag(tag);
                     anyAdded = true;
                 }
             }

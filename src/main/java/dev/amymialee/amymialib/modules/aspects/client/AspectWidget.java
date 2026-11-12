@@ -35,7 +35,7 @@ public class AspectWidget implements Renderable {
         this.aspect = aspect;
         var title = Language.getInstance().has(this.aspect.nameKey) ? aspect.name : Component.literal(aspect.id.getPath());
         this.title = new StringWidget(0, -8, title.amy$width(), 9, title, screen.getFont()).setMaxWidth(120, StringWidget.TextOverflow.SCROLLING);
-        this.description = new ArrayList<>(Language.getInstance().getVisualOrder(this.findOptimalLines(ComponentUtils.mergeStyles(aspect.description, Style.EMPTY.withColor(TextColor.GRAY)), 115)));
+        this.description = new ArrayList<>(Language.getInstance().getVisualOrder(AspectWidget.findOptimalLines(ComponentUtils.mergeStyles(aspect.description, Style.EMPTY.withColor(TextColor.GRAY)), 115)));
         if (!this.description.isEmpty()) this.description.removeLast();
     }
 
@@ -50,7 +50,7 @@ public class AspectWidget implements Renderable {
         this.aspect.onDrag(xProgress);
     }
 
-    public void extractHover(final GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
+    public void extractHover(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         var centerY = this.shape.y + this.shape.height / 2;
         if (!this.description.isEmpty() && Language.getInstance().has(this.aspect.descriptionKey)) {
             AspectEditorScreen.border(graphics, this.shape.x + 2, centerY + 8, this.shape.width - 4, (int) (11 + this.description.size() * 8.25f), Mth.hsvToArgb(.82f, .61f, 1f, 255));
@@ -80,11 +80,11 @@ public class AspectWidget implements Renderable {
                 this.screen.aspects.hovered == this, delta);
     }
 
-    private void extractMultilineText(final GuiGraphicsExtractor graphics, final List<FormattedCharSequence> lines, final int x, final int y, final int color) {
+    private void extractMultilineText(GuiGraphicsExtractor graphics, List<FormattedCharSequence> lines, int x, int y, int color) {
         for (var i = 0; i < lines.size(); i++) graphics.text(this.screen.getFont(), lines.get(i), x, y + i * 11, color);
     }
 
-    private List<FormattedText> findOptimalLines(final Component input, final int preferredWidth) {
+    private static List<FormattedText> findOptimalLines(Component input, int preferredWidth) {
         var splitter = Minecraft.getInstance().font.getSplitter();
         List<FormattedText> bestSplit = List.of(input);
         var bestDistance = Float.MAX_VALUE;
@@ -100,7 +100,7 @@ public class AspectWidget implements Renderable {
         return bestSplit;
     }
 
-    private static float getMaxWidth(final StringSplitter splitter, final List<FormattedText> input) {
+    private static float getMaxWidth(StringSplitter splitter, List<FormattedText> input) {
         return (float) input.stream().mapToDouble(splitter::stringWidth).max().orElse(0.0);
     }
 
