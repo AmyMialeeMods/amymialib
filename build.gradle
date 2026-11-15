@@ -5,13 +5,6 @@ plugins {
 
 repositories {
     maven { url "https://maven.uuid.gg/releases" }
-}
-
-dependencies {
-    implementation include ("dev.upcraft.datasync:${project.datasync_version}")
-}
-
-repositories {
     maven { url "https://maven.terraformersmc.com/releases/" }
 }
 
@@ -20,9 +13,12 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:+"
     implementation "net.fabricmc.fabric-api:fabric-api:+"
     implementation "com.terraformersmc:modmenu:${project.modmenu_version}"
-    implementation include ("org.reflections:reflections:+")
+
     implementation include ("org.javassist:javassist:+")
+    implementation include ("org.reflections:reflections:+")
     implementation include ("org.apache.commons:commons-text:+")
+    implementation include ("org.apache.commons:commons-collections4:+")
+    implementation include ("dev.upcraft.datasync:${project.datasync_version}")
 }
 
 version = project.mod_version
@@ -37,17 +33,20 @@ tasks.withType(JavaCompile).configureEach {
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(project.java_version)
+    withSourcesJar()
 }
 
 loom {
     accessWidenerPath = file("src/main/resources/${project.mod_id}.classtweaker")
 }
 
-configurations.configureEach { resolutionStrategy { componentSelection { all { ComponentSelection selection ->
-    if (selection.candidate.module == 'fabric-api' && !selection.candidate.version.endsWith('+' + project.minecraft_version)) {
-        selection.reject("Wrong version, needed ${project.minecraft_version}")
+configurations.configureEach { resolutionStrategy { componentSelection {
+    withModule('net.fabricmc.fabric-api:fabric-api') { ComponentSelection selection ->
+        if (!selection.candidate.version.endsWith('+' + project.minecraft_version)) {
+            selection.reject("Version ${selection.candidate.version} does not end with +26.3")
+        }
     }
-}}}}
+}}}
 
 fabricApi {
     configureDataGeneration {

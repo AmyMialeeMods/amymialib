@@ -5,12 +5,28 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import dev.amymialee.amymialib.AmyMialib;
+import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleClientInit;
+import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleInit;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
 import java.io.IOException;
 import java.nio.file.Files;
 
 public interface AspectFileManager {
     Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    @ScribbleInit
+    static void init() {
+        ServerLifecycleEvents.SERVER_STARTED.register(s -> AspectFileManager.loadAll());
+    }
+
+    @ScribbleClientInit @Environment(EnvType.CLIENT)
+    static void clientInit() {
+        ClientLifecycleEvents.CLIENT_STARTED.register(c -> AspectFileManager.loadAll());
+    }
 
     static void saveAll() {
         AspectManager.ASPECTS.values().forEach(AspectFileManager::save);
