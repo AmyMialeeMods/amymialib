@@ -5,13 +5,16 @@ import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
 import dev.amymialee.amymialib.modules.scribbler.helpers.BlockBatch;
 import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider;
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.minecraft.client.color.item.ItemTintSource;
 import net.minecraft.client.data.models.BlockModelGenerators;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
 import net.minecraft.client.data.models.blockstates.PropertyDispatch;
 import net.minecraft.client.data.models.model.*;
+import net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperty;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import org.jspecify.annotations.NonNull;
@@ -62,6 +65,15 @@ public interface DossierModels {
 
         public TextureMapping getMapping(Block block) {
             return this.TEXTURED_MODELS.getOrDefault(block, TexturedModel.CUBE.get(block)).getMapping();
+        }
+
+        public void generateTwoLayerDyedItem(Item item, String overlayTextureSuffix, String dyedModelSuffix, ConditionalItemModelProperty condition, ItemTintSource source) {
+            var baseLayer = TextureMapping.getItemTexture(item);
+            var tintedLayer = TextureMapping.getItemTexture(item, "_" + overlayTextureSuffix);
+            var plainModel = ModelTemplates.FLAT_ITEM.create(item, TextureMapping.layer0(baseLayer), this.items.modelOutput);
+            var dyedModel = ModelLocationUtils.getModelLocation(item, "_" + dyedModelSuffix);
+            ModelTemplates.TWO_LAYERED_ITEM.create(dyedModel, TextureMapping.layered(baseLayer, tintedLayer), this.items.modelOutput);
+            this.items.itemModelOutput.accept(item, ItemModelUtils.conditional(condition, ItemModelUtils.tintedModel(dyedModel, ItemModelUtils.constantTint(-1), source), ItemModelUtils.plainModel(plainModel)));
         }
 
         public void generateBatch(BlockBatch batch) {

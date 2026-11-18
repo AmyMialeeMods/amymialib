@@ -1,7 +1,6 @@
 package dev.amymialee.amymialib.modules.scribbler;
 
 import com.mojang.datafixers.util.Pair;
-import dev.amymialee.amymialib.AmyMialib;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.HashSet;
@@ -54,7 +53,7 @@ public final class AutoQueue {
         var error = ran ? "AutoQueue found new auto tasks after completion, make sure to run auto() in ModInitializer.onInitialize!" :
                 locked ? "AutoQueue found new auto tasks while running, make sure to run auto() in ModInitializer.onInitialize!" : "";
         if (error.isEmpty()) return;
-        AmyMialib.LOGGER.error(error);
+        scribbler.logger.error(error);
         throw new RuntimeException(error, null, true, false) {};
     }
 

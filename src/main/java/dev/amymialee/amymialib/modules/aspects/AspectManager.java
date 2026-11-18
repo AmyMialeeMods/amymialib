@@ -39,7 +39,7 @@ public @SuppressWarnings({"rawtypes", "unchecked"}) class AspectManager {
                 aspect.loadFromFile(data);
             }
         } catch (Exception e) {
-            AmyMialib.LOGGER.error("Failed to receive aspect {} from server", id, e);
+            AmyMialib.SCRIBBLER.logger.error("Failed to receive aspect {} from server", id, e);
         }
     }
 
@@ -60,7 +60,7 @@ public @SuppressWarnings({"rawtypes", "unchecked"}) class AspectManager {
             }
             if (aspect.value != data) aspect.set(context.server(), data);
         } catch (Exception e) {
-            AmyMialib.LOGGER.error("Failed to receive aspect {} from {}", id, context.player().getGameProfile().name(), e);
+            AmyMialib.SCRIBBLER.logger.error("Failed to receive aspect {} from {}", id, context.player().getGameProfile().name(), e);
         }
     }
 

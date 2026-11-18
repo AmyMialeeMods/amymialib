@@ -43,7 +43,7 @@ loom {
 configurations.configureEach { resolutionStrategy { componentSelection {
     withModule('net.fabricmc.fabric-api:fabric-api') { ComponentSelection selection ->
         if (!selection.candidate.version.endsWith('+' + project.minecraft_version)) {
-            selection.reject("Version ${selection.candidate.version} does not end with +26.3")
+            selection.reject("Version ${selection.candidate.version} does not end with +${project.minecraft_version}")
         }
     }
 }}}

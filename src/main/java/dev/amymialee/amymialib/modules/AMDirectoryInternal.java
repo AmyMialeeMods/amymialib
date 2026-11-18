@@ -33,7 +33,7 @@ public interface AMDirectoryInternal {
 
         public MDirImpl() {
             if (AMDirectoryInternal.AMYMIALIB_DIRECTORY_OVERRIDE != null) {
-                AmyMialib.LOGGER.info("amymialib directory overridden, setting to {}", AMDirectoryInternal.AMYMIALIB_DIRECTORY_OVERRIDE);
+                AmyMialib.SCRIBBLER.logger.info("amymialib directory overridden, setting to {}", AMDirectoryInternal.AMYMIALIB_DIRECTORY_OVERRIDE);
                 this.path = Paths.get(AMDirectoryInternal.AMYMIALIB_DIRECTORY_OVERRIDE);
                 return;
             }
@@ -43,7 +43,7 @@ public interface AMDirectoryInternal {
                 case WINDOWS -> {
                     var appData = System.getenv("AppData");
                     if (appData == null) {
-                        AmyMialib.LOGGER.warn("No value for AppData env var even though we're on windows, falling back to {}", fallback);
+                        AmyMialib.SCRIBBLER.logger.warn("No value for AppData env var even though we're on windows, falling back to {}", fallback);
                         yield fallback;
                     }
                     yield Path.of(appData, ".amymialib");
@@ -53,14 +53,14 @@ public interface AMDirectoryInternal {
                     var xdgData = System.getenv("XDG_DATA_HOME");
                     var localShare = Path.of(userHome, ".local", "share", "amymialib");
                     if (xdgData == null) {
-                        AmyMialib.LOGGER.warn("No value for XDG_DATA_HOME, falling back to {}", localShare);
+                        AmyMialib.SCRIBBLER.logger.warn("No value for XDG_DATA_HOME, falling back to {}", localShare);
                         yield localShare;
                     }
                     yield Path.of(xdgData, "amymialib");
                 }
                 case UNKNOWN, SOLARIS -> fallback;
             };
-            AmyMialib.LOGGER.info("Set AmyMialib directory to {}", this.path);
+            AmyMialib.SCRIBBLER.logger.info("Set AmyMialib directory to {}", this.path);
         }
     }
 }

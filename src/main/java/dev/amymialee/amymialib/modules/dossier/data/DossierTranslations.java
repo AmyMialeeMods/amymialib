@@ -1,6 +1,5 @@
 package dev.amymialee.amymialib.modules.dossier.data;
 
-import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.modules.aspects.Aspect;
 import dev.amymialee.amymialib.modules.aspects.AspectCategory;
 import dev.amymialee.amymialib.modules.aspects.AspectLink;
@@ -30,6 +29,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Util;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.SoundType;
 import org.apache.commons.text.WordUtils;
@@ -41,21 +41,21 @@ import java.util.concurrent.CompletableFuture;
 
 @FunctionalInterface
 public interface DossierTranslations extends DossierLanyard {
-    Event<TryTranslate> TRY_TRANSLATE = EventFactory.createArrayBacked(TryTranslate.class, (listeners) -> (lookup, builder, object, args) -> {
+    Event<TryTranslate> TRY_TRANSLATE = EventFactory.createArrayBacked(TryTranslate.class, (listeners) -> (scribbler, lookup, builder, object, args) -> {
         for (var event : listeners)
             try {
-                if (event.translate(lookup, builder, object, args)) return true;
+                if (event.translate(scribbler, lookup, builder, object, args)) return true;
             } catch (Exception e) {
-                AmyMialib.LOGGER.error("Error while translating {}", object, e);
+                scribbler.logger.error("Error while translating {}", object, e);
             }
         return false;
     });
-    Event<TryTranslateKey> TRY_TRANSLATE_KEY = EventFactory.createArrayBacked(TryTranslateKey.class, (listeners) -> (lookup, builder, object, args) -> {
+    Event<TryTranslateKey> TRY_TRANSLATE_KEY = EventFactory.createArrayBacked(TryTranslateKey.class, (listeners) -> (scribbler, lookup, builder, object, args) -> {
         for (var event : listeners)
             try {
-                event.translate(lookup, builder, object, args);
+                event.translate(scribbler, lookup, builder, object, args);
             } catch (Exception e) {
-                AmyMialib.LOGGER.error("Error while translating {}", object, e);
+                scribbler.logger.error("Error while translating {}", object, e);
             }
     });
 
@@ -108,20 +108,20 @@ public interface DossierTranslations extends DossierLanyard {
                     for (var decipher : f.getAnnotationsByType(Decipher.class)) this.dossier.scribbler.dossierData.add((DossierTranslations) (provider, lookup, builder) -> {
                         var translateTarget = field;
                         if (translateTarget instanceof Holder.Reference<?> holder) translateTarget = holder.value();
-                        if (DossierTranslations.TRY_TRANSLATE.invoker().translate(lookup, builder, translateTarget, decipher.value())) return;
+                        if (DossierTranslations.TRY_TRANSLATE.invoker().translate(this.dossier.scribbler, lookup, builder, translateTarget, decipher.value())) return;
                         if (translateTarget instanceof AmyMialibTaggable taggable) {
                             for (var tag : taggable.amy$tags())
                                 try {
                                     builder.add(tag.getTranslationKey(), decipher.value()[0]);
                                 } catch (Exception e) {
-                                    AmyMialib.LOGGER.error("Error while translating tag {}", tag, e);
+                                    this.dossier.scribbler.logger.error("Error while translating tag {}", tag, e);
                                 }
                             for (var key : taggable.amy$keys()) {
-                                DossierTranslations.TRY_TRANSLATE_KEY.invoker().translate(lookup, builder, key, decipher.value());
+                                DossierTranslations.TRY_TRANSLATE_KEY.invoker().translate(this.dossier.scribbler, lookup, builder, key, decipher.value());
                                 try {
                                     builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), decipher.value()[0]);
                                 } catch (Exception e) {
-                                    AmyMialib.LOGGER.error("Error while translating resource key {}", key, e);
+                                    this.dossier.scribbler.logger.error("Error while translating resource key {}", key, e);
                                 }
                             }
                         }
@@ -158,21 +158,21 @@ public interface DossierTranslations extends DossierLanyard {
 
     @ScribbleInit
     static void init() {
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof String s) {
                 builder.add(s, args[0]);
                 return true;
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof Scribbler s) {
                 builder.add(s.id(s.namespace).toLanguageKey(), args[0]);
                 return true;
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof EntityType<?> entityType) {
                 builder.add(entityType, args[0]);
                 Optional.ofNullable(entityType.amy$asItem()).ifPresent(e -> builder.add(e, "%s %s".formatted(args[0], "Spawn Egg")));
@@ -180,7 +180,7 @@ public interface DossierTranslations extends DossierLanyard {
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof DiscHelper(var item, var key, var song, var lengthInSeconds, var comparatorOutput)) {
                 builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()), args[0]);
                 var itemKey = item.builtInRegistryHolder().key();
@@ -189,7 +189,7 @@ public interface DossierTranslations extends DossierLanyard {
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof BannerHelper(var item, var tag, var key)) {
                 builder.add(Util.makeDescriptionId("tag.%s".formatted(tag.registry().identifier().getPath()), tag.location()), "%s Banner Patterns".formatted(args[0]));
                 for (var dye : DyeColor.values()) builder.add("block.%s.banner.%s.%s".formatted(key.identifier().getNamespace(), key.identifier().getPath(), dye.getName()), "%s %s".formatted(WordUtils.capitalize(dye.getName().replace('_', ' ')), args[0]));
@@ -199,7 +199,7 @@ public interface DossierTranslations extends DossierLanyard {
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof BlockBatch batch) {
                 batch.forEach((v, b) -> {
                     var key = batch.get(v).builtInRegistryHolder().key();
@@ -209,25 +209,25 @@ public interface DossierTranslations extends DossierLanyard {
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof SoundEvent sound) {
                 builder.add(Util.makeDescriptionId("subtitles", sound.location()), args[0]);
                 return true;
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof SoundType type) {
-                TRY_TRANSLATE.invoker().translate(lookup, builder, type.getBreakSound(), new String[]{args[0]});
-                TRY_TRANSLATE.invoker().translate(lookup, builder, type.getStepSound(), new String[]{args[1]});
-                TRY_TRANSLATE.invoker().translate(lookup, builder, type.getPlaceSound(), new String[]{args[2]});
-                TRY_TRANSLATE.invoker().translate(lookup, builder, type.getHitSound(), new String[]{args[3]});
-                TRY_TRANSLATE.invoker().translate(lookup, builder, type.getFallSound(), new String[]{args[4]});
+                TRY_TRANSLATE.invoker().translate(scribbler, lookup, builder, type.getBreakSound(), new String[]{args[0]});
+                TRY_TRANSLATE.invoker().translate(scribbler, lookup, builder, type.getStepSound(), new String[]{args[1]});
+                TRY_TRANSLATE.invoker().translate(scribbler, lookup, builder, type.getPlaceSound(), new String[]{args[2]});
+                TRY_TRANSLATE.invoker().translate(scribbler, lookup, builder, type.getHitSound(), new String[]{args[3]});
+                TRY_TRANSLATE.invoker().translate(scribbler, lookup, builder, type.getFallSound(), new String[]{args[4]});
                 return true;
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof Aspect<?> aspect) {
                 builder.add(aspect.nameKey, args[0]);
                 builder.add(aspect.descriptionKey, args[1]);
@@ -235,7 +235,7 @@ public interface DossierTranslations extends DossierLanyard {
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof AspectCategory aspect) {
                 builder.add(aspect.nameKey, args[0]);
                 builder.add(aspect.descriptionKey, args[1]);
@@ -243,7 +243,7 @@ public interface DossierTranslations extends DossierLanyard {
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof AspectLink aspect) {
                 builder.add(aspect.nameKey, args[0]);
                 builder.add(aspect.descriptionKey, args[1]);
@@ -251,40 +251,58 @@ public interface DossierTranslations extends DossierLanyard {
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof DataComponentType type) {
                 var id = BuiltInRegistries.DATA_COMPONENT_TYPE.getKey(type);
                 var key = BuiltInRegistries.DATA_COMPONENT_TYPE.get(id);
                 if (key.isPresent()) {
-                    TRY_TRANSLATE_KEY.invoker().translate(lookup, builder, key.get().key(), args);
+                    TRY_TRANSLATE_KEY.invoker().translate(scribbler, lookup, builder, key.get().key(), args);
                     return true;
                 }
             }
             return false;
         });
-        TRY_TRANSLATE.register((lookup, builder, object, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof Component component && component.getContents() instanceof TranslatableContents translatable) {
                 builder.add(translatable.getKey(), args[0]);
                 return true;
             }
             return false;
         });
-        TRY_TRANSLATE_KEY.register((lookup, builder, key, args) -> {
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
+            if (object instanceof CreativeModeTab tab) {
+                TRY_TRANSLATE.invoker().translate(scribbler, lookup, builder, tab.getDisplayName(), args);
+                return true;
+            }
+            return false;
+        });
+        TRY_TRANSLATE_KEY.register((scribbler, lookup, builder, key, args) -> {
             if (!key.registryKey().equals(Registries.DAMAGE_TYPE)) return;
             var deathMsg = "death.attack." + key.identifier().toShortLanguageKey();
             builder.add(deathMsg, args[1]);
             builder.add(deathMsg + ".player", args[2]); // victim, killer
             builder.add(deathMsg + ".item", args[3]); // victim, killer, item
         });
+        TRY_TRANSLATE_KEY.register((scribbler, lookup, builder, key, args) -> {
+            if (!key.registryKey().equals(Registries.ENCHANTMENT)) return;
+            if (args.length < 2) {
+                scribbler.logger.warn("Missing description for enchantment {}, be sure to include a second string describing the enchantment!", args[0]);
+            } else {
+                builder.add(Util.makeDescriptionId(key.registry().toShortLanguageKey(), key.identifier()) + ".desc", args[1]);
+            }
+        });
+        TRY_TRANSLATE_KEY.register((scribbler, lookup, builder, key, args) -> {
+            if (key.registryKey().equals(Registries.FLAT_LEVEL_GENERATOR_PRESET)) builder.add(key.identifier().toLanguageKey("flat_world_preset"), args[0]);
+        });
     }
 
     @FunctionalInterface
     interface TryTranslate {
-        boolean translate(HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder, Object object, String[] args);
+        boolean translate(Scribbler scribbler, HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder, Object object, String[] args);
     }
 
     @FunctionalInterface
     interface TryTranslateKey {
-        void translate(HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder, ResourceKey<?> object, String[] args);
+        void translate(Scribbler scribbler, HolderLookup.Provider lookup, FabricLanguageProvider.TranslationBuilder builder, ResourceKey<?> object, String[] args);
     }
 }

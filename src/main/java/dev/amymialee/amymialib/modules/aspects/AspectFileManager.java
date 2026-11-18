@@ -40,12 +40,12 @@ public interface AspectFileManager {
         try {
             Files.createDirectories(path.getParent());
         } catch (IOException e) {
-            AmyMialib.LOGGER.error("Couldn't write Aspect file for {}", aspect.id, e);
+            AmyMialib.SCRIBBLER.logger.error("Couldn't write Aspect file for {}", aspect.id, e);
         }
         try (var fileWriter = Files.newBufferedWriter(path)) {
             fileWriter.write(GSON.toJson(config));
         } catch (IOException e) {
-            AmyMialib.LOGGER.error("Couldn't write Aspect file for {}", aspect.id, e);
+            AmyMialib.SCRIBBLER.logger.error("Couldn't write Aspect file for {}", aspect.id, e);
         }
     }
 

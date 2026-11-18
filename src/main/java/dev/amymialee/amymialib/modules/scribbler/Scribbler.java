@@ -1,6 +1,7 @@
 package dev.amymialee.amymialib.modules.scribbler;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import dev.amymialee.amymialib.modules.aspects.Aspect;
 import dev.amymialee.amymialib.modules.aspects.AspectCategory;
 import dev.amymialee.amymialib.modules.aspects.AspectLink;
@@ -22,6 +23,7 @@ import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
@@ -39,6 +41,7 @@ import net.minecraft.server.jsonrpc.OutgoingRpcMethod;
 import net.minecraft.server.level.TicketType;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.stats.StatType;
+import net.minecraft.tags.FlatLevelGeneratorPresetTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Util;
@@ -72,6 +75,7 @@ import net.minecraft.world.item.equipment.ArmorMaterials;
 import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.trim.TrimMaterial;
 import net.minecraft.world.item.equipment.trim.TrimPattern;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BannerPattern;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -86,7 +90,11 @@ import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacerTy
 import net.minecraft.world.level.levelgen.feature.rootplacers.RootPlacerType;
 import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecoratorType;
 import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacerType;
+import net.minecraft.world.level.levelgen.flat.FlatLayerInfo;
+import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorPreset;
+import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 import net.minecraft.world.level.levelgen.heightproviders.HeightProviderType;
+import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceType;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElementType;
@@ -101,10 +109,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
+import java.util.stream.Collectors;
 
 public class Scribbler {
     private static final Map<Class<?>, Registry<?>> AUTO_REGISTRIES = new HashMap<>();
@@ -271,6 +277,20 @@ public class Scribbler {
     }
 
     /**
+     * DataComponentType registration.
+     */
+    public <T> DataComponentType<T> ofData(String name, Registry<DataComponentType<T>> registry, UnaryOperator<DataComponentType.Builder<T>> builderOperator) {
+        return this.of(name, registry, builderOperator.apply(DataComponentType.builder()).build());
+    }
+
+    /**
+     * MapCodec registration.
+     */
+    public <V, T extends V> MapCodec<T> ofMap(String name, Registry<MapCodec<T>> registry, MapCodec<T> thing) {
+        return Registry.register(registry, this.id(name), thing);
+    }
+
+    /**
      * Registers a simple banner pattern.
      */
     public BannerHelper bannerPattern(String path, Item.Properties properties) {
@@ -321,7 +341,7 @@ public class Scribbler {
         var translation = Component.translatable(Util.makeDescriptionId(key.registry().getPath(), key.identifier()));
         description.accept(translation);
         this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<TrimPattern>) entries.getLookup(key.registryKey()), key));
-        this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(Registries.TRIM_PATTERN, registerable -> registerable.register(key, new TrimPattern(key.identifier(), translation, decal))));
+        this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(key.registryKey(), registerable -> registerable.register(key, new TrimPattern(key.identifier(), translation, decal))));
         this.dossierData.add((DossierRecipes.Inverse) (provider, data) -> provider.trimSmithing(item, key, ResourceKey.create(Registries.RECIPE, itemKey.identifier().withSuffix("_smithing_trimming"))));
         this.translate(key, WordUtils.capitalize(path.replace('_', ' ')));
         return item;
@@ -336,6 +356,24 @@ public class Scribbler {
         var tool = new ToolMaterial(incorrectBlocksForDrops, toolDurability, speed, damageBonus, enchantValue, materials);
         var armor = new ArmorMaterial(armorDurabilityMultiplier, ArmorMaterials.makeDefense(bootDefence, legDefence, chestDefence, helmDefence, bodyDefence), enchantValue, equipSound, toughness, knockbackResistance, materials, this.key(EquipmentAssets.ROOT_ID, path));
         return new MaterialHelper(materials, tool, armor);
+    }
+
+    /**
+     * Adds a new flat preset.
+     */
+    public ResourceKey<FlatLevelGeneratorPreset> flatPreset(String path, ResourceKey<Item> icon, ResourceKey<Biome> biome, Set<ResourceKey<StructureSet>> structures, boolean decoration, boolean addLakes, FlatLayerInfo... layers) {
+        var key = ResourceKey.create(Registries.FLAT_LEVEL_GENERATOR_PRESET, this.id(path));
+        this.dossierData.add((DossierTags) (provider) -> provider.tag(FlatLevelGeneratorPresetTags.VISIBLE, key));
+        this.dossierData.add((DossierDynamic) (provider, entries) -> entries.add((HolderLookup.RegistryLookup<FlatLevelGeneratorPreset>) entries.getLookup(key.registryKey()), key));
+        this.dossierData.add((DossierRegistries) (registryBuilder) -> registryBuilder.add(key.registryKey(), registerable -> {
+            var structureSets = registerable.lookup(Registries.STRUCTURE_SET);
+            var generator = new FlatLevelGeneratorSettings(Optional.of(HolderSet.direct(structures.stream().map(structureSets::getOrThrow).collect(Collectors.toList()))), registerable.lookup(Registries.BIOME).getOrThrow(biome), FlatLevelGeneratorSettings.createLakesList(registerable.lookup(Registries.PLACED_FEATURE)));
+            if (decoration) generator.setDecoration();
+            if (addLakes) generator.setAddLakes();
+            for (var i = layers.length - 1; i >= 0; i--) generator.getLayersInfo().add(layers[i]);
+            registerable.register(key, new FlatLevelGeneratorPreset(registerable.lookup(Registries.ITEM).getOrThrow(icon), generator));
+        }));
+        return key;
     }
 
     /**
@@ -375,8 +413,29 @@ public class Scribbler {
     /**
      * Plain registration.
      */
-    public <T> T of(String path, Registry<T> registry, T thing) {
+    public <V, T extends V> T of(String path, Registry<V> registry, T thing) {
         return Registry.register(registry, ResourceKey.create(registry.key(), this.id(path)), thing);
+    }
+
+    /**
+     * Registers an object to the relevant registry if found within {@link AUTO_REGISTRIES}.<br>
+     * If no fitting registry is found, it will throw an exception.
+     * Returns a holder.
+     */
+    public @SuppressWarnings("unchecked") <T> Holder.Reference<T> holder(String path, T thing) {
+        for (var entry : AUTO_REGISTRIES.entrySet()) {
+            if (!entry.getKey().isInstance(thing)) continue;
+            var registry = (Registry<T>) entry.getValue();
+            return Registry.registerForHolder(registry, ResourceKey.create(registry.key(), this.id(path)), thing);
+        }
+        throw new IllegalStateException("Failed to register holder %s with the %s scribbler - no AUTO_REGISTRIES matched %s.".formatted(path, this.modName, thing.getClass().getName()));
+    }
+
+    /**
+     * Holder registration.
+     */
+    public <V, T extends V> Holder.Reference<T> holder(String path, Registry<V> registry, T thing) {
+        return Registry.registerForHolder(registry, ResourceKey.create(registry.key(), this.id(path)), thing);
     }
 
     /**

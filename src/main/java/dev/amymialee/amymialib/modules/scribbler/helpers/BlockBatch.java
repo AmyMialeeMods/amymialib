@@ -8,17 +8,16 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import net.minecraft.world.level.material.PushReaction;
+import org.apache.commons.lang3.function.TriFunction;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public class BlockBatch implements AmyMialibTaggable {
@@ -213,6 +212,50 @@ public class BlockBatch implements AmyMialibTaggable {
 
     public BlockBatch addButton(BlockSetType type, int ticksToStayPressed) {
         this.add(Variant.BUTTON, p -> new ButtonBlock(type, ticksToStayPressed, p), p -> p.noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
+        this.scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.BUTTONS, this.get(Variant.BUTTON)));
+        return this;
+    }
+
+    public BlockBatch addStairs(BiFunction<BlockState, BlockBehaviour.Properties, StairBlock> function) {
+        this.add(Variant.STAIRS, p -> function.apply(this.get().defaultBlockState(), p));
+        this.scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.STAIRS, this.get(Variant.STAIRS)));
+        return this;
+    }
+
+    public BlockBatch addSlab(Function<BlockBehaviour.Properties, SlabBlock> function) {
+        this.add(Variant.SLAB, function::apply);
+        this.scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.SLABS, this.get(Variant.SLAB)));
+        return this;
+    }
+
+    public BlockBatch addCarpet(Function<BlockBehaviour.Properties, CarpetBlock> function) {
+        return this.add(Variant.CARPET, function::apply, p -> p.strength(0.1F).pushReaction(PushReaction.POPPED));
+    }
+
+    public BlockBatch addWall(Function<BlockBehaviour.Properties, WallBlock> function) {
+        this.add(Variant.WALL, function::apply, BlockBehaviour.Properties::forceSolidOn);
+        this.scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.WALLS, this.get(Variant.WALL)));
+        return this;
+    }
+
+    public BlockBatch addPane(Function<BlockBehaviour.Properties, IronBarsBlock> function) {
+        return this.add(Variant.PANE, function::apply, BlockBehaviour.Properties::noOcclusion);
+    }
+
+    public BlockBatch addFence(Function<BlockBehaviour.Properties, FenceBlock> function) {
+        return this.add(Variant.FENCE, function::apply);
+    }
+
+    public BlockBatch addFenceGate(WoodType type, BiFunction<WoodType, BlockBehaviour.Properties, FenceGateBlock> function) {
+        return this.add(Variant.FENCE_GATE, p -> function.apply(type, p), BlockBehaviour.Properties::forceSolidOn);
+    }
+
+    public BlockBatch addPressurePlate(BlockSetType type, BiFunction<BlockSetType, BlockBehaviour.Properties, PressurePlateBlock> function) {
+        return this.add(Variant.PRESSURE_PLATE, p -> function.apply(type, p), p -> p.forceSolidOn().noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
+    }
+
+    public BlockBatch addButton(BlockSetType type, int ticksToStayPressed, TriFunction<BlockSetType, Integer, BlockBehaviour.Properties, ButtonBlock> function) {
+        this.add(Variant.BUTTON, p -> function.apply(type, ticksToStayPressed, p), p -> p.noCollision().strength(0.5F).pushReaction(PushReaction.POPPED));
         this.scribbler.dossierData.add((DossierTags) p -> p.tag(BlockTags.BUTTONS, this.get(Variant.BUTTON)));
         return this;
     }

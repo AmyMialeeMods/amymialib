@@ -3,8 +3,8 @@ package dev.amymialee.amymialib.modules.aspects;
 import com.mojang.brigadier.arguments.*;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.serialization.Codec;
-import dev.amymialee.amymialib.AmyMialib;
 import dev.amymialee.amymialib.modules.AMEnvironmentType;
+import dev.amymialee.amymialib.modules.scribbler.auto.Decipher;
 import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleInit;
 import io.netty.buffer.ByteBuf;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -60,9 +60,12 @@ public class AspectType<T> {
         }
     }
 
-    public static final String COMMAND_FAIL = AmyMialib.SCRIBBLER.translate("commands.amymialib.aspect.fail", "Failed to set aspect %s");
-    public static final String COMMAND_SET = AmyMialib.SCRIBBLER.translate("commands.amymialib.aspect.set", "Set aspect %s to %s");
-    public static final String COMMAND_QUERY = AmyMialib.SCRIBBLER.translate("commands.amymialib.aspect.query", "Aspect %s is currently set to %s");
+    @Decipher("Failed to set aspect %s")
+    public static final String COMMAND_FAIL = "commands.amymialib.aspect.fail";
+    @Decipher("Set aspect %s to %s")
+    public static final String COMMAND_SET = "commands.amymialib.aspect.set";
+    @Decipher("Aspect %s is currently set to %s")
+    public static final String COMMAND_QUERY = "commands.amymialib.aspect.query";
 
     private void registerServerCommand(Aspect<T> aspect) {
         CommandRegistrationCallback.EVENT.register((dispatcher, access, environment) -> dispatcher.register(Commands.literal("aspect").requires(s -> s.permissions().hasPermission(aspect.permission))

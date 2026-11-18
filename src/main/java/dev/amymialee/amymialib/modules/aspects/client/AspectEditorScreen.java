@@ -2,6 +2,7 @@ package dev.amymialee.amymialib.modules.aspects.client;
 
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import dev.amymialee.amymialib.AmyMialib;
+import dev.amymialee.amymialib.modules.scribbler.auto.Decipher;
 import dev.amymialee.amymialib.modules.scribbler.auto.ScribbleInit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -22,7 +23,8 @@ import java.awt.*;
 
 @ScribbleInit
 public class AspectEditorScreen extends Screen {
-    public static final Component ASPECTS_SCREEN = Component.translatable(AmyMialib.SCRIBBLER.translate(AmyMialib.id("aspects.screen").toShortLanguageKey(), "Aspect Editor"));
+    @Decipher("Aspect Editor")
+    public static final Component ASPECTS_SCREEN = Component.translatable(AmyMialib.id("aspects.screen").toShortLanguageKey());
     public static final Identifier FILL = AmyMialib.id("aspects/fill");
     public static final Identifier BORDER = AmyMialib.id("aspects/border");
     public static final Identifier THIN = AmyMialib.id("aspects/thin");
