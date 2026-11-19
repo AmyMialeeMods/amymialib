@@ -28,6 +28,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Util;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.DyeColor;
@@ -272,6 +273,13 @@ public interface DossierTranslations extends DossierLanyard {
         TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof CreativeModeTab tab) {
                 TRY_TRANSLATE.invoker().translate(scribbler, lookup, builder, tab.getDisplayName(), args);
+                return true;
+            }
+            return false;
+        });
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
+            if (object instanceof MobEffect effect) {
+                builder.add(effect.getDescriptionId(), args[0]);
                 return true;
             }
             return false;
