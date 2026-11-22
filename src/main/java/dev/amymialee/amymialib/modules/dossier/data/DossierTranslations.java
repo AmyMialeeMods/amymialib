@@ -6,6 +6,7 @@ import dev.amymialee.amymialib.modules.aspects.AspectLink;
 import dev.amymialee.amymialib.modules.dossier.Dossier;
 import dev.amymialee.amymialib.modules.dossier.DossierLanyard;
 import dev.amymialee.amymialib.modules.iinterfaces.AmyMialibTaggable;
+import dev.amymialee.amymialib.modules.interfaces.AmyMialibSimpleCommandExceptionType;
 import dev.amymialee.amymialib.modules.scribbler.AutoQueue;
 import dev.amymialee.amymialib.modules.scribbler.AutoScanner;
 import dev.amymialee.amymialib.modules.scribbler.Scribbler;
@@ -265,6 +266,20 @@ public interface DossierTranslations extends DossierLanyard {
         });
         TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
             if (object instanceof Component component && component.getContents() instanceof TranslatableContents translatable) {
+                TRY_TRANSLATE.invoker().translate(scribbler, lookup, builder, translatable, args);
+                return true;
+            }
+            return false;
+        });
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
+            if (object instanceof AmyMialibSimpleCommandExceptionType type && type.amymialib$getMessage() instanceof Component component) {
+                TRY_TRANSLATE.invoker().translate(scribbler, lookup, builder, component, args);
+                return true;
+            }
+            return false;
+        });
+        TRY_TRANSLATE.register((scribbler, lookup, builder, object, args) -> {
+            if (object instanceof TranslatableContents translatable) {
                 builder.add(translatable.getKey(), args[0]);
                 return true;
             }
